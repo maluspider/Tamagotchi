@@ -1,0 +1,10 @@
+[
+  {"id": "rs_3_001", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Fahrrad", "Farhrad", "Fahrad"], "richtig": 0},
+  {"id": "rs_3_002", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Strasse", "Straase", "Strase"], "richtig": 0},
+  {"id": "rs_3_003", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort gehoert zur Wortfamilie von 'fahren'?", "antworten": ["Fahrer", "Fehler", "Feuer"], "richtig": 0},
+  {"id": "rs_3_004", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Kinder", "Kindar", "Kindr"], "richtig": 0},
+  {"id": "rs_3_005", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort gehoert zur Wortfamilie von 'spielen'?", "antworten": ["Spielzeug", "Spinne", "Speise"], "richtig": 0},
+  {"id": "rs_3_006", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Wasser", "Vasser", "Wasa"], "richtig": 0},
+  {"id": "rs_3_007", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Schmetterling", "Schmeterling", "Schmetterlin"], "richtig": 0},
+  {"id": "rs_3_008", "fach": "rechtschreibung", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort gehoert zur Wortfamilie von 'lesen'?", "antworten": ["Leser", "Laster", "Lachen"], "richtig": 0}
+]

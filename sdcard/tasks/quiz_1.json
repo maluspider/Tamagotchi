@@ -1,0 +1,10 @@
+[
+  {"id": "quiz_1_001", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Farbe hat eine Banane?", "antworten": ["Gelb", "Blau", "Rot"], "richtig": 0},
+  {"id": "quiz_1_002", "fach": "quiz", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie viele Beine hat eine Spinne?", "antworten": ["6", "8", "10"], "richtig": 1},
+  {"id": "quiz_1_003", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Tier sagt 'Muh'?", "antworten": ["Katze", "Kuh", "Hund"], "richtig": 1},
+  {"id": "quiz_1_004", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Form hat ein Ball?", "antworten": ["Rund", "Eckig", "Spitz"], "richtig": 0},
+  {"id": "quiz_1_005", "fach": "quiz", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welche Farbe entsteht aus Blau und Gelb?", "antworten": ["Gruen", "Rot", "Lila"], "richtig": 0},
+  {"id": "quiz_1_006", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Ecken hat ein Dreieck?", "antworten": ["3", "4", "5"], "richtig": 0},
+  {"id": "quiz_1_007", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Tier hat einen langen Ruessel?", "antworten": ["Loewe", "Elefant", "Affe"], "richtig": 1},
+  {"id": "quiz_1_008", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Farbe hat der Himmel an einem klaren Tag?", "antworten": ["Gruen", "Blau", "Braun"], "richtig": 1}
+]

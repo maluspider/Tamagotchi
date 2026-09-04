@@ -74,7 +74,7 @@ BOOT
 
 Jeder Screen als eigene Klasse mit `update()`/`draw()`, zentrale State-Machine im Hauptloop schaltet zwischen Screens um. Charakter-Engine, Aufgaben-Engine und Spielzeitkonto sind eigenständige Module, die von mehreren Screens genutzt werden (nicht an einen Screen gebunden).
 
-**Klarstellung (Stand nach Phase 1):** Implementiert sind `BootScreen` → `ProfileSetupScreen` (nur beim allerersten Start, legt `profile.json` an) → `HomeScreen` mit einer unteren Icon-Leiste zu `TaskScreen` (Aufgaben-Modus, nur Mathe), `SnakeScreen` (erstes Spiel, ab Stufe "Baby" und nur mit Spielzeitguthaben erreichbar) und `ClockScreen` (Uhr/Wecker). `AlarmService` prüft screen-unabhängig aus `main.cpp::loop()`, ob der Wecker gerade auslösen soll. Restliche Fächer, Spaced Repetition, die übrigen 8 Spiele, Alltagsfunktionen-Menü und Eltern-PIN-geschützte Einstellungen folgen in den Phasen 2–4 (Abschnitt 14).
+**Klarstellung (Stand nach Phase 2):** Implementiert sind `BootScreen` → `ProfileSetupScreen` (nur beim allerersten Start, legt `profile.json` an) → `HomeScreen` mit einer unteren Icon-Leiste zu `SubjectSelectScreen` (Fach-Auswahl: Mathe/Rechtschreibung/Französisch[nur Klasse 3]/Quiz/Gedächtnis), `SnakeScreen` (ab Stufe "Baby" und nur mit Spielzeitguthaben erreichbar) und `ClockScreen` (Uhr/Wecker). `TaskScreen` bedient alle vier Multiple-Choice-Fächer über `TaskEngine` inkl. Spaced Repetition (`SpacedRepetitionStore`, Leitner-5-Boxen) und Schwierigkeitsanstieg (`DifficultyTracker`, Abschnitt 8.4). `GedaechtnisScreen` implementiert Gedächtnistraining als Karten-Memory (1. Klasse) bzw. Sequenz-Merkspiel (3. Klasse). `AlarmService` prüft screen-unabhängig aus `main.cpp::loop()`, ob der Wecker gerade auslösen soll. Die übrigen 8 Spiele, das Alltagsfunktionen-Menü und Eltern-PIN-geschützte Einstellungen folgen in den Phasen 3–4 (Abschnitt 14).
 
 **Review (State-Machine-Sicherheit):** Ein Screen kann nicht direkt `switchTo()` aus seiner eigenen `update()`-Methode heraus sicher aufrufen, weil dabei das eigene Objekt zerstört würde, während sein Code noch auf dem Aufruf-Stack liegt (Use-after-free). Die `StateMachine` bietet deshalb zwei Methoden: `switchTo()` für den einmaligen Erststart aus `main.cpp` heraus, und `requestSwitch()` für den sicheren, verzögerten Wechsel aus einem laufenden Screen heraus (wird erst zu Beginn des nächsten `update()`-Aufrufs angewendet).
 
@@ -172,6 +172,8 @@ Aufgabenpools als separate JSON-Dateien pro Fach/Klasse auf der SD-Karte (`/task
 
 Richtig beantwortet → eine Box aufsteigen. Falsch → zurück auf Box 1. Bei jeder Aufgaben-Session: fällige Items aus den Boxen zuerst, dazu 1–2 neue Items gemischt.
 
+**Klarstellung (Umsetzung, Phase 2):** Implementiert in `src/core/SpacedRepetitionStore.{h,cpp}`, ein Objekt pro Fach-Session, persistiert unter `/progress/aufgaben_<fach>.json` (Abschnitt 6/13). `TaskEngine::pickNextTask()` baut den Kandidatenkreis aus fälligen bekannten Items + bis zu 2 zufälligen neuen Items und filtert zusätzlich auf die aktuelle Schwierigkeitsstufe (8.4); ist der gefilterte Kreis leer (z. B. sehr kleiner Pool), fällt die Auswahl zunächst auf alle Items der aktuellen Stufe, notfalls auf den gesamten Pool zurück, statt keine Aufgabe mehr anzubieten.
+
 ### 8.4 Schwierigkeitsanstieg (Zeit **und** Trefferquote)
 
 - Rollierende Trefferquote der letzten 10 Aufgaben pro Fach wird getrackt
@@ -181,6 +183,8 @@ Richtig beantwortet → eine Box aufsteigen. Falsch → zurück auf Box 1. Bei j
 - Schwierigkeitsstufe wird bei Auswahl der nächsten Aufgabe aus dem Pool als Filter genutzt
 
 **Review (Präzedenz geklärt):** Die performance-basierte Anpassung und der monatliche Auto-Anstieg konnten sich bisher widersprechen – bei einem Kind mit Trefferquote < 50 % hätte der monatliche Anstieg die Schwierigkeit trotzdem nach oben ziehen können, gegen die Schutzregel für schwache Trefferquoten. **Entschieden:** Der monatliche Auto-Anstieg hebt ausschliesslich die **Obergrenze** (die maximal erreichbare Schwierigkeitsstufe der Klassenstufe), nie die aktuell wirksame Schwierigkeit direkt. Die tatsächlich verwendete Schwierigkeit bleibt weiterhin performance-gesteuert (85 %/50 %-Regel) und kann dadurch nie gegen eine aktuell gedrückte Schwierigkeit "gewinnen" – sie kann höchstens bis zur (jetzt höheren) Obergrenze steigen, wenn die Trefferquote das hergibt.
+
+**Klarstellung (Umsetzung, Phase 2):** Implementiert in `src/core/DifficultyTracker.{h,cpp}`, ein `DifficultyState` je Fach (persistiert in `progress.json` unter `statistik.schwierigkeit.<fach>`, Abschnitt 6). Die rollierende Trefferquote selbst (die letzten bis zu 10 Antworten) wird bewusst NICHT persistiert – nach einem Neustart beginnt das Fenster leer, was für ein Gerät, das selten mitten am Tag neu startet, unkritisch ist und eine unhandliche Array-Serialisierung erspart. Mindestens 5 Antworten werden gesammelt, bevor die 85 %/50 %-Regel überhaupt greift (zu wenige Datenpunkte sonst zu verrauscht). Der monatliche Auto-Anstieg (`applyMonthlyCeilingBump()`) wird bei jedem Betreten des Aufgaben-Modus geprüft und ist durch einen gespeicherten "letzter Monat"-Wert idempotent (löst pro Kalendermonat höchstens einmal aus).
 
 ## 9. Tamagotchi-Charaktersystem
 
@@ -275,7 +279,7 @@ Freischalt-Reihenfolge folgt dem Charaktersystem (Abschnitt 9) – hält Motivat
 | 4 | Erweiterte Alltagsfunktionen, Nachtmodus, Eltern-PIN, (idealerweise) erster OTA-Baustein |
 | 5 | Web-Interface für Sync/Content-Pflege, OTA-Updates spätestens hier vollständig |
 
-**Stand:** Phase 0 und ein erster Teil von Phase 1 sind im Code umgesetzt: State-Machine, Storage-Layer mit atomaren Schreibvorgängen, `BootScreen`, `ProfileSetupScreen` (Kind-Profil-Auswahl aus `include/KidProfiles.h`), `HomeScreen` mit Platzhalter-Charakter + Namen + Navigation, `TaskScreen`/`TaskEngine` (nur Mathe, ohne Spaced Repetition), `SnakeScreen`, `ClockScreen` + `AlarmService`. Offen aus Phase 1: die übrigen Fächer sind bereits in Abschnitt 8.1 beschrieben, aber ohne Content/Engine-Anbindung. Siehe `README.md` für den aktuellen Stand und Build-Anleitung.
+**Stand:** Phase 0, Phase 1 und Phase 2 sind im Code umgesetzt: State-Machine, Storage-Layer mit atomaren Schreibvorgängen, `BootScreen`, `ProfileSetupScreen` (Kind-Profil-Auswahl aus `include/KidProfiles.h`), `HomeScreen` mit Platzhalter-Charakter + Namen + Navigation, `SubjectSelectScreen`, `TaskScreen`/`TaskEngine` (alle vier Multiple-Choice-Fächer, mit Spaced Repetition und Schwierigkeitsanstieg), `GedaechtnisScreen` (Karten-Memory/Sequenz-Merkspiel), `SnakeScreen`, `ClockScreen` + `AlarmService`. Offen: die übrigen 8 Spiele (Phase 3), Alltagsfunktionen-Menü/Eltern-PIN-Einstellungen/Nachtmodus (Phase 4), Web-Interface/OTA (Phase 5). Siehe `README.md` für den aktuellen Stand und Build-Anleitung.
 
 ## 15. Review-Zusammenfassung
 
@@ -299,7 +303,8 @@ Weiterhin offen/nicht Teil des Reviews (Scope/Ressourcen-Hinweise ohne konkrete 
 
 ## 16. Kleinere offene Punkte für die Code-Phase
 
-- Genaue EP-Schwellen/Stufenwerte final festlegen (Vorschlagswerte oben als Startpunkt). EP pro richtig gelöster Aufgabe ist aktuell ebenfalls ein Platzhalter (`config::kXpPerCorrectAnswer = 15`).
+- Genaue EP-Schwellen/Stufenwerte final festlegen (Vorschlagswerte oben als Startpunkt). EP pro richtig gelöster Aufgabe ist aktuell ebenfalls ein Platzhalter (`config::kXpPerCorrectAnswer = 15`), ebenso die maximale Schwierigkeitsstufe (`config::kMaxDifficultyStage = 5`).
+- Aufgaben-Content ist aktuell Platzhalter-Content (je 8–10 Fragen pro Fach/Klasse unter `sdcard/tasks/`) zum Ausprobieren der Engine, nicht curriculumsgeprüfter Lehrplan-21/Passepartout-Stoff – Content-Pflege/-Erweiterung bleibt der grösste Zeitfaktor (siehe Abschnitt 10, Scope/Ressourcen-Hinweis).
 - Finale Sprite-Assets: selbst zeichnen, KI-generieren oder bestehende freie Assets im 90er-Stil anpassen?
 - Soll der Eltern-PIN pro Gerät gleich oder unterschiedlich sein? (Aktuell: identischer Default-PIN auf beiden Geräten, siehe `config::kDefaultParentalCode` – muss vor "produktivem" Einsatz in den Einstellungen geändert werden, sobald Abschnitt 11/Einstellungen in Phase 4 existiert.)
 - Gegner-KI-Schwierigkeit im Kampf-Modus und beim Fussball-Torwart: wie stark soll sie mit dem Charakterlevel mitwachsen?

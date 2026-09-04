@@ -3,10 +3,13 @@
 #include <Arduino.h>
 #include <cstdint>
 
+#include "../DifficultyTracker.h"
+#include "../Subject.h"
+
 // /progress.json - haeufig veraenderliche Fortschrittsdaten (Charakter,
-// Spielzeitkonto). Bewusst getrennt von profile.json (das sich selten
-// aendert) und von den Fach-spezifischen Aufgaben-Fortschrittsdateien, die
-// mit der Aufgaben-Engine in Phase 1/2 dazukommen - siehe
+// Spielzeitkonto, Schwierigkeitsstufen je Fach). Bewusst getrennt von
+// profile.json (das sich selten aendert) und von den Fach-spezifischen
+// Spaced-Repetition-Dateien (SpacedRepetitionStore) - siehe
 // docs/projektplan.md Abschnitt 6/13.
 //
 // "faehigkeiten"/"stufe" aus dem urspruenglichen Datenmodell (Abschnitt 6)
@@ -21,6 +24,12 @@ struct ProgressData {
     uint16_t earnedMinutesToday = 0;
     uint16_t spentMinutesToday = 0;
     String playtimeDateIso;
+
+    // Schwierigkeitsstufen je Fach (Abschnitt 8.4). Nur `stage`, `ceiling`
+    // und `lastCeilingBumpMonthIso` werden persistiert - die rollierende
+    // Trefferquote (DifficultyState::recent/...) bleibt bewusst
+    // In-Memory-only, siehe DifficultyTracker.h.
+    DifficultyState difficulty[kSubjectCount];
 
     bool isValid = false;
 };

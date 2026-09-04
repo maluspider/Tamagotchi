@@ -72,7 +72,7 @@ void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
     const int zone = x / zoneW;
 
     if (zone == 0) {
-        stateMachine_.requestSwitch(ScreenId::Task);
+        stateMachine_.requestSwitch(ScreenId::SubjectSelect);
         return;
     }
     if (zone == 1) {

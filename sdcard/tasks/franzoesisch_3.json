@@ -1,0 +1,10 @@
+[
+  {"id": "fr_3_001", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'bonjour'?", "antworten": ["Tschuess", "Hallo", "Danke"], "richtig": 1},
+  {"id": "fr_3_002", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'merci'?", "antworten": ["Bitte", "Danke", "Ja"], "richtig": 1},
+  {"id": "fr_3_003", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie sagt man 'eins' auf Franzoesisch?", "antworten": ["un", "deux", "trois"], "richtig": 0},
+  {"id": "fr_3_004", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'drei' auf Franzoesisch?", "antworten": ["deux", "trois", "quatre"], "richtig": 1},
+  {"id": "fr_3_005", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Was bedeutet 'rouge'?", "antworten": ["Blau", "Gruen", "Rot"], "richtig": 2},
+  {"id": "fr_3_006", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'bleu'?", "antworten": ["Blau", "Gelb", "Rot"], "richtig": 0},
+  {"id": "fr_3_007", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'Mutter' auf Franzoesisch?", "antworten": ["mere", "pere", "soeur"], "richtig": 0},
+  {"id": "fr_3_008", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'Vater' auf Franzoesisch?", "antworten": ["mere", "pere", "frere"], "richtig": 1}
+]

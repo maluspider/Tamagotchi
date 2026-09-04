@@ -19,6 +19,11 @@ String todayIso();
 // PlaytimeAccount nutzen das, statt die Rechnung zu duplizieren.
 long epochDayFromIso(const String& isoDate);
 
+// Kehrfunktion zu epochDayFromIso() - "YYYY-MM-DD" fuer eine gegebene
+// Tageszahl seit 1970-01-01. Wird fuer die Spaced-Repetition-
+// Terminberechnung benoetigt (SpacedRepetitionStore, Abschnitt 8.3).
+String isoFromEpochDay(long epochDay);
+
 long todayEpochDay();
 
 // Versucht, die RTC ueber NTP zu synchronisieren, falls WLAN verbunden ist.

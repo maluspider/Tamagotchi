@@ -20,6 +20,20 @@ long toEpochDay(int y, int m, int d) {
     return era * 146097 + static_cast<long>(doe) - 719468;
 }
 
+// Howard Hinnant's "civil_from_days" - Kehrfunktion zu toEpochDay().
+void civilFromEpochDay(long z, int& y, int& m, int& d) {
+    z += 719468;
+    const long era = (z >= 0 ? z : z - 146096) / 146097;
+    const unsigned doe = static_cast<unsigned>(z - era * 146097);
+    const unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    const long yr = static_cast<long>(yoe) + era * 400;
+    const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    const unsigned mp = (5 * doy + 2) / 153;
+    d = static_cast<int>(doy - (153 * mp + 2) / 5 + 1);
+    m = static_cast<int>(mp + (mp < 10 ? 3 : -9));
+    y = static_cast<int>(yr + (m <= 2 ? 1 : 0));
+}
+
 } // namespace
 
 String todayIso() {
@@ -38,6 +52,14 @@ long epochDayFromIso(const String& isoDate) {
     const int m = isoDate.substring(5, 7).toInt();
     const int d = isoDate.substring(8, 10).toInt();
     return toEpochDay(y, m, d);
+}
+
+String isoFromEpochDay(long epochDay) {
+    int y, m, d;
+    civilFromEpochDay(epochDay, y, m, d);
+    char buf[11];
+    snprintf(buf, sizeof(buf), "%04d-%02d-%02d", y, m, d);
+    return String(buf);
 }
 
 long todayEpochDay() {

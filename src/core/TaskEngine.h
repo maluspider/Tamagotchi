@@ -4,26 +4,37 @@
 #include <cstdint>
 #include <vector>
 
-// Aufgaben-Engine, Phase-1-Umfang: ein Fach (Mathe), ohne Spaced
-// Repetition/Schwierigkeitsfilter (kommt in Phase 2, Abschnitt 8.3/8.4) -
-// waehlt zufaellig (aber nicht zweimal hintereinander dieselbe) eine
-// Aufgabe aus dem klassen-passenden Pool. Siehe docs/projektplan.md
-// Abschnitt 8.
+#include "DifficultyTracker.h"
+#include "SpacedRepetitionStore.h"
+#include "Subject.h"
+
+// Aufgaben-Engine (docs/projektplan.md Abschnitt 8): laedt den
+// klassen-passenden Aufgabenpool eines Fachs von der SD-Karte und waehlt
+// die naechste Aufgabe unter Beruecksichtigung von Spaced Repetition
+// (Abschnitt 8.3: faellige Items zuerst, dazu 1-2 neue gemischt) und der
+// aktuellen Schwierigkeitsstufe des Fachs (Abschnitt 8.4: Filter auf
+// `schwierigkeit <= stage`).
 struct Task {
     String id;
     String frage;
     String antworten[4];
     uint8_t antwortenCount = 0;
     uint8_t richtig = 0; // Index in antworten[]
+    uint8_t schwierigkeit = 1;
 };
 
 class TaskEngine {
 public:
-    // Laedt /tasks/mathe_<klasse>.json von der SD-Karte (Abschnitt 13).
+    // Laedt /tasks/<fach>_<klasse>.json von der SD-Karte (Abschnitt 13).
     // Rueckgabe false, wenn die Datei fehlt, leer oder nicht lesbar ist.
-    bool loadMathePool(uint8_t klasse);
+    bool loadPool(Subject subject, uint8_t klasse);
 
-    bool pickRandomTask(Task& out);
+    // Waehlt die naechste Aufgabe: faellige, bereits bekannte Items zuerst,
+    // dazu bis zu zwei neue Items gemischt (Abschnitt 8.3), gefiltert auf
+    // die aktuelle Schwierigkeitsstufe (Abschnitt 8.4). Faellt auf den
+    // gesamten Pool zurueck, falls der gefilterte Kandidatenkreis leer ist.
+    bool pickNextTask(Task& out, const SpacedRepetitionStore& srs, const DifficultyState& difficulty,
+                       const String& todayIso);
 
     size_t poolSize() const { return pool_.size(); }
 

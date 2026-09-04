@@ -8,9 +8,11 @@
 #include "core/StateMachine.h"
 #include "screens/BootScreen.h"
 #include "screens/ClockScreen.h"
+#include "screens/GedaechtnisScreen.h"
 #include "screens/HomeScreen.h"
 #include "screens/ProfileSetupScreen.h"
 #include "screens/SnakeScreen.h"
+#include "screens/SubjectSelectScreen.h"
 #include "screens/TaskScreen.h"
 
 namespace {
@@ -34,8 +36,14 @@ void setup() {
     stateMachine.registerScreen(ScreenId::Home, [] {
         return std::make_unique<HomeScreen>(appContext, stateMachine);
     });
+    stateMachine.registerScreen(ScreenId::SubjectSelect, [] {
+        return std::make_unique<SubjectSelectScreen>(appContext, stateMachine);
+    });
     stateMachine.registerScreen(ScreenId::Task, [] {
         return std::make_unique<TaskScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::Memory, [] {
+        return std::make_unique<GedaechtnisScreen>(appContext, stateMachine);
     });
     stateMachine.registerScreen(ScreenId::Snake, [] {
         return std::make_unique<SnakeScreen>(appContext, stateMachine);

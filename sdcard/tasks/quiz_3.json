@@ -1,0 +1,10 @@
+[
+  {"id": "quiz_3_001", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Tage hat ein Jahr (normalerweise)?", "antworten": ["364", "365", "366"], "richtig": 1},
+  {"id": "quiz_3_002", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches ist das groesste Landtier der Erde?", "antworten": ["Nashorn", "Elefant", "Giraffe"], "richtig": 1},
+  {"id": "quiz_3_003", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "In welchem Land steht der Eiffelturm?", "antworten": ["Italien", "Frankreich", "Spanien"], "richtig": 1},
+  {"id": "quiz_3_004", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Was brauchen Pflanzen zum Wachsen (neben Wasser)?", "antworten": ["Licht", "Salz", "Zucker"], "richtig": 0},
+  {"id": "quiz_3_005", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Minuten hat eine Stunde?", "antworten": ["50", "60", "70"], "richtig": 1},
+  {"id": "quiz_3_006", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches ist die Hauptstadt der Schweiz?", "antworten": ["Zuerich", "Bern", "Basel"], "richtig": 1},
+  {"id": "quiz_3_007", "fach": "quiz", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Wie viele Buchstaben hat das deutsche Alphabet (ohne Umlaute)?", "antworten": ["24", "26", "28"], "richtig": 1},
+  {"id": "quiz_3_008", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Organ pumpt das Blut durch den Koerper?", "antworten": ["Lunge", "Herz", "Magen"], "richtig": 1}
+]

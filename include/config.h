@@ -28,6 +28,12 @@ constexpr uint8_t kSadAfterDaysInactive = 2;
 // Abschnitt 16 "offene Punkte" fuer die finale Balance.
 constexpr uint32_t kXpPerCorrectAnswer = 15;
 
+// --- Schwierigkeitsanstieg (Abschnitt 8.4) ---
+// Maximale Schwierigkeitsstufe, bis zu der der monatliche Auto-Anstieg die
+// Obergrenze je Fach anheben darf. Platzhalterwert wie die uebrigen
+// Balance-Zahlen - siehe Abschnitt 16.
+constexpr uint8_t kMaxDifficultyStage = 5;
+
 // --- Eltern-PIN (Abschnitt 6, Review: nie im Klartext gespeichert) ---
 // Muss ueber die Einstellungen (Phase 4) individuell gesetzt werden, sobald
 // diese existieren - siehe docs/projektplan.md Abschnitt 16.

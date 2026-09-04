@@ -10,5 +10,9 @@ void AppContext::persistProgress() const {
     data.spentMinutesToday = playtime.spentMinutesToday();
     data.playtimeDateIso = playtime.dateIso();
 
+    for (size_t i = 0; i < kSubjectCount; ++i) {
+        data.difficulty[i] = difficultyBySubject[i];
+    }
+
     progressstore::save(data);
 }

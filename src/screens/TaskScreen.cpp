@@ -2,8 +2,10 @@
 
 #include <M5Unified.h>
 
+#include "../core/DifficultyTracker.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
+#include "../core/Subject.h"
 #include "config.h"
 
 namespace {
@@ -16,7 +18,13 @@ TaskScreen::TaskScreen(AppContext& app, StateMachine& stateMachine)
     : app_(app), stateMachine_(stateMachine) {}
 
 void TaskScreen::onEnter() {
-    if (!engine_.loadMathePool(app_.profile.klasse)) {
+    srs_.load(subjectSlug(app_.selectedSubject));
+
+    DifficultyState& difficulty = app_.difficultyBySubject[static_cast<size_t>(app_.selectedSubject)];
+    const String today = rtcclock::todayIso();
+    difficulty::applyMonthlyCeilingBump(difficulty, today.substring(0, 7), config::kMaxDifficultyStage);
+
+    if (!engine_.loadPool(app_.selectedSubject, app_.profile.klasse)) {
         phase_ = Phase::NoTasksAvailable;
         draw();
         return;
@@ -25,7 +33,8 @@ void TaskScreen::onEnter() {
 }
 
 void TaskScreen::loadNextQuestion() {
-    if (!engine_.pickRandomTask(current_)) {
+    const DifficultyState& difficulty = app_.difficultyBySubject[static_cast<size_t>(app_.selectedSubject)];
+    if (!engine_.pickNextTask(current_, srs_, difficulty, rtcclock::todayIso())) {
         phase_ = Phase::NoTasksAvailable;
         draw();
         return;
@@ -82,12 +91,20 @@ void TaskScreen::update(uint32_t deltaMs) {
     }
 
     lastAnswerCorrect_ = (static_cast<uint8_t>(index) == current_.richtig);
+
+    const String today = rtcclock::todayIso();
+    srs_.recordAnswer(current_.id, lastAnswerCorrect_, today);
+    srs_.save();
+
+    DifficultyState& difficulty = app_.difficultyBySubject[static_cast<size_t>(app_.selectedSubject)];
+    difficulty::recordAnswer(difficulty, lastAnswerCorrect_);
+
     if (lastAnswerCorrect_) {
         app_.character.addXp(config::kXpPerCorrectAnswer);
         app_.playtime.creditTaskReward();
-        app_.character.markCaredForToday(rtcclock::todayIso());
-        app_.persistProgress();
+        app_.character.markCaredForToday(today);
     }
+    app_.persistProgress();
 
     phase_ = Phase::ShowingFeedback;
     feedbackElapsedMs_ = 0;

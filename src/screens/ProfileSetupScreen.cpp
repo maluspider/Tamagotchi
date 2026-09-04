@@ -3,9 +3,11 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/DifficultyTracker.h"
 #include "../core/PinCode.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
+#include "../core/Subject.h"
 #include "../core/storage/ProfileStore.h"
 #include "KidProfiles.h"
 #include "config.h"
@@ -69,6 +71,9 @@ void ProfileSetupScreen::commitSelection(size_t profileIndex) {
 
     app_.character.load(0, "");
     app_.playtime.load(0, 0, rtcclock::todayIso());
+    for (size_t i = 0; i < kSubjectCount; ++i) {
+        app_.difficultyBySubject[i] = DifficultyState{};
+    }
     app_.persistProgress();
 
     stateMachine_.requestSwitch(ScreenId::Home);

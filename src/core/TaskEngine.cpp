@@ -9,11 +9,11 @@
 // hier bewusst nicht ueber JsonStore mit .tmp/.bak-Rotation geschrieben,
 // denn diese Dateien werden von der Firmware nur gelesen, nie geschrieben.
 
-bool TaskEngine::loadMathePool(uint8_t klasse) {
+bool TaskEngine::loadPool(Subject subject, uint8_t klasse) {
     pool_.clear();
     lastIndex_ = -1;
 
-    const String path = String("/tasks/mathe_") + String(klasse) + ".json";
+    const String path = String("/tasks/") + subjectSlug(subject) + "_" + String(klasse) + ".json";
     if (!SD.exists(path)) {
         return false;
     }
@@ -34,6 +34,7 @@ bool TaskEngine::loadMathePool(uint8_t klasse) {
         task.id = item["id"] | "";
         task.frage = item["frage"] | "";
         task.richtig = item["richtig"] | static_cast<uint8_t>(0);
+        task.schwierigkeit = item["schwierigkeit"] | static_cast<uint8_t>(1);
 
         uint8_t count = 0;
         for (JsonVariant answer : item["antworten"].as<JsonArray>()) {
@@ -53,22 +54,61 @@ bool TaskEngine::loadMathePool(uint8_t klasse) {
     return !pool_.empty();
 }
 
-bool TaskEngine::pickRandomTask(Task& out) {
+bool TaskEngine::pickNextTask(Task& out, const SpacedRepetitionStore& srs, const DifficultyState& difficulty,
+                               const String& todayIso) {
     if (pool_.empty()) {
         return false;
     }
-    if (pool_.size() == 1) {
-        out = pool_[0];
-        lastIndex_ = 0;
-        return true;
+
+    std::vector<size_t> due;
+    std::vector<size_t> fresh;
+    for (size_t i = 0; i < pool_.size(); ++i) {
+        if (pool_[i].schwierigkeit > difficulty.stage) {
+            continue; // Schwierigkeitsfilter (Abschnitt 8.4)
+        }
+        if (srs.hasItem(pool_[i].id)) {
+            if (srs.isDue(pool_[i].id, todayIso)) {
+                due.push_back(i);
+            }
+        } else {
+            fresh.push_back(i);
+        }
     }
 
-    int index;
-    do {
-        index = static_cast<int>(esp_random() % pool_.size());
-    } while (index == lastIndex_);
+    std::vector<size_t> candidates = due;
+    for (int n = 0; n < 2 && !fresh.empty(); ++n) {
+        const size_t pick = esp_random() % fresh.size();
+        candidates.push_back(fresh[pick]);
+        fresh.erase(fresh.begin() + static_cast<long>(pick));
+    }
 
-    lastIndex_ = index;
-    out = pool_[static_cast<size_t>(index)];
+    if (candidates.empty()) {
+        // Nichts Faelliges/Neues auf der aktuellen Schwierigkeitsstufe -
+        // Fallback: irgendein Item auf dieser Stufe.
+        for (size_t i = 0; i < pool_.size(); ++i) {
+            if (pool_[i].schwierigkeit <= difficulty.stage) {
+                candidates.push_back(i);
+            }
+        }
+    }
+    if (candidates.empty()) {
+        // Immer noch nichts (z. B. sehr kleiner Pool) - letzter Fallback:
+        // der gesamte Pool, unabhaengig von der Schwierigkeit.
+        for (size_t i = 0; i < pool_.size(); ++i) {
+            candidates.push_back(i);
+        }
+    }
+    if (candidates.empty()) {
+        return false;
+    }
+
+    size_t choice = candidates[esp_random() % candidates.size()];
+    if (candidates.size() > 1) {
+        while (static_cast<int>(choice) == lastIndex_) {
+            choice = candidates[esp_random() % candidates.size()];
+        }
+    }
+    lastIndex_ = static_cast<int>(choice);
+    out = pool_[choice];
     return true;
 }

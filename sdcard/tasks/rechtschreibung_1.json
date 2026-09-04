@@ -1,0 +1,10 @@
+[
+  {"id": "rs_1_001", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Hund'?", "antworten": ["H", "M", "S"], "richtig": 0},
+  {"id": "rs_1_002", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Ball'?", "antworten": ["T", "B", "K"], "richtig": 1},
+  {"id": "rs_1_003", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'S'?", "antworten": ["Sonne", "Mond", "Baum"], "richtig": 0},
+  {"id": "rs_1_004", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'F'?", "antworten": ["Auto", "Fisch", "Haus"], "richtig": 1},
+  {"id": "rs_1_005", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Katze'?", "antworten": ["K", "R", "P"], "richtig": 0},
+  {"id": "rs_1_006", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Shule", "Schule", "Schuhle"], "richtig": 1},
+  {"id": "rs_1_007", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Mond'?", "antworten": ["N", "M", "L"], "richtig": 1},
+  {"id": "rs_1_008", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'B'?", "antworten": ["Apfel", "Blume", "Igel"], "richtig": 1}
+]

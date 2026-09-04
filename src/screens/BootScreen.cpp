@@ -5,6 +5,7 @@
 
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
+#include "../core/Subject.h"
 #include "../core/storage/ProfileStore.h"
 #include "../core/storage/ProgressStore.h"
 #include "config.h"
@@ -27,6 +28,12 @@ void BootScreen::update(uint32_t) {
     initDone_ = true;
 
     SD.begin(config::kSdChipSelectPin);
+    if (!SD.exists("/progress")) {
+        // Wird von SpacedRepetitionStore fuer /progress/aufgaben_<fach>.json
+        // benoetigt (Abschnitt 6/8.3) - das SD-Filesystem legt Verzeichnisse
+        // nicht implizit beim Schreiben an.
+        SD.mkdir("/progress");
+    }
 
     app_.profile = profilestore::load();
 
@@ -37,6 +44,9 @@ void BootScreen::update(uint32_t) {
 
     const ProgressData progress = progressstore::load();
     app_.character.load(progress.xp, progress.lastCareDateIso);
+    for (size_t i = 0; i < kSubjectCount; ++i) {
+        app_.difficultyBySubject[i] = progress.difficulty[i];
+    }
 
     const String today = rtcclock::todayIso();
     const String playtimeDate = progress.playtimeDateIso.length() ? progress.playtimeDateIso : today;

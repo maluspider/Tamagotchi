@@ -23,6 +23,14 @@ ProgressData load() {
     data.spentMinutesToday = doc["spielzeitkonto"]["heute_verbraucht_min"] | static_cast<uint16_t>(0);
     data.playtimeDateIso = doc["spielzeitkonto"]["datum"] | "";
 
+    for (size_t i = 0; i < kSubjectCount; ++i) {
+        const char* slug = subjectSlug(static_cast<Subject>(i));
+        data.difficulty[i].stage = doc["statistik"]["schwierigkeit"][slug]["stufe"] | static_cast<uint8_t>(1);
+        data.difficulty[i].ceiling = doc["statistik"]["schwierigkeit"][slug]["obergrenze"] | static_cast<uint8_t>(1);
+        data.difficulty[i].lastCeilingBumpMonthIso =
+            doc["statistik"]["schwierigkeit"][slug]["letzter_monatsanstieg"] | "";
+    }
+
     data.isValid = true;
     return data;
 }
@@ -35,6 +43,13 @@ bool save(const ProgressData& data) {
     doc["spielzeitkonto"]["heute_verdient_min"] = data.earnedMinutesToday;
     doc["spielzeitkonto"]["heute_verbraucht_min"] = data.spentMinutesToday;
     doc["spielzeitkonto"]["datum"] = data.playtimeDateIso;
+
+    for (size_t i = 0; i < kSubjectCount; ++i) {
+        const char* slug = subjectSlug(static_cast<Subject>(i));
+        doc["statistik"]["schwierigkeit"][slug]["stufe"] = data.difficulty[i].stage;
+        doc["statistik"]["schwierigkeit"][slug]["obergrenze"] = data.difficulty[i].ceiling;
+        doc["statistik"]["schwierigkeit"][slug]["letzter_monatsanstieg"] = data.difficulty[i].lastCeilingBumpMonthIso;
+    }
 
     return storage::saveJsonAtomic(config::kProgressPath, doc);
 }
