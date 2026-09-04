@@ -227,11 +227,19 @@ void HomeScreen::drawStatusBar() {
 
     // Verfuegbare Spielzeit als Zahl + kleines Dreieck-Icon statt Textlabel
     // (Review: Icon statt Wort fuer die juengere Zielgruppe, Abschnitt 5).
+    // Nutzer-Feedback: das Dreieck sass an einer fest verdrahteten Position
+    // und ueberdeckte bei zweistelligen Werten die Zahl halb - jetzt wird
+    // die tatsaechliche Textbreite gemessen und das Dreieck links davon
+    // platziert, unabhaengig von der Anzahl Ziffern.
     const uint16_t available = app_.playtime.availableMinutes();
+    char availableBuf[8];
+    snprintf(availableBuf, sizeof(availableBuf), "%u", static_cast<unsigned>(available));
     canvas_.setTextDatum(top_right);
     canvas_.setTextSize(2);
-    canvas_.drawNumber(available, M5.Display.width() - 10, 6);
-    const int iconX = M5.Display.width() - 34;
+    const int numberRightX = M5.Display.width() - 10;
+    canvas_.drawString(availableBuf, numberRightX, 6);
+    const int numberWidth = canvas_.textWidth(availableBuf);
+    const int iconX = numberRightX - numberWidth - 18;
     canvas_.fillTriangle(iconX, 8, iconX, 22, iconX + 12, 15, theme::kAccentGold);
 }
 

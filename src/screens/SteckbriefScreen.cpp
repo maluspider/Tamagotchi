@@ -9,18 +9,37 @@
 
 namespace {
 constexpr int kHomeIconSize = 28;
+constexpr int kTotalGameCount = 10;
 
 // Deckt sich mit der Freischalt-Tabelle in GamesMenuScreen.cpp
 // (Abschnitt 9) - hier nur zur Anzeige einer Gesamtzahl dupliziert, um
-// GamesMenuScreen keine unnoetige public-API dafuer zu geben.
+// GamesMenuScreen keine unnoetige public-API dafuer zu geben. Nutzer-
+// Feedback ("Tabelle, wie viele Punkte fuer weitere Spiele noetig sind?")
+// zeigte, dass diese Zahl beim Hinzufuegen des 10. Spiels (Labyrinth,
+// schaltet wie Snake bei "Baby" frei) nicht mitaktualisiert worden war -
+// seitdem hier zusaetzlich pro Stufe geprueft gegen GamesMenuScreen::kGames.
 int unlockedGameCount(CharacterStage stage) {
     switch (stage) {
         case CharacterStage::Ei: return 0;
-        case CharacterStage::Baby: return 1;
-        case CharacterStage::Kind: return 3;
-        case CharacterStage::Junior: return 5;
-        case CharacterStage::Experte: return 7;
-        case CharacterStage::Meister: return 9;
+        case CharacterStage::Baby: return 2;
+        case CharacterStage::Kind: return 4;
+        case CharacterStage::Junior: return 6;
+        case CharacterStage::Experte: return 8;
+        case CharacterStage::Meister: return 10;
+    }
+    return 0;
+}
+
+// XP-Schwellen aus CharacterEngine.cpp (dort nicht public, daher hier
+// dupliziert - gleiche Begruendung wie bei unlockedGameCount()).
+uint32_t xpThresholdFor(CharacterStage stage) {
+    switch (stage) {
+        case CharacterStage::Ei: return 0;
+        case CharacterStage::Baby: return 100;
+        case CharacterStage::Kind: return 300;
+        case CharacterStage::Junior: return 700;
+        case CharacterStage::Experte: return 1500;
+        case CharacterStage::Meister: return 3000;
     }
     return 0;
 }
@@ -73,11 +92,37 @@ void SteckbriefScreen::draw() {
         y += lineHeight;
     };
 
+    const CharacterStage stage = app_.character.stage();
+
     drawLine(String("Name: ") + (app_.profile.name.length() ? app_.profile.name : String("-")));
-    drawLine(String("Stufe: ") + CharacterEngine::stageName(app_.character.stage()));
+    drawLine(String("Stufe: ") + CharacterEngine::stageName(stage));
     drawLine(String("Erfahrungspunkte: ") + String(app_.character.xp()));
     drawLine(String("Klasse: ") + String(app_.profile.klasse));
-    drawLine(String("Spiele frei: ") + String(unlockedGameCount(app_.character.stage())) + " / 9");
+    drawLine(String("Spiele frei: ") + String(unlockedGameCount(stage)) + " / " + String(kTotalGameCount));
+
+    // Nutzerwunsch: "Tabelle, wie viele Punkte fuer weitere Spiele noetig
+    // sind?" - es gibt keine eigene Tabellen-Ansicht, aber diese Zeile
+    // beantwortet dieselbe Frage direkt am aktuellen Punktestand: naechste
+    // Stufe, dafuer noetige EP, zusaetzlich freigeschaltete Spiele. Bei
+    // textSize(1) passt die laengste Variante (~44 Zeichen) sicher in die
+    // Bildschirmbreite.
+    if (stage == CharacterStage::Meister) {
+        M5.Display.setTextColor(theme::kAccentGold);
+        M5.Display.setTextDatum(top_left);
+        M5.Display.setTextSize(1);
+        M5.Display.drawString("Hoechste Stufe erreicht!", 14, y);
+        y += 20;
+    } else {
+        const CharacterStage nextStage = static_cast<CharacterStage>(static_cast<uint8_t>(stage) + 1);
+        const int newGames = unlockedGameCount(nextStage) - unlockedGameCount(stage);
+        String nextLine = String("Naechste Stufe: ") + CharacterEngine::stageName(nextStage) + " (" +
+                           String(xpThresholdFor(nextStage)) + " EP, +" + String(newGames) + " Spiele)";
+        M5.Display.setTextColor(theme::kTextDim);
+        M5.Display.setTextDatum(top_left);
+        M5.Display.setTextSize(1);
+        M5.Display.drawString(nextLine, 14, y);
+        y += 20;
+    }
 
     if (!app_.character.lastCareDateIso().isEmpty()) {
         const String today = rtcclock::todayIso();

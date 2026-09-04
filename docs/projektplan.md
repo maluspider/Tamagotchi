@@ -205,12 +205,14 @@ Richtig beantwortet → eine Box aufsteigen. Falsch → zurück auf Box 1. Bei j
 
 **Entwicklungsstufen:** Ei → Baby → Kind → Junior → Experte → Meister (6 Stufen, EP-Schwellen z. B. 0/100/300/700/1500/3000)
 
-**Freischaltungen pro Stufe (9 Spiele total):**
-- Baby: Snake
-- Kind: Tetris, Puzzle
-- Junior: Space Invaders, Moorhuhn-Jagd, neuer Skin
-- Experte: Pinball, Basketball
-- Meister: Fussball, Kampf-Modus, Sonder-Skin/Umgebung
+**Freischaltungen pro Stufe (10 Spiele total; Update nach Nutzerwunsch "Tabelle, wie viele Punkte fuer weitere Spiele noetig sind?" - Labyrinth als 10. Spiel ergaenzt, siehe Abschnitt 15/17):**
+- Baby (100 EP): Ball-Labyrinth, Snake
+- Kind (300 EP): Tetris, Puzzle
+- Junior (700 EP): Space Invaders, Moorhuhn-Jagd, neuer Skin
+- Experte (1500 EP): Pinball, Basketball
+- Meister (3000 EP): Fussball, Kampf-Modus, Sonder-Skin/Umgebung
+
+Diese Tabelle existiert nur hier im Plan sowie als Kurzform (naechste Stufe + benoetigte EP + zusaetzliche Spiele) auf dem Geraet selbst in `SteckbriefScreen` - eine eigene, vollstaendige Tabellen-Ansicht mit allen Stufen auf einmal ist nicht umgesetzt (Bildschirm zu klein, um alle 6 Stufen gleichzeitig uebersichtlich darzustellen).
 
 **Update (Optik, siehe Abschnitt 4 fuer die technischen Details):** "neuer Skin"/"Sonder-Skin" oben sind durch die tatsaechliche Umsetzung abgedeckt, wenn auch anders als urspruenglich gedacht: statt eines separaten Freischalt-Mechanismus fuer Skins aendert sich das Sprite bei jedem Stufenaufstieg automatisch (Guertelfarbe, Stirnband, Kampfhaltung) – das *ist* der neue Skin je Stufe. Zusaetzlich kann das Kind jederzeit Hautfarbe/Haarfarbe/Kleidungsfarbe frei waehlen (`CharacterCustomizeScreen`), unabhaengig vom Stufenfortschritt.
 

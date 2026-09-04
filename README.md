@@ -144,6 +144,21 @@ zusätzlich `/etc/udev/rules.d/99-platformio-udev.rules` noch nicht, die
 PlatformIO-udev-Regeln nachinstallieren (`pio run -t udev` bzw. gemäss
 PlatformIO-Doku) und den Rechner neu starten.
 
+**`/dev/ttyACM0`: "port is busy" / "Resource temporarily unavailable"
+beim Flashen:** anders als der Permission-Fehler oben – hier hält ein
+anderer Prozess den Port bereits exklusiv offen. Meist ein noch
+laufender `pio device monitor`, ein offener serieller Monitor in einer
+IDE (Arduino IDE, VS Code-Erweiterung) oder ein hängender `esptool`-
+Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
+1. Alle seriellen Monitore/Fenster schliessen, die mit dem Gerät
+   verbunden sind.
+2. Prüfen, was den Port noch offen hält: `lsof /dev/ttyACM0` (oder
+   `fuser /dev/ttyACM0`) – falls ein Prozess erscheint, diesen beenden
+   (`kill <PID>`).
+3. Hilft das nicht: USB-Kabel kurz abziehen und wieder einstecken (setzt
+   die Verbindung auf Betriebssystem-Seite zurück), dann `pio run -t
+   upload` erneut versuchen.
+
 ## Bedienung (Stand nach Phase 5, mit Hardware-Fixes)
 
 - **Weitere Runde Hardware-Feedback (nach erstem echtem Spielen):** Quiz-
@@ -155,7 +170,11 @@ PlatformIO-Doku) und den Rechner neu starten.
   Home-Screen-Charakter schwingt jetzt sanft mit, wenn man das Gerät neigt
   (IMU); die untere Icon-Leiste ist etwas kompakter (mehr sichtbarer
   Home-Screen); eine dauerhafte Akkustand-Anzeige (Symbol + Prozent) sitzt
-  jetzt neben der Uhrzeit statt nur einer Warnung bei kritischem Stand.
+  jetzt neben der Uhrzeit statt nur einer Warnung bei kritischem Stand
+  (**behoben:** das kleine goldene Dreieck-Icon neben der Spielzeit-Zahl
+  sass an einer fest verdrahteten Position und überdeckte bei zwei-
+  /dreistelligen Werten die Zahl halb - sitzt jetzt basierend auf der
+  tatsächlich gemessenen Textbreite immer sauber links daneben).
 - **Startlogo:** beim Einschalten erscheint für ca. 1,8 Sekunden ein
   80er-/Synthwave-Neon-Logo ("Henri & Theo" – anpassbar in
   `src/screens/BootScreen.cpp`, Konstante `kLogoText`) vor demselben
@@ -254,7 +273,7 @@ PlatformIO-Doku) und den Rechner neu starten.
     Spielzeitguthaben und kehren bei Null automatisch zu Home zurück.
     Highscores (wo sinnvoll) werden lokal in `/highscores.json`
     gespeichert.
-  - **Zurück-Button:** alle 9 Spiele haben oben rechts ein Haus-Icon zum
+  - **Zurück-Button:** alle 10 Spiele haben oben rechts ein Haus-Icon zum
     sofortigen Zurückkehren zu Home (**behoben:** fehlte zuvor bei Snake
     komplett; bei den anderen 8 Spielen gab es das Icon zwar schon, aber in
     einer schwer erkennbaren reinen Weiss-Umriss-Optik – jetzt einheitlich
@@ -271,7 +290,24 @@ PlatformIO-Doku) und den Rechner neu starten.
   - **Checkliste:** drei feste Morgen-Routine-Punkte abhaken; sind alle
     abgehakt, gibt es einmal pro Tag eine kleine EP-Belohnung.
   - **Steckbrief:** Übersicht über Name, Stufe, EP, Klasse, freigeschaltete
-    Spiele und Tage seit der letzten Pflege.
+    Spiele, die nächste Stufe (benötigte EP + zusätzlich freigeschaltete
+    Spiele) und Tage seit der letzten Pflege. **Behoben:** zeigte nach dem
+    Hinzufügen des 10. Spiels (Ball-Labyrinth) noch die alte "/9"-Zählung.
+    Die vollständige Freischalt-Tabelle über alle Stufen (es gibt keine
+    eigene Tabellen-Ansicht dafür, der Bildschirm ist dafür zu klein):
+
+    | Stufe | EP | Neu freigeschaltet |
+    |---|---|---|
+    | Ei | 0 | – |
+    | Baby | 100 | Ball-Labyrinth, Snake |
+    | Kind | 300 | Tetris, Puzzle |
+    | Junior | 700 | Space Invaders, Moorhuhn-Jagd |
+    | Experte | 1500 | Pinball, Basketball |
+    | Meister | 3000 | Fussball, Kampf-Modus |
+
+    EP gibt es für richtig gelöste Aufgaben (`config::kXpPerCorrectAnswer`,
+    aktuell 15) und für die tägliche Checkliste (`config::kChecklistRewardXp`,
+    aktuell 8) – siehe Abschnitt 9 des Plans für die Herleitung.
   - **Aussehen:** live Vorschau des Charakters, darunter drei Zeilen
     (Haut/Haare/Kleidung) mit </>-Pfeilen zum Durchblättern der
     Farbvoreinstellungen. Nicht Eltern-PIN-geschützt – das Kind kann
