@@ -80,16 +80,26 @@ Sprites – kein Absturz, nur weniger hübsch.
    pio device monitor
    ```
 
-### Bekanntes Setup-Problem: `ModuleNotFoundError: No module named 'intelhex'`
+### Bekannte Setup-Probleme
 
-Falls der Build beim Bootloader-/Partitions-Schritt mit einer fehlenden
-`intelhex`-Python-Abhängigkeit von `esptool.py` abbricht, in der von
-PlatformIO verwendeten Python-Umgebung nachinstallieren:
+**`ModuleNotFoundError: No module named 'intelhex'`:** Falls der Build beim
+Bootloader-/Partitions-Schritt mit einer fehlenden `intelhex`-Python-
+Abhängigkeit von `esptool.py` abbricht, in der von PlatformIO verwendeten
+Python-Umgebung nachinstallieren:
 ```
 pip install intelhex
 ```
 Danach `pio run` erneut ausführen – Toolchain und Libraries sind dann schon
 lokal gecacht, der zweite Build ist entsprechend schnell.
+
+**`'std::make_unique' is only available from C++14 onwards` (behoben):**
+Trat beim allerersten echten Kompilierversuch auf – `platformio.ini` legte
+keinen C++-Standard fest, wodurch der Toolchain-Default (C++11) griff. Ist
+bereits in `platformio.ini` gefixt (`build_unflags`/`build_flags` für
+C++17). Falls diese Meldung trotzdem erscheint: sicherstellen, dass der
+lokale Checkout auf dem aktuellen Stand von
+`claude/tamagotchi-device-review-v8dxml` ist (`git pull`), und
+`.pio/build/` löschen, um einen sauberen Neu-Build zu erzwingen.
 
 ## Bedienung (Stand nach Phase 5)
 
