@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -88,12 +89,14 @@ void SnakeScreen::step() {
             ++length_;
         }
         ++score_;
+        haptics::pulse(40);
         spawnFood();
     }
 }
 
 void SnakeScreen::endGame() {
     gameOver_ = true;
+    haptics::pulse(200);
     highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
 }
 

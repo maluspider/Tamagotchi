@@ -142,6 +142,16 @@ PlatformIO-Doku) und den Rechner neu starten.
 
 ## Bedienung (Stand nach Phase 5, mit Hardware-Fixes)
 
+- **Weitere Runde Hardware-Feedback (nach erstem echtem Spielen):** Quiz-
+  Fragen/Antworten brechen nicht mehr über den Bildschirmrand hinaus
+  (automatischer Umbruch/Verkleinerung, `src/core/TextFit.*`); Simon-Says
+  zeigt beim Merkspiel einen schwarzen Punkt statt eines schwer sichtbaren
+  weissen Aufblinkens; alle Spiele + der Aufgaben-/Merk-Modus geben kurzes
+  Vibrationsfeedback bei Treffer/Erfolg/Fehler (`src/core/Haptics.*`); der
+  Home-Screen-Charakter schwingt jetzt sanft mit, wenn man das Gerät neigt
+  (IMU); die untere Icon-Leiste ist etwas kompakter (mehr sichtbarer
+  Home-Screen); eine dauerhafte Akkustand-Anzeige (Symbol + Prozent) sitzt
+  jetzt neben der Uhrzeit statt nur einer Warnung bei kritischem Stand.
 - **Startlogo:** beim Einschalten erscheint für ca. 1,8 Sekunden ein
   80er-/Synthwave-Neon-Logo ("Henri & Theo" – anpassbar in
   `src/screens/BootScreen.cpp`, Konstante `kLogoText`) vor demselben

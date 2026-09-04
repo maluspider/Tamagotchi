@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/Haptics.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -130,6 +131,7 @@ void GedaechtnisScreen::handleMemoryTouch(int x, int y) {
         cardMatched_[secondPick_] = true;
         firstPick_ = -1;
         secondPick_ = -1;
+        haptics::pulse(60);
         awardRoundReward();
 
         bool allMatched = true;
@@ -143,6 +145,7 @@ void GedaechtnisScreen::handleMemoryTouch(int x, int y) {
             gameOver_ = true;
         }
     } else {
+        haptics::pulse(150);
         pauseRemainingMs_ = kMismatchPauseMs;
     }
 }
@@ -269,9 +272,11 @@ void GedaechtnisScreen::handleSequenceTouch(int x, int y) {
     }
 
     if (zone != sequence_[inputIndex_]) {
+        haptics::pulse(150);
         gameOver_ = true;
         return;
     }
+    haptics::pulse(40);
 
     ++inputIndex_;
     if (inputIndex_ >= sequenceLength_) {
@@ -349,10 +354,18 @@ void GedaechtnisScreen::drawSequenceGame() {
         const int row = zone / 2;
         const int x = col * zoneW;
         const int y = kTopBarHeight + row * zoneH;
-        const bool lit = (highlightedZone_ == zone);
-        canvas_.fillRect(x + 4, y + 4, zoneW - 8, zoneH - 8, lit ? TFT_WHITE : kZoneColors[zone]);
-        if (!lit) {
-            canvas_.drawRect(x + 4, y + 4, zoneW - 8, zoneH - 8, TFT_WHITE);
+        canvas_.fillRect(x + 4, y + 4, zoneW - 8, zoneH - 8, kZoneColors[zone]);
+        canvas_.drawRect(x + 4, y + 4, zoneW - 8, zoneH - 8, TFT_WHITE);
+        // Nutzer-Feedback: ein weisses Aufblinken der ganzen Zone war
+        // gegen die helleren Zonenfarben (Gelb/Cyan) schlecht sichtbar und
+        // verdeckte zudem den Farb-Landmark der Zone. Ein grosser
+        // schwarzer Punkt in der Mitte ist gegen alle vier Zonenfarben
+        // gleichermassen gut erkennbar.
+        if (highlightedZone_ == zone) {
+            const int cx = x + zoneW / 2;
+            const int cy = y + zoneH / 2;
+            const int r = (zoneW < zoneH ? zoneW : zoneH) / 2 - 20;
+            canvas_.fillCircle(cx, cy, r, TFT_BLACK);
         }
     }
 

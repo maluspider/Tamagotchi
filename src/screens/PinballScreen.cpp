@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -54,6 +55,7 @@ void PinballScreen::loseBall() {
 
 void PinballScreen::endGame() {
     gameOver_ = true;
+    haptics::pulse(200);
     highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
 }
 
@@ -91,6 +93,7 @@ void PinballScreen::updatePhysics(uint32_t deltaMs) {
             ballVx_ = (ballVx_ - 2.0f * dot * nx) * 1.15f;
             ballVy_ = (ballVy_ - 2.0f * dot * ny) * 1.15f;
             score_ += 10;
+            haptics::pulse(30);
         }
     }
 

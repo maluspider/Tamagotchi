@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -105,6 +106,7 @@ void MoorhuhnJagdScreen::handleInput() {
         const float dy = t.y - crosshairY_;
         if (dx * dx + dy * dy <= kHitRadius * kHitRadius) {
             ++score_;
+            haptics::pulse(30);
             respawnTarget(t);
             break; // nur ein Treffer pro Schuss
         }

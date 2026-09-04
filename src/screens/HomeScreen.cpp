@@ -48,8 +48,20 @@ float spriteScaleForStage(CharacterStage stage) {
     return 3.0f;
 }
 
-constexpr uint32_t kRedrawIntervalMs = 1000; // Uhrzeit-Anzeige reicht sekundengenau
-constexpr int kBottomBarHeight = 40;
+constexpr uint32_t kRedrawIntervalMs = 1000; // Blinzeln/Uhrzeit-Text reichen sekundengenau
+// Nutzerwunsch: "untere Statusbar kann leicht verkleinert werden, um mehr
+// vom Homebildschirm zu sehen" - von 40 auf 32px reduziert (Icon-
+// Koordinaten in drawBottomBar() proportional mitskaliert).
+constexpr int kBottomBarHeight = 32;
+
+// Nutzerwunsch: "Figur soll sich durch Bewegen des Geraets langsam smooth
+// bewegen lassen" - Neigungsbereich (Ziel-Versatz in Pixeln bei voller
+// Neigung) und Glaettungsfaktor. Bewusst kleiner/langsamer als das
+// Fadenkreuz in MoorhuhnJagdScreen (dort soll es direkt reagieren, hier
+// nur ein sanftes Mitschwingen).
+constexpr float kCharacterTiltRangeX = 34.0f;
+constexpr float kCharacterTiltRangeY = 22.0f;
+constexpr float kCharacterSmoothing = 0.06f;
 
 } // namespace
 
@@ -81,11 +93,31 @@ void HomeScreen::update(uint32_t deltaMs) {
         return;
     }
 
+    // Fuer ein sichtbar fluessiges Mitschwingen der Figur muss dieser Screen
+    // jeden Frame neu zeichnen, nicht mehr nur 1x/Sekunde (das reichte fuer
+    // die reine Digitaluhr, aber nicht fuer eine "smooth" Bewegung).
+    updateCharacterDrift(deltaMs);
+
     msSinceLastRedraw_ += deltaMs;
     if (msSinceLastRedraw_ >= kRedrawIntervalMs) {
         msSinceLastRedraw_ = 0;
-        draw();
+        // Wechselt bei jedem Blinzel-Tick (weiterhin 1x/Sekunde) zwischen
+        // offenen und geschlossenen Augen - siehe drawSpriteCharacter().
+        spriteBlinkToggle_ = !spriteBlinkToggle_;
     }
+    draw();
+}
+
+void HomeScreen::updateCharacterDrift(uint32_t deltaMs) {
+    (void)deltaMs;
+    M5.Imu.update();
+    const auto imuData = M5.Imu.getImuData();
+
+    const float targetX = imuData.accel.x * kCharacterTiltRangeX;
+    const float targetY = -imuData.accel.y * kCharacterTiltRangeY;
+
+    characterOffsetX_ += (targetX - characterOffsetX_) * kCharacterSmoothing;
+    characterOffsetY_ += (targetY - characterOffsetY_) * kCharacterSmoothing;
 }
 
 void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
@@ -118,20 +150,16 @@ bool HomeScreen::drawSpriteCharacter() {
     const String today = rtcclock::todayIso();
     const bool sad = app_.character.isSad(today);
 
-    const char* mood;
-    if (sad) {
-        mood = "sad";
-    } else {
-        // Wechselt bei jedem Redraw-Tick (Abschnitt 5: 1x/Sekunde) zwischen
-        // offenen und geschlossenen Augen - ein einfaches, aber sichtbares
-        // Blinzeln ohne eigene Animationsschleife.
-        spriteBlinkToggle_ = !spriteBlinkToggle_;
-        mood = spriteBlinkToggle_ ? "idle2" : "idle1";
-    }
+    // Blinzel-Tick (spriteBlinkToggle_) wird zentral in update() 1x/Sekunde
+    // umgeschaltet, nicht hier - draw() laeuft inzwischen jeden Frame fuer
+    // das sanfte Mitschwingen (siehe updateCharacterDrift()), ein Umschalten
+    // an dieser Stelle wuerde daher jeden Frame statt einmal pro Sekunde
+    // blinzeln lassen.
+    const char* mood = sad ? "sad" : (spriteBlinkToggle_ ? "idle2" : "idle1");
 
     const float scale = spriteScaleForStage(stage);
-    const int cx = M5.Display.width() / 2;
-    const int cy = M5.Display.height() / 2;
+    const int cx = M5.Display.width() / 2 + static_cast<int>(characterOffsetX_);
+    const int cy = M5.Display.height() / 2 + static_cast<int>(characterOffsetY_);
     if (!characterRenderer_.draw(stage, mood, app_.profile, cx, cy, scale, &canvas_)) {
         // Kein Sprite auf der SD-Karte (oder Karte fehlt) - Aufrufer
         // zeichnet stattdessen die Platzhalter-Grafik.
@@ -149,8 +177,8 @@ bool HomeScreen::drawSpriteCharacter() {
 }
 
 void HomeScreen::drawPlaceholderCharacter() {
-    const int cx = M5.Display.width() / 2;
-    const int cy = M5.Display.height() / 2;
+    const int cx = M5.Display.width() / 2 + static_cast<int>(characterOffsetX_);
+    const int cy = M5.Display.height() / 2 + static_cast<int>(characterOffsetY_);
     const CharacterStage stage = app_.character.stage();
     const int r = radiusForStage(stage);
     const uint16_t color = colorForStage(stage);
@@ -192,18 +220,52 @@ void HomeScreen::drawStatusBar() {
     canvas_.setTextSize(2);
     canvas_.drawString(buf, 6, 6);
 
+    // Akkustand-Anzeige direkt neben der Uhrzeit (Nutzer-Feedback: fehlte
+    // bisher komplett - es gab nur eine reine Warnanzeige bei kritischem
+    // Akkustand, siehe drawBatteryIndicator()).
+    drawBatteryIndicator(70, 9);
+
     // Verfuegbare Spielzeit als Zahl + kleines Dreieck-Icon statt Textlabel
     // (Review: Icon statt Wort fuer die juengere Zielgruppe, Abschnitt 5).
     const uint16_t available = app_.playtime.availableMinutes();
     canvas_.setTextDatum(top_right);
+    canvas_.setTextSize(2);
     canvas_.drawNumber(available, M5.Display.width() - 10, 6);
     const int iconX = M5.Display.width() - 34;
     canvas_.fillTriangle(iconX, 8, iconX, 22, iconX + 12, 15, theme::kAccentGold);
+}
 
-    if (M5.Power.getBatteryLevel() <= config::kLowBatteryWarningPercent) {
-        canvas_.drawRect(M5.Display.width() / 2 - 12, 8, 20, 12, theme::kDanger);
-        canvas_.fillRect(M5.Display.width() / 2 + 8, 11, 3, 6, theme::kDanger);
+void HomeScreen::drawBatteryIndicator(int x, int y) {
+    int level = M5.Power.getBatteryLevel();
+    if (level < 0) {
+        level = 0;
     }
+    if (level > 100) {
+        level = 100;
+    }
+
+    uint16_t color = theme::kSuccess;
+    if (level <= config::kLowBatteryWarningPercent) {
+        color = theme::kDanger;
+    } else if (level <= 40) {
+        color = theme::kAccentGold;
+    }
+
+    constexpr int kBodyW = 20;
+    constexpr int kBodyH = 12;
+    canvas_.drawRect(x, y, kBodyW, kBodyH, theme::kText);
+    canvas_.fillRect(x + kBodyW, y + 3, 3, kBodyH - 6, theme::kText); // Batterie-Pluspol
+    const int fillW = (kBodyW - 4) * level / 100;
+    if (fillW > 0) {
+        canvas_.fillRect(x + 2, y + 2, fillW, kBodyH - 4, color);
+    }
+
+    canvas_.setTextColor(theme::kText);
+    canvas_.setTextDatum(top_left);
+    canvas_.setTextSize(1);
+    char pctBuf[6];
+    snprintf(pctBuf, sizeof(pctBuf), "%d%%", level);
+    canvas_.drawString(pctBuf, x + kBodyW + 8, y + 3);
 }
 
 void HomeScreen::drawBottomBar() {
@@ -215,9 +277,9 @@ void HomeScreen::drawBottomBar() {
     // Aufgaben: Stift-Symbol (immer verfuegbar, Abschnitt 5).
     {
         const int cx = zoneW / 2;
-        canvas_.drawLine(cx - 8, y + 28, cx + 8, y + 12, theme::kText);
-        canvas_.drawLine(cx - 8, y + 28, cx - 4, y + 24, theme::kText);
-        canvas_.fillTriangle(cx + 6, y + 10, cx + 10, y + 14, cx + 8, y + 16, theme::kAccentGold);
+        canvas_.drawLine(cx - 6, y + 22, cx + 6, y + 10, theme::kText);
+        canvas_.drawLine(cx - 6, y + 22, cx - 3, y + 19, theme::kText);
+        canvas_.fillTriangle(cx + 5, y + 8, cx + 8, y + 11, cx + 6, y + 13, theme::kAccentGold);
     }
 
     // Spiele: Play-Dreieck - ausgegraut, solange nicht freigeschaltet
@@ -228,28 +290,28 @@ void HomeScreen::drawBottomBar() {
         const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
         const bool hasTime = app_.playtime.availableMinutes() > 0;
         const uint16_t color = (unlocked && hasTime) ? theme::kAccentCyan : theme::kMuted;
-        canvas_.fillTriangle(cx - 8, y + 10, cx - 8, y + 30, cx + 10, y + 20, color);
+        canvas_.fillTriangle(cx - 6, y + 8, cx - 6, y + 24, cx + 8, y + 16, color);
     }
 
     // Alltag: Kreis mit Zeigern (Uhr stellvertretend fuers Alltags-Menue).
     {
         const int cx = 2 * zoneW + zoneW / 2;
-        const int cy = y + 20;
-        canvas_.drawCircle(cx, cy, 12, theme::kText);
-        canvas_.drawLine(cx, cy, cx, cy - 8, theme::kText);
-        canvas_.drawLine(cx, cy, cx + 6, cy, theme::kText);
+        const int cy = y + 16;
+        canvas_.drawCircle(cx, cy, 10, theme::kText);
+        canvas_.drawLine(cx, cy, cx, cy - 6, theme::kText);
+        canvas_.drawLine(cx, cy, cx + 5, cy, theme::kText);
     }
 
     // Einstellungen: einfaches Zahnrad-Symbol.
     {
         const int cx = 3 * zoneW + zoneW / 2;
-        const int cy = y + 20;
-        canvas_.drawCircle(cx, cy, 10, theme::kText);
-        canvas_.drawCircle(cx, cy, 4, theme::kText);
+        const int cy = y + 16;
+        canvas_.drawCircle(cx, cy, 8, theme::kText);
+        canvas_.drawCircle(cx, cy, 3, theme::kText);
         for (int i = 0; i < 6; ++i) {
             const float angle = static_cast<float>(i) * 3.14159f / 3.0f;
-            const int tx = cx + static_cast<int>(13.0f * cosf(angle));
-            const int ty = cy + static_cast<int>(13.0f * sinf(angle));
+            const int tx = cx + static_cast<int>(10.0f * cosf(angle));
+            const int ty = cy + static_cast<int>(10.0f * sinf(angle));
             canvas_.fillCircle(tx, ty, 2, theme::kText);
         }
     }

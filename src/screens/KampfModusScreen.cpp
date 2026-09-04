@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/Haptics.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -59,6 +60,7 @@ void KampfModusScreen::playerAttack(int damage, uint32_t cooldownMs) {
     }
     playerCooldownMs_ = cooldownMs;
     playerFlashMs_ = 150;
+    haptics::pulse(40);
 }
 
 void KampfModusScreen::updateAi(uint32_t deltaMs) {
@@ -80,6 +82,7 @@ void KampfModusScreen::updateAi(uint32_t deltaMs) {
         }
         aiCooldownMs_ = 900;
         aiFlashMs_ = 150;
+        haptics::pulse(80);
     }
 }
 
@@ -87,9 +90,11 @@ void KampfModusScreen::endRoundIfNeeded() {
     if (playerHp_ <= 0) {
         roundOver_ = true;
         playerWon_ = false;
+        haptics::pulse(200);
     } else if (aiHp_ <= 0) {
         roundOver_ = true;
         playerWon_ = true;
+        haptics::pulse(150);
     }
 }
 

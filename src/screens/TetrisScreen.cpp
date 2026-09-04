@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -160,11 +161,13 @@ void TetrisScreen::clearLines() {
     if (cleared > 0) {
         linesCleared_ += cleared;
         score_ += cleared * 100;
+        haptics::pulse(60);
     }
 }
 
 void TetrisScreen::endGame() {
     gameOver_ = true;
+    haptics::pulse(200);
     highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
 }
 

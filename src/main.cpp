@@ -4,6 +4,7 @@
 
 #include "core/AlarmService.h"
 #include "core/AppContext.h"
+#include "core/Haptics.h"
 #include "core/NightModeService.h"
 #include "core/ScreenId.h"
 #include "core/StateMachine.h"
@@ -195,6 +196,11 @@ void loop() {
     const uint32_t now = millis();
     const uint32_t deltaMs = now - lastFrameMs;
     lastFrameMs = now;
+
+    // Screen-unabhaengig, damit eine per haptics::pulse() gestartete
+    // Vibration auch dann zuverlaessig wieder abschaltet, wenn zwischendurch
+    // der Screen wechselt (siehe Haptics.h).
+    haptics::update(deltaMs);
 
     if (displayManuallyOff) {
         // Siehe Kommentar bei displayManuallyOff oben: Nachtmodus-Check und

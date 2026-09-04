@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/Haptics.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 
@@ -102,6 +103,9 @@ void PuzzleScreen::handleInput() {
         }
         draggingSlot_ = -1;
         solved_ = isSolvedState();
+        if (solved_) {
+            haptics::pulse(150);
+        }
     }
 }
 

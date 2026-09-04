@@ -38,8 +38,10 @@ private:
     bool drawSpriteCharacter();
     void drawPlaceholderCharacter();
     void drawStatusBar();
+    void drawBatteryIndicator(int x, int y);
     void drawBottomBar();
     void handleBottomBarTouch(int x, int y);
+    void updateCharacterDrift(uint32_t deltaMs);
 
     AppContext& app_;
     StateMachine& stateMachine_;
@@ -48,4 +50,10 @@ private:
     uint32_t msSinceLastRedraw_ = 0;
     bool lowBatterySaveDone_ = false;
     bool spriteBlinkToggle_ = false; // wechselt idle1/idle2 pro Redraw-Tick
+    // Nutzerwunsch: "Figur soll sich durch Bewegen des Geraets langsam
+    // smooth bewegen lassen" - per IMU/Neigung sanft Richtung Zielposition
+    // gezogener Versatz relativ zur Bildschirmmitte (siehe
+    // updateCharacterDrift()).
+    float characterOffsetX_ = 0.0f;
+    float characterOffsetY_ = 0.0f;
 };

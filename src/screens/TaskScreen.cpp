@@ -3,9 +3,11 @@
 #include <M5Unified.h>
 
 #include "../core/DifficultyTracker.h"
+#include "../core/Haptics.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
+#include "../core/TextFit.h"
 #include "../core/Theme.h"
 #include "config.h"
 
@@ -92,6 +94,7 @@ void TaskScreen::update(uint32_t deltaMs) {
     }
 
     lastAnswerCorrect_ = (static_cast<uint8_t>(index) == current_.richtig);
+    haptics::pulse(lastAnswerCorrect_ ? 60 : 150);
 
     const String today = rtcclock::todayIso();
     srs_.recordAnswer(current_.id, lastAnswerCorrect_, today);
@@ -122,19 +125,20 @@ void TaskScreen::drawHomeIcon() const {
 
 void TaskScreen::drawQuestion() const {
     M5.Display.fillRect(0, 0, M5.Display.width(), kQuestionAreaHeight, theme::kPanel);
-    M5.Display.setTextColor(theme::kText);
-    M5.Display.setTextDatum(middle_center);
-    M5.Display.setTextSize(3);
-    M5.Display.drawString(current_.frage.c_str(), M5.Display.width() / 2, kQuestionAreaHeight / 2);
+    // Laengere Fragen/Antworten (z. B. Rechtschreibung/Quiz) liefen bei
+    // fester textSize(3) auf echter Hardware rechts/links aus dem
+    // Bildschirm und wurden dadurch unlesbar - textfit::drawFitted() bricht
+    // bei Bedarf um und verkleinert die Schrift, statt einfach abzuschneiden.
+    textfit::drawFitted(&M5.Display, current_.frage, M5.Display.width() / 2, kQuestionAreaHeight / 2,
+                         M5.Display.width() - 20, kQuestionAreaHeight - 10, 3, theme::kText);
 
     const int areaHeight = M5.Display.height() - kQuestionAreaHeight;
     const int zoneHeight = areaHeight / current_.antwortenCount;
     for (uint8_t i = 0; i < current_.antwortenCount; ++i) {
         const int y = kQuestionAreaHeight + i * zoneHeight;
         M5.Display.drawRect(4, y + 2, M5.Display.width() - 8, zoneHeight - 4, theme::kPanelLight);
-        M5.Display.setTextColor(theme::kText);
-        M5.Display.setTextSize(3);
-        M5.Display.drawString(current_.antworten[i].c_str(), M5.Display.width() / 2, y + zoneHeight / 2);
+        textfit::drawFitted(&M5.Display, current_.antworten[i], M5.Display.width() / 2, y + zoneHeight / 2,
+                             M5.Display.width() - 24, zoneHeight - 10, 3, theme::kText);
     }
 }
 

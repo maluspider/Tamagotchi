@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -48,6 +49,7 @@ void BasketballScreen::updateFlight(uint32_t deltaMs) {
         ballX_ < kRimX2) {
         ++score_;
         scoredThisShot_ = true;
+        haptics::pulse(80);
     }
 
     if (ballX_ < -20 || ballX_ > canvas_.width() + 20 || ballY_ > canvas_.height() + 20) {

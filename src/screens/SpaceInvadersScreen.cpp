@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -58,6 +59,7 @@ void SpaceInvadersScreen::startWave() {
 
 void SpaceInvadersScreen::endGame() {
     gameOver_ = true;
+    haptics::pulse(200);
     highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
 }
 
@@ -103,6 +105,7 @@ void SpaceInvadersScreen::updateBullets(uint32_t deltaMs) {
                     --aliensAliveCount_;
                     score_ += 10;
                     playerBullet_.active = false;
+                    haptics::pulse(30);
                     break;
                 }
             }
@@ -156,6 +159,7 @@ void SpaceInvadersScreen::updateBullets(uint32_t deltaMs) {
         if (b.x >= shipX_ && b.x <= shipX_ + kShipW && b.y >= kShipY && b.y <= kShipY + kShipH) {
             b.active = false;
             --lives_;
+            haptics::pulse(100);
             if (lives_ <= 0) {
                 endGame();
             }

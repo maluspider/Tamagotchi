@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -76,8 +77,10 @@ void FussballScreen::updateFlight(uint32_t deltaMs) {
     if (ballY_ <= kGoalLineY) {
         if (ballX_ > kGoalX1 && ballX_ < kGoalX2 && fabsf(ballX_ - keeperX_) < kKeeperHalfWidth + kBallRadius) {
             ++saves_;
+            haptics::pulse(60);
         } else if (ballX_ > kGoalX1 && ballX_ < kGoalX2) {
             ++goals_;
+            haptics::pulse(80);
         }
         resetBallToLaunch();
     }
