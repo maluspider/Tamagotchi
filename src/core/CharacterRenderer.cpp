@@ -3,6 +3,8 @@
 #include <M5Unified.h>
 #include <SD.h>
 
+#include <memory>
+
 #include "CharacterTraits.h"
 #include "config.h"
 
@@ -53,14 +55,35 @@ bool CharacterRenderer::draw(CharacterStage stage, const char* mood, const Profi
         return false;
     }
 
+    // Datei selbst einlesen statt canvas_.drawPngFile(SD, path, ...) zu
+    // nutzen: M5GFX's dateisystem-generische Ueberladung braucht dafuer
+    // eine DataWrapperT<T>-Spezialisierung fuer den exakten Typ von SD
+    // (fs::SDFS) - die existiert in dieser M5GFX-Version nicht (nur fuer
+    // die SdFat-Bibliothek), das fuehrt zu einem "abstract type"-
+    // Kompilierfehler. Der Byte-Puffer-Pfad (drawPng()) braucht dagegen
+    // keine Dateisystem-Spezialisierung und funktioniert immer. Die
+    // Sprite-Dateien sind winzig (<1 KB, 32x32 mit begrenzter Palette),
+    // komplett in den RAM lesen ist unproblematisch.
+    File file = SD.open(path, FILE_READ);
+    if (!file) {
+        return false;
+    }
+    const size_t fileSize = file.size();
+    std::unique_ptr<uint8_t[]> buffer(new uint8_t[fileSize]);
+    const int bytesRead = file.read(buffer.get(), fileSize);
+    file.close();
+    if (bytesRead < 0 || static_cast<size_t>(bytesRead) != fileSize) {
+        return false;
+    }
+
     ensureSprite();
     // Vor dem Dekodieren mit der Transparenz-Markerfarbe fuellen: der
-    // 16bpp-Canvas-Puffer hat keinen Alpha-Kanal, daher blendet drawPngFile
+    // 16bpp-Canvas-Puffer hat keinen Alpha-Kanal, daher blendet drawPng
     // transparente Quellpixel gegen das, was bereits im Puffer steht. Diese
     // Fuellfarbe dient anschliessend auch pushRotateZoom() als Farbschluessel
     // fuer den transparenten Ausschnitt beim Zeichnen auf den Bildschirm.
     canvas_.fillSprite(traits::kTransparentKey);
-    canvas_.drawPngFile(SD, path.c_str(), 0, 0);
+    canvas_.drawPng(buffer.get(), fileSize, 0, 0);
     applyTraitColors(profile);
     canvas_.pushRotateZoom(cx, cy, 0.0f, scale, scale, traits::kTransparentKey);
     return true;
