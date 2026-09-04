@@ -1,6 +1,7 @@
 #include "HomeScreen.h"
 
 #include <M5Unified.h>
+#include <SD.h>
 
 #include <cmath>
 
@@ -11,9 +12,9 @@
 
 namespace {
 
-// Platzhalter-Farben/-Groessen pro Entwicklungsstufe (Abschnitt 9) - werden
-// ersetzt, sobald echte Sprite-Assets von der SD-Karte geladen werden
-// (Abschnitt 4).
+// Platzhalter-Farben/-Groessen pro Entwicklungsstufe (Abschnitt 9) - nur
+// noch als Fallback aktiv, wenn kein Sprite von der SD-Karte geladen werden
+// kann (siehe HomeScreen::drawSpriteCharacter()).
 uint16_t colorForStage(CharacterStage stage) {
     switch (stage) {
         case CharacterStage::Ei: return TFT_WHITE;
@@ -28,6 +29,22 @@ uint16_t colorForStage(CharacterStage stage) {
 
 int radiusForStage(CharacterStage stage) {
     return 20 + static_cast<int>(stage) * 6; // waechst sichtbar mit der Stufe
+}
+
+// Skalierung der 32x32-Sprite-Vorlage je Stufe - steigt leicht mit der
+// Stufe an, damit das sichtbare Wachstum aus Abschnitt 9 erhalten bleibt
+// (die Sprites selbst unterscheiden sich vor allem durch Details/Accessoires,
+// weniger durch rohe Groesse).
+float spriteScaleForStage(CharacterStage stage) {
+    switch (stage) {
+        case CharacterStage::Ei: return 2.6f;
+        case CharacterStage::Baby: return 2.8f;
+        case CharacterStage::Kind: return 3.0f;
+        case CharacterStage::Junior: return 3.2f;
+        case CharacterStage::Experte: return 3.4f;
+        case CharacterStage::Meister: return 3.6f;
+    }
+    return 3.0f;
 }
 
 constexpr uint32_t kRedrawIntervalMs = 1000; // Uhrzeit-Anzeige reicht sekundengenau
@@ -92,6 +109,44 @@ void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
     // Einstellungen sind Eltern-PIN-geschuetzt (Abschnitt 11).
     app_.pinEntrySetNewMode = false;
     stateMachine_.requestSwitch(ScreenId::PinEntry);
+}
+
+bool HomeScreen::drawSpriteCharacter() {
+    const CharacterStage stage = app_.character.stage();
+    const String today = rtcclock::todayIso();
+    const bool sad = app_.character.isSad(today);
+
+    const char* mood;
+    if (sad) {
+        mood = "sad";
+    } else {
+        // Wechselt bei jedem Redraw-Tick (Abschnitt 5: 1x/Sekunde) zwischen
+        // offenen und geschlossenen Augen - ein einfaches, aber sichtbares
+        // Blinzeln ohne eigene Animationsschleife.
+        spriteBlinkToggle_ = !spriteBlinkToggle_;
+        mood = spriteBlinkToggle_ ? "idle2" : "idle1";
+    }
+
+    const String path = String(config::kSpriteCharacterDir) + CharacterEngine::stageAssetKey(stage) + "_" + mood + ".png";
+    if (!SD.exists(path)) {
+        // Kein Sprite auf der SD-Karte (oder Karte fehlt) - Aufrufer
+        // zeichnet stattdessen die Platzhalter-Grafik.
+        return false;
+    }
+
+    const float scale = spriteScaleForStage(stage);
+    const int cx = M5.Display.width() / 2;
+    const int cy = M5.Display.height() / 2;
+    M5.Display.drawPngFile(SD, path.c_str(), cx, cy, 0, 0, 0, 0, scale, scale, middle_center);
+
+    if (app_.profile.name.length() > 0) {
+        const int halfHeight = static_cast<int>(config::kSpriteSourceSizePx * scale / 2.0f);
+        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextDatum(top_center);
+        M5.Display.setTextSize(2);
+        M5.Display.drawString(app_.profile.name.c_str(), cx, cy + halfHeight + 6);
+    }
+    return true;
 }
 
 void HomeScreen::drawPlaceholderCharacter() const {
@@ -203,7 +258,9 @@ void HomeScreen::drawBottomBar() const {
 
 void HomeScreen::draw() {
     M5.Display.fillScreen(TFT_BLACK);
-    drawPlaceholderCharacter();
+    if (!drawSpriteCharacter()) {
+        drawPlaceholderCharacter();
+    }
     drawStatusBar();
     drawBottomBar();
 }

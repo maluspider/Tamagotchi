@@ -8,14 +8,15 @@ alle hier genannten Design-Entscheidungen.
 
 **Aktueller Stand: alle 6 Phasen (0–5) sind umgesetzt** (siehe Abschnitt 14
 des Plans) – State-Machine, Storage-Layer, Erststart-Einrichtung mit
-Kind-Profil-Auswahl, Home-Screen mit Platzhalter-Charakter, Aufgaben-Modus
-für alle vier Multiple-Choice-Fächer inkl. Spaced Repetition und
-Schwierigkeitsanstieg, Gedächtnistraining, alle 9 Spiele, Alltagsfunktionen
-(Uhr/Wecker, Timer, Checkliste, Steckbrief), Nachtmodus, Eltern-PIN-
-geschützte Einstellungen und ein Web-Interface (Fortschrittsansicht,
-Aufgaben-Verwaltung, Tageslimit, ArduinoOTA). Damit ist die komplette im
-Plan vorgesehene Funktionalität im Code vorhanden – siehe aber unbedingt
-den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
+Kind-Profil-Auswahl, Home-Screen mit echtem Sprite-Charakter (32×32-PNGs von
+der SD-Karte, 6 Entwicklungsstufen mit Blinzel-/Traurig-Varianten – siehe
+"Sprite-Grafik" unten), Aufgaben-Modus für alle vier Multiple-Choice-Fächer
+inkl. Spaced Repetition und Schwierigkeitsanstieg, Gedächtnistraining, alle
+9 Spiele, Alltagsfunktionen (Uhr/Wecker, Timer, Checkliste, Steckbrief),
+Nachtmodus, Eltern-PIN-geschützte Einstellungen und ein Web-Interface
+(Fortschrittsansicht, Aufgaben-Verwaltung, Tageslimit, ArduinoOTA). Damit
+ist die komplette im Plan vorgesehene Funktionalität im Code vorhanden –
+siehe aber unbedingt den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
 
 ## Vor dem ersten Flashen: zwei Dinge anpassen
 
@@ -42,14 +43,17 @@ den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
 
 ## SD-Karte
 
-Die Firmware liest Aufgaben-Content von der SD-Karte, schreibt aber auch
-Profil-/Fortschritts-/Spaced-Repetition-/Highscore-Daten dorthin
-(`/profile.json`, `/progress.json`, `/progress/aufgaben_<fach>.json`,
+Die Firmware liest Aufgaben-Content und Charakter-Sprites von der SD-Karte,
+schreibt aber auch Profil-/Fortschritts-/Spaced-Repetition-/Highscore-Daten
+dorthin (`/profile.json`, `/progress.json`, `/progress/aufgaben_<fach>.json`,
 `/highscores.json` – alle atomar via `JsonStore`, siehe Abschnitt 6 des
 Plans). Karte vor dem ersten Start mit FAT32 formatieren und den Inhalt
 von `sdcard/` (aus diesem Repo) ins Wurzelverzeichnis kopieren, sodass
-`/tasks/mathe_1.json` etc. existieren. Das Verzeichnis `/progress/` legt
-die Firmware beim ersten Start selbst an.
+`/tasks/mathe_1.json` und `/sprites/character/ei_idle1.png` etc. existieren.
+Das Verzeichnis `/progress/` legt die Firmware beim ersten Start selbst an.
+**Ohne Sprite-Dateien** (Karte fehlt, `/sprites/` nicht kopiert) zeigt der
+Home-Screen automatisch die alte Kreis-Platzhalter-Grafik statt eines
+Sprites – kein Absturz, nur weniger hübsch.
 
 ## Setup
 
@@ -88,6 +92,17 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
   Spiele-Menü (nur mit Spielzeitguthaben aktiv), Uhr-Icon →
   Alltagsfunktionen-Menü, Zahnrad-Icon → Eltern-PIN-Eingabe →
   Einstellungen.
+  - **Sprite-Grafik:** der Charakter ist ein echtes 32×32-Pixel-Art-Sprite
+    von der SD-Karte (`sdcard/sprites/character/`), pro Entwicklungsstufe
+    (Ei/Baby/Kind/Junior/Experte/Meister) mit blinzelnder Idle-Animation
+    (wechselt sekündlich) und eigener trauriger Variante bei Inaktivität
+    (Abschnitt 9). Die Dateien wurden prozedural erzeugt (siehe
+    [`tools/generate_sprites.py`](tools/generate_sprites.py)) – Skript
+    erneut ausführen (`python3 tools/generate_sprites.py`, benötigt
+    `pip install pillow`), um Farben/Formen anzupassen, oder die PNGs unter
+    `sdcard/sprites/character/<stufe>_<idle1|idle2|sad>.png` durch eigene
+    32×32-Artworks mit transparentem Hintergrund ersetzen – keine Codeänderung
+    nötig, solange die Dateinamen gleich bleiben.
 - **Fach-Auswahl:** Icon-Grid zu Mathe, Rechtschreibung, Französisch (nur
   ab Klasse 3), Quiz und Gedächtnistraining.
 - **Aufgaben-Modus:** Multiple-Choice-Frage antippen; richtige Antwort gibt
@@ -161,6 +176,8 @@ platformio.ini             PlatformIO-Projektdefinition (Board, Libraries)
 include/config.h            Zentrale Konfigurationswerte (Pfade, Limits, Pins)
 include/KidProfiles.h       Eigene Kinder eintragen (Name + Alter) - siehe oben
 sdcard/tasks/                Aufgaben-Content zum Kopieren auf die SD-Karte
+sdcard/sprites/character/    Charakter-Sprites zum Kopieren auf die SD-Karte
+tools/generate_sprites.py    Erzeugt die Sprite-PNGs (pip install pillow)
 src/main.cpp                 Einstiegspunkt (setup()/loop())
 src/core/                    Screen-unabhängige Module
   Screen.h / ScreenId.h / StateMachine.*   Zustandsautomat (Abschnitt 5)

@@ -43,6 +43,12 @@ public:
 
     static const char* stageName(CharacterStage stage);
 
+    // Dateiname-Praefix der Sprite-Assets fuer diese Stufe (sdcard/sprites/
+    // character/<key>_idle1.png etc., siehe tools/generate_sprites.py und
+    // Abschnitt 4). Bewusst getrennt von stageName(): dieser Text erscheint
+    // auf dem Display, jener nur in Dateipfaden.
+    static const char* stageAssetKey(CharacterStage stage);
+
 private:
     static CharacterStage stageForXp(uint32_t xp);
 

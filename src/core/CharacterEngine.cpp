@@ -60,3 +60,15 @@ const char* CharacterEngine::stageName(CharacterStage stage) {
     }
     return "?";
 }
+
+const char* CharacterEngine::stageAssetKey(CharacterStage stage) {
+    switch (stage) {
+        case CharacterStage::Ei: return "ei";
+        case CharacterStage::Baby: return "baby";
+        case CharacterStage::Kind: return "kind";
+        case CharacterStage::Junior: return "junior";
+        case CharacterStage::Experte: return "experte";
+        case CharacterStage::Meister: return "meister";
+    }
+    return "ei";
+}

@@ -15,6 +15,14 @@ constexpr int kSdChipSelectPin = 4; // Core2: TFCARD_CS_PIN
 constexpr const char* kProfilePath = "/profile.json";
 constexpr const char* kProgressPath = "/progress.json";
 
+// --- Sprite-Grafiken (Abschnitt 4) ---
+// Verzeichnis mit den Charakter-Sprites (<stage>_idle1.png/idle2.png/sad.png,
+// 32x32, siehe tools/generate_sprites.py). Fehlt die SD-Karte oder eine
+// Datei, faellt HomeScreen automatisch auf die Platzhalter-Grafik zurueck -
+// siehe HomeScreen::drawSpriteCharacter().
+constexpr const char* kSpriteCharacterDir = "/sprites/character/";
+constexpr int kSpriteSourceSizePx = 32;
+
 // --- Spielzeit-Oekonomie (Abschnitt 7) ---
 constexpr uint16_t kMinutesPerSolvedTask = 2;
 constexpr uint16_t kDailyPlaytimeLimitMinutes = 60;
