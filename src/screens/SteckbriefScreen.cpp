@@ -5,6 +5,7 @@
 #include "../core/CharacterEngine.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 
 namespace {
 constexpr int kHomeIconSize = 28;
@@ -49,15 +50,15 @@ void SteckbriefScreen::update(uint32_t) {
 void SteckbriefScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void SteckbriefScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 30, TFT_NAVY);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.fillScreen(theme::kBackground);
+    M5.Display.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
     M5.Display.drawString("Mein Steckbrief", 6, 4);
@@ -65,7 +66,7 @@ void SteckbriefScreen::draw() {
     int y = 44;
     const int lineHeight = 28;
     auto drawLine = [&](const String& text) {
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(top_left);
         M5.Display.setTextSize(2);
         M5.Display.drawString(text, 14, y);

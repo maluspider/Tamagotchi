@@ -4,6 +4,7 @@
 
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 #include "config.h"
 
 namespace {
@@ -87,38 +88,38 @@ void ChecklistScreen::update(uint32_t) {
 void ChecklistScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void ChecklistScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 30, TFT_NAVY);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.fillScreen(theme::kBackground);
+    M5.Display.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
     M5.Display.drawString("Meine Liste", 6, 4);
 
     for (int i = 0; i < AppContext::kChecklistItemCount; ++i) {
         const int y = kRowTop + i * kRowHeight;
-        M5.Display.drawRoundRect(10, y + 4, M5.Display.width() - 20, kRowHeight - 8, 8, TFT_DARKGREY);
+        M5.Display.drawRoundRect(10, y + 4, M5.Display.width() - 20, kRowHeight - 8, 8, theme::kPanelLight);
 
         const int boxX = 24;
         const int boxY = y + kRowHeight / 2 - 12;
-        M5.Display.drawRect(boxX, boxY, 24, 24, TFT_WHITE);
+        M5.Display.drawRect(boxX, boxY, 24, 24, theme::kText);
         if (app_.checklistDone[i]) {
-            M5.Display.fillRect(boxX + 3, boxY + 3, 18, 18, TFT_GREEN);
+            M5.Display.fillRect(boxX + 3, boxY + 3, 18, 18, theme::kSuccess);
         }
 
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(middle_left);
         M5.Display.setTextSize(2);
         M5.Display.drawString(kItemLabels[i], boxX + 36, y + kRowHeight / 2);
     }
 
     if (app_.checklistRewardedToday) {
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(bottom_center);
         M5.Display.setTextSize(1);
         M5.Display.drawString("Heute schon belohnt - gut gemacht!", M5.Display.width() / 2, M5.Display.height() - 6);

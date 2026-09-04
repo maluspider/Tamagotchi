@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
 
 namespace {
@@ -80,13 +81,13 @@ void ClockScreen::update(uint32_t deltaMs) {
 void ClockScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void ClockScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillScreen(theme::kBackground);
 
     m5::rtc_time_t time_;
     M5.Rtc.getTime(&time_);
@@ -95,15 +96,15 @@ void ClockScreen::draw() {
 
     const int centerX = M5.Display.width() / 2;
 
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(7);
     M5.Display.drawString(buf, centerX, 70);
 
     // Glocke: gefuellt = Wecker aktiv, nur Umriss = inaktiv.
-    const uint16_t bellColor = app_.profile.alarmEnabled ? TFT_YELLOW : TFT_DARKGREY;
+    const uint16_t bellColor = app_.profile.alarmEnabled ? theme::kAccentGold : theme::kMuted;
     M5.Display.fillCircle(centerX, kBellCenterY, kBellRadius, bellColor);
-    M5.Display.drawCircle(centerX, kBellCenterY, kBellRadius, TFT_WHITE);
+    M5.Display.drawCircle(centerX, kBellCenterY, kBellRadius, theme::kText);
 
     M5.Display.setTextSize(3);
     char alarmBuf[6];
@@ -117,7 +118,7 @@ void ClockScreen::draw() {
     M5.Display.drawString("-", zoneW * 2 + zoneW / 2, kStepperTop + kStepperHeight / 2);
     M5.Display.drawString("+", zoneW * 3 + zoneW / 2, kStepperTop + kStepperHeight / 2);
     for (int i = 1; i < 4; ++i) {
-        M5.Display.drawLine(zoneW * i, kStepperTop, zoneW * i, kStepperTop + kStepperHeight, TFT_DARKGREY);
+        M5.Display.drawLine(zoneW * i, kStepperTop, zoneW * i, kStepperTop + kStepperHeight, theme::kPanelLight);
     }
 
     drawHomeIcon();

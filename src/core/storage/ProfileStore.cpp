@@ -29,6 +29,9 @@ Profile load() {
     profile.nightStartHour = doc["nachtmodus"]["start_stunde"] | static_cast<uint8_t>(20);
     profile.nightEndHour = doc["nachtmodus"]["ende_stunde"] | static_cast<uint8_t>(7);
     profile.dailyLimitMinutesOverride = doc["einstellungen"]["tageslimit_min"] | static_cast<uint16_t>(0);
+    profile.skinToneIndex = doc["aussehen"]["hautfarbe"] | static_cast<uint8_t>(0);
+    profile.hairColorIndex = doc["aussehen"]["haarfarbe"] | static_cast<uint8_t>(0);
+    profile.clothingColorIndex = doc["aussehen"]["kleidung"] | static_cast<uint8_t>(0);
     profile.isValid = profile.geraetId.length() > 0;
 
     return profile;
@@ -49,6 +52,9 @@ bool save(const Profile& profile) {
     doc["nachtmodus"]["start_stunde"] = profile.nightStartHour;
     doc["nachtmodus"]["ende_stunde"] = profile.nightEndHour;
     doc["einstellungen"]["tageslimit_min"] = profile.dailyLimitMinutesOverride;
+    doc["aussehen"]["hautfarbe"] = profile.skinToneIndex;
+    doc["aussehen"]["haarfarbe"] = profile.hairColorIndex;
+    doc["aussehen"]["kleidung"] = profile.clothingColorIndex;
 
     return storage::saveJsonAtomic(config::kProfilePath, doc);
 }

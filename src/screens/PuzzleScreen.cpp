@@ -4,6 +4,7 @@
 #include <esp_random.h>
 
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 
 namespace {
 constexpr int kHomeIconSize = 28;
@@ -132,8 +133,8 @@ void PuzzleScreen::drawHomeIcon() {
 }
 
 void PuzzleScreen::draw() {
-    canvas_.fillScreen(TFT_BLACK);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, TFT_NAVY);
+    canvas_.fillScreen(theme::kBackground);
+    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);

@@ -1,13 +1,13 @@
 #include "HomeScreen.h"
 
 #include <M5Unified.h>
-#include <SD.h>
 
 #include <cmath>
 
 #include "../core/CharacterEngine.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 #include "config.h"
 
 namespace {
@@ -17,14 +17,14 @@ namespace {
 // kann (siehe HomeScreen::drawSpriteCharacter()).
 uint16_t colorForStage(CharacterStage stage) {
     switch (stage) {
-        case CharacterStage::Ei: return TFT_WHITE;
-        case CharacterStage::Baby: return TFT_YELLOW;
-        case CharacterStage::Kind: return TFT_GREEN;
-        case CharacterStage::Junior: return TFT_CYAN;
-        case CharacterStage::Experte: return TFT_ORANGE;
-        case CharacterStage::Meister: return TFT_PINK;
+        case CharacterStage::Ei: return theme::kMuted;
+        case CharacterStage::Baby: return theme::kAccentGold;
+        case CharacterStage::Kind: return theme::kSuccess;
+        case CharacterStage::Junior: return theme::kAccentCyan;
+        case CharacterStage::Experte: return theme::kAccentOrange;
+        case CharacterStage::Meister: return theme::kAccentPink;
     }
-    return TFT_WHITE;
+    return theme::kMuted;
 }
 
 int radiusForStage(CharacterStage stage) {
@@ -127,21 +127,18 @@ bool HomeScreen::drawSpriteCharacter() {
         mood = spriteBlinkToggle_ ? "idle2" : "idle1";
     }
 
-    const String path = String(config::kSpriteCharacterDir) + CharacterEngine::stageAssetKey(stage) + "_" + mood + ".png";
-    if (!SD.exists(path)) {
+    const float scale = spriteScaleForStage(stage);
+    const int cx = M5.Display.width() / 2;
+    const int cy = M5.Display.height() / 2;
+    if (!characterRenderer_.draw(stage, mood, app_.profile, cx, cy, scale)) {
         // Kein Sprite auf der SD-Karte (oder Karte fehlt) - Aufrufer
         // zeichnet stattdessen die Platzhalter-Grafik.
         return false;
     }
 
-    const float scale = spriteScaleForStage(stage);
-    const int cx = M5.Display.width() / 2;
-    const int cy = M5.Display.height() / 2;
-    M5.Display.drawPngFile(SD, path.c_str(), cx, cy, 0, 0, 0, 0, scale, scale, middle_center);
-
     if (app_.profile.name.length() > 0) {
         const int halfHeight = static_cast<int>(config::kSpriteSourceSizePx * scale / 2.0f);
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(top_center);
         M5.Display.setTextSize(2);
         M5.Display.drawString(app_.profile.name.c_str(), cx, cy + halfHeight + 6);
@@ -157,24 +154,24 @@ void HomeScreen::drawPlaceholderCharacter() const {
     const uint16_t color = colorForStage(stage);
 
     M5.Display.fillCircle(cx, cy, r, color);
-    M5.Display.drawCircle(cx, cy, r, TFT_BLACK);
+    M5.Display.drawCircle(cx, cy, r, theme::kOutline);
 
     const String today = rtcclock::todayIso();
     if (app_.character.isSad(today)) {
         // Traurige Augen (nach unten geneigte Striche statt Punkte) -
         // einziger Ausloeser ist Inaktivitaet, nie eine falsche Antwort
         // (Abschnitt 7/9, Review).
-        M5.Display.drawLine(cx - r / 2, cy - r / 4, cx - r / 4, cy - r / 3, TFT_BLACK);
-        M5.Display.drawLine(cx + r / 4, cy - r / 3, cx + r / 2, cy - r / 4, TFT_BLACK);
+        M5.Display.drawLine(cx - r / 2, cy - r / 4, cx - r / 4, cy - r / 3, theme::kOutline);
+        M5.Display.drawLine(cx + r / 4, cy - r / 3, cx + r / 2, cy - r / 4, theme::kOutline);
     } else {
-        M5.Display.fillCircle(cx - r / 3, cy - r / 4, 3, TFT_BLACK);
-        M5.Display.fillCircle(cx + r / 3, cy - r / 4, 3, TFT_BLACK);
+        M5.Display.fillCircle(cx - r / 3, cy - r / 4, 3, theme::kOutline);
+        M5.Display.fillCircle(cx + r / 3, cy - r / 4, 3, theme::kOutline);
     }
 
     // Name des Kindes/Charakters (aus dem beim Erststart gewaehlten Profil,
     // include/KidProfiles.h) unter dem Platzhalter-Charakter.
     if (app_.profile.name.length() > 0) {
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(top_center);
         M5.Display.setTextSize(2);
         M5.Display.drawString(app_.profile.name.c_str(), cx, cy + r + 8);
@@ -182,13 +179,13 @@ void HomeScreen::drawPlaceholderCharacter() const {
 }
 
 void HomeScreen::drawStatusBar() const {
-    M5.Display.fillRect(0, 0, M5.Display.width(), 30, TFT_NAVY);
+    M5.Display.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
 
     m5::rtc_time_t time_;
     M5.Rtc.getTime(&time_);
     char buf[6];
     snprintf(buf, sizeof(buf), "%02d:%02d", time_.hours, time_.minutes);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
     M5.Display.drawString(buf, 6, 6);
@@ -199,26 +196,26 @@ void HomeScreen::drawStatusBar() const {
     M5.Display.setTextDatum(top_right);
     M5.Display.drawNumber(available, M5.Display.width() - 10, 6);
     const int iconX = M5.Display.width() - 34;
-    M5.Display.fillTriangle(iconX, 8, iconX, 22, iconX + 12, 15, TFT_WHITE);
+    M5.Display.fillTriangle(iconX, 8, iconX, 22, iconX + 12, 15, theme::kAccentGold);
 
     if (M5.Power.getBatteryLevel() <= config::kLowBatteryWarningPercent) {
-        M5.Display.drawRect(M5.Display.width() / 2 - 12, 8, 20, 12, TFT_RED);
-        M5.Display.fillRect(M5.Display.width() / 2 + 8, 11, 3, 6, TFT_RED);
+        M5.Display.drawRect(M5.Display.width() / 2 - 12, 8, 20, 12, theme::kDanger);
+        M5.Display.fillRect(M5.Display.width() / 2 + 8, 11, 3, 6, theme::kDanger);
     }
 }
 
 void HomeScreen::drawBottomBar() const {
     const int y = M5.Display.height() - kBottomBarHeight;
-    M5.Display.fillRect(0, y, M5.Display.width(), kBottomBarHeight, TFT_NAVY);
+    M5.Display.fillRect(0, y, M5.Display.width(), kBottomBarHeight, theme::kPanel);
 
     const int zoneW = M5.Display.width() / 4;
 
     // Aufgaben: Stift-Symbol (immer verfuegbar, Abschnitt 5).
     {
         const int cx = zoneW / 2;
-        M5.Display.drawLine(cx - 8, y + 28, cx + 8, y + 12, TFT_WHITE);
-        M5.Display.drawLine(cx - 8, y + 28, cx - 4, y + 24, TFT_WHITE);
-        M5.Display.fillTriangle(cx + 6, y + 10, cx + 10, y + 14, cx + 8, y + 16, TFT_YELLOW);
+        M5.Display.drawLine(cx - 8, y + 28, cx + 8, y + 12, theme::kText);
+        M5.Display.drawLine(cx - 8, y + 28, cx - 4, y + 24, theme::kText);
+        M5.Display.fillTriangle(cx + 6, y + 10, cx + 10, y + 14, cx + 8, y + 16, theme::kAccentGold);
     }
 
     // Spiele: Play-Dreieck - ausgegraut, solange nicht freigeschaltet
@@ -228,7 +225,7 @@ void HomeScreen::drawBottomBar() const {
         const int cx = zoneW + zoneW / 2;
         const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
         const bool hasTime = app_.playtime.availableMinutes() > 0;
-        const uint16_t color = (unlocked && hasTime) ? TFT_WHITE : TFT_DARKGREY;
+        const uint16_t color = (unlocked && hasTime) ? theme::kAccentCyan : theme::kMuted;
         M5.Display.fillTriangle(cx - 8, y + 10, cx - 8, y + 30, cx + 10, y + 20, color);
     }
 
@@ -236,28 +233,28 @@ void HomeScreen::drawBottomBar() const {
     {
         const int cx = 2 * zoneW + zoneW / 2;
         const int cy = y + 20;
-        M5.Display.drawCircle(cx, cy, 12, TFT_WHITE);
-        M5.Display.drawLine(cx, cy, cx, cy - 8, TFT_WHITE);
-        M5.Display.drawLine(cx, cy, cx + 6, cy, TFT_WHITE);
+        M5.Display.drawCircle(cx, cy, 12, theme::kText);
+        M5.Display.drawLine(cx, cy, cx, cy - 8, theme::kText);
+        M5.Display.drawLine(cx, cy, cx + 6, cy, theme::kText);
     }
 
     // Einstellungen: einfaches Zahnrad-Symbol.
     {
         const int cx = 3 * zoneW + zoneW / 2;
         const int cy = y + 20;
-        M5.Display.drawCircle(cx, cy, 10, TFT_WHITE);
-        M5.Display.drawCircle(cx, cy, 4, TFT_WHITE);
+        M5.Display.drawCircle(cx, cy, 10, theme::kText);
+        M5.Display.drawCircle(cx, cy, 4, theme::kText);
         for (int i = 0; i < 6; ++i) {
             const float angle = static_cast<float>(i) * 3.14159f / 3.0f;
             const int tx = cx + static_cast<int>(13.0f * cosf(angle));
             const int ty = cy + static_cast<int>(13.0f * sinf(angle));
-            M5.Display.fillCircle(tx, ty, 2, TFT_WHITE);
+            M5.Display.fillCircle(tx, ty, 2, theme::kText);
         }
     }
 }
 
 void HomeScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillScreen(theme::kBackground);
     if (!drawSpriteCharacter()) {
         drawPlaceholderCharacter();
     }

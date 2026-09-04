@@ -2,9 +2,11 @@
 
 #include <M5Unified.h>
 
+#include "../core/Theme.h"
+
 namespace {
 constexpr int kHomeIconSize = 28;
-constexpr int kCols = 2;
+constexpr int kCols = 3;
 constexpr int kRows = 2;
 } // namespace
 
@@ -13,6 +15,7 @@ const AlltagMenuScreen::Entry AlltagMenuScreen::kEntries[AlltagMenuScreen::kEntr
     {ScreenId::Timer, "Timer"},
     {ScreenId::Checklist, "Liste"},
     {ScreenId::Steckbrief, "Ich"},
+    {ScreenId::CharacterCustomize, "Look"},
 };
 
 AlltagMenuScreen::AlltagMenuScreen(AppContext& app, StateMachine& stateMachine)
@@ -29,49 +32,57 @@ bool AlltagMenuScreen::touchedHomeIcon(int x, int y) const {
 void AlltagMenuScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void AlltagMenuScreen::drawEntry(int index, int cx, int cy, int cellSize) const {
     const int half = cellSize / 2 - 10;
-    M5.Display.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 10, TFT_NAVY);
+    M5.Display.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 10, theme::kPanel);
 
     const int r = half - 16;
     switch (kEntries[index].screen) {
         case ScreenId::Clock:
-            M5.Display.drawCircle(cx, cy - 8, r, TFT_WHITE);
-            M5.Display.drawLine(cx, cy - 8, cx, cy - 8 - r + 6, TFT_WHITE);
-            M5.Display.drawLine(cx, cy - 8, cx + r / 2, cy - 8, TFT_WHITE);
+            M5.Display.drawCircle(cx, cy - 8, r, theme::kText);
+            M5.Display.drawLine(cx, cy - 8, cx, cy - 8 - r + 6, theme::kText);
+            M5.Display.drawLine(cx, cy - 8, cx + r / 2, cy - 8, theme::kText);
             break;
         case ScreenId::Timer:
-            M5.Display.drawCircle(cx, cy - 4, r, TFT_WHITE);
-            M5.Display.fillRect(cx - 4, cy - 8 - r - 6, 8, 6, TFT_WHITE);
-            M5.Display.drawLine(cx, cy - 4, cx, cy - 4 - r + 6, TFT_ORANGE);
+            M5.Display.drawCircle(cx, cy - 4, r, theme::kText);
+            M5.Display.fillRect(cx - 4, cy - 8 - r - 6, 8, 6, theme::kText);
+            M5.Display.drawLine(cx, cy - 4, cx, cy - 4 - r + 6, theme::kAccentOrange);
             break;
         case ScreenId::Checklist:
-            M5.Display.drawRoundRect(cx - r, cy - r - 6, r * 2, r * 2, 4, TFT_WHITE);
-            M5.Display.drawLine(cx - r / 2, cy - 8, cx - r / 4, cy - 2, TFT_GREEN);
-            M5.Display.drawLine(cx - r / 4, cy - 2, cx + r / 2, cy - r, TFT_GREEN);
+            M5.Display.drawRoundRect(cx - r, cy - r - 6, r * 2, r * 2, 4, theme::kText);
+            M5.Display.drawLine(cx - r / 2, cy - 8, cx - r / 4, cy - 2, theme::kSuccess);
+            M5.Display.drawLine(cx - r / 4, cy - 2, cx + r / 2, cy - r, theme::kSuccess);
             break;
         case ScreenId::Steckbrief:
-            M5.Display.drawRoundRect(cx - r, cy - r - 6, r * 2, r * 2, 4, TFT_WHITE);
-            M5.Display.fillCircle(cx, cy - r / 2 - 6, r / 3, TFT_ORANGE);
-            M5.Display.drawLine(cx - r / 2, cy + r / 3, cx + r / 2, cy + r / 3, TFT_WHITE);
+            M5.Display.drawRoundRect(cx - r, cy - r - 6, r * 2, r * 2, 4, theme::kText);
+            M5.Display.fillCircle(cx, cy - r / 2 - 6, r / 3, theme::kAccentOrange);
+            M5.Display.drawLine(cx - r / 2, cy + r / 3, cx + r / 2, cy + r / 3, theme::kText);
+            break;
+        case ScreenId::CharacterCustomize:
+            // Kleine Palette mit drei Farbtupfen - steht fuer die
+            // anpassbaren Traits (Haut/Haare/Kleidung).
+            M5.Display.fillEllipse(cx, cy - 2, r, r * 0.8, theme::kPanelLight);
+            M5.Display.fillCircle(cx - r / 2, cy - r / 3, r / 4, theme::kAccentPink);
+            M5.Display.fillCircle(cx, cy - r / 2, r / 4, theme::kAccentCyan);
+            M5.Display.fillCircle(cx + r / 2, cy - r / 3, r / 4, theme::kAccentGold);
             break;
         default:
             break;
     }
 
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(2);
     M5.Display.drawString(kEntries[index].label, cx, cy + half - 14);
 }
 
 void AlltagMenuScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillScreen(theme::kBackground);
 
     const int cellW = M5.Display.width() / kCols;
     const int cellH = (M5.Display.height() - 10) / kRows;

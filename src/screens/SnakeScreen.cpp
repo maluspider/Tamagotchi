@@ -5,6 +5,7 @@
 
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 
 namespace {
 constexpr const char* kHighscoreKey = "snake";
@@ -167,7 +168,7 @@ void SnakeScreen::drawPlayfield() {
 }
 
 void SnakeScreen::draw() {
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, TFT_NAVY);
+    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
 
     char buf[24];
     canvas_.setTextColor(TFT_WHITE);

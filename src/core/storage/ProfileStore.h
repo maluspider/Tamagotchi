@@ -34,6 +34,14 @@ struct Profile {
     // Tageslimit in Minuten (siehe SettingsScreen).
     uint16_t dailyLimitMinutesOverride = 0;
 
+    // Definierbare Charaktermerkmale (Abschnitt 4/9, CharacterCustomizeScreen):
+    // Indizes in traits::kSkinTones/kHairColors/kClothingColors
+    // (CharacterTraits.h). 0 = jeweils erste Voreinstellung. Bewusst nicht
+    // Eltern-PIN-geschuetzt - reine Optik, kein Sicherheits-/Limit-Thema.
+    uint8_t skinToneIndex = 0;
+    uint8_t hairColorIndex = 0;
+    uint8_t clothingColorIndex = 0;
+
     bool isValid = false; // false = noch kein Profil auf der SD-Karte angelegt
 };
 

@@ -5,6 +5,7 @@
 
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 
 namespace {
 constexpr int kHomeIconSize = 28;
@@ -348,8 +349,8 @@ void TetrisScreen::drawBoard() {
 }
 
 void TetrisScreen::draw() {
-    canvas_.fillScreen(TFT_BLACK);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, TFT_NAVY);
+    canvas_.fillScreen(theme::kBackground);
+    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
 
     char buf[24];
     canvas_.setTextColor(TFT_WHITE);

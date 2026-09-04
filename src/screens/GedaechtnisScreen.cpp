@@ -5,6 +5,7 @@
 
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 #include "config.h"
 
 namespace {
@@ -58,9 +59,9 @@ bool GedaechtnisScreen::touchedHomeIcon(int x, int y) const {
 void GedaechtnisScreen::drawHomeIcon() {
     const int x = canvas_.width() - kHomeIconSize - 6;
     const int y = 6;
-    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    canvas_.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    canvas_.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 // ---------------------------------------------------------------------
@@ -194,9 +195,9 @@ void GedaechtnisScreen::drawSymbol(int symbol, int cx, int cy, int r) {
 }
 
 void GedaechtnisScreen::drawMemoryGame() {
-    canvas_.fillScreen(TFT_BLACK);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, TFT_NAVY);
-    canvas_.setTextColor(TFT_WHITE);
+    canvas_.fillScreen(theme::kBackground);
+    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    canvas_.setTextColor(theme::kText);
     canvas_.setTextDatum(top_left);
     canvas_.setTextSize(1);
     char buf[16];
@@ -217,7 +218,7 @@ void GedaechtnisScreen::drawMemoryGame() {
             canvas_.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 8, TFT_WHITE);
             drawSymbol(cardSymbol_[i], cx, cy, half - 6);
         } else {
-            canvas_.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 8, TFT_DARKGREY);
+            canvas_.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 8, theme::kMuted);
         }
     }
 
@@ -330,9 +331,9 @@ void GedaechtnisScreen::updateSequence(uint32_t deltaMs) {
 }
 
 void GedaechtnisScreen::drawSequenceGame() {
-    canvas_.fillScreen(TFT_BLACK);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, TFT_NAVY);
-    canvas_.setTextColor(TFT_WHITE);
+    canvas_.fillScreen(theme::kBackground);
+    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    canvas_.setTextColor(theme::kText);
     canvas_.setTextDatum(top_left);
     canvas_.setTextSize(1);
     char buf[16];

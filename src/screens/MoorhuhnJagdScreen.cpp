@@ -5,6 +5,7 @@
 
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 
 namespace {
 constexpr int kHomeIconSize = 28;
@@ -145,7 +146,7 @@ void MoorhuhnJagdScreen::drawHomeIcon() {
 
 void MoorhuhnJagdScreen::draw() {
     canvas_.fillScreen(TFT_GREENYELLOW);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, TFT_NAVY);
+    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);

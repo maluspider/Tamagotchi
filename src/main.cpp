@@ -10,6 +10,7 @@
 #include "screens/AlltagMenuScreen.h"
 #include "screens/BasketballScreen.h"
 #include "screens/BootScreen.h"
+#include "screens/CharacterCustomizeScreen.h"
 #include "screens/ChecklistScreen.h"
 #include "screens/ClockScreen.h"
 #include "screens/FussballScreen.h"
@@ -108,6 +109,9 @@ void setup() {
     });
     stateMachine.registerScreen(ScreenId::Steckbrief, [] {
         return std::make_unique<SteckbriefScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::CharacterCustomize, [] {
+        return std::make_unique<CharacterCustomizeScreen>(appContext, stateMachine);
     });
     stateMachine.registerScreen(ScreenId::PinEntry, [] {
         return std::make_unique<PinEntryScreen>(appContext, stateMachine);

@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
 #include "config.h"
 
@@ -89,23 +90,23 @@ void SettingsScreen::update(uint32_t) {
 void SettingsScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void SettingsScreen::drawRow(int y, const char* label) const {
-    M5.Display.drawRoundRect(4, y, 312, kRowHeight - 4, 8, TFT_DARKGREY);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.drawRoundRect(4, y, 312, kRowHeight - 4, 8, theme::kPanelLight);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_left);
     M5.Display.setTextSize(2);
     M5.Display.drawString(label, 14, y + (kRowHeight - 4) / 2);
 }
 
 void SettingsScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 26, TFT_NAVY);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.fillScreen(theme::kBackground);
+    M5.Display.fillRect(0, 0, M5.Display.width(), 26, theme::kPanel);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
     M5.Display.drawString("Einstellungen", 6, 3);
@@ -113,9 +114,9 @@ void SettingsScreen::draw() {
     // Zeile 0: Tageslimit -/+.
     drawRow(kRow0Y, "Limit");
     const int rowMidY0 = kRow0Y + (kRowHeight - 4) / 2;
-    M5.Display.fillRoundRect(kMinusX1, kRow0Y + 6, kMinusX2 - kMinusX1, kRowHeight - 16, 6, TFT_RED);
-    M5.Display.fillRoundRect(kPlusX1, kRow0Y + 6, kPlusX2 - kPlusX1, kRowHeight - 16, 6, TFT_GREEN);
-    M5.Display.setTextColor(TFT_BLACK);
+    M5.Display.fillRoundRect(kMinusX1, kRow0Y + 6, kMinusX2 - kMinusX1, kRowHeight - 16, 6, theme::kDanger);
+    M5.Display.fillRoundRect(kPlusX1, kRow0Y + 6, kPlusX2 - kPlusX1, kRowHeight - 16, 6, theme::kSuccess);
+    M5.Display.setTextColor(theme::kOutline);
     M5.Display.setTextDatum(middle_center);
     M5.Display.drawString("-", (kMinusX1 + kMinusX2) / 2, rowMidY0);
     M5.Display.drawString("+", (kPlusX1 + kPlusX2) / 2, rowMidY0);
@@ -123,7 +124,7 @@ void SettingsScreen::draw() {
                                                                               : config::kDailyPlaytimeLimitMinutes;
     char limitBuf[16];
     snprintf(limitBuf, sizeof(limitBuf), "%u Min", static_cast<unsigned>(currentLimit));
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextSize(1);
     M5.Display.drawString(limitBuf, (kMinusX2 + kPlusX1) / 2, rowMidY0);
     M5.Display.setTextSize(2);
@@ -132,7 +133,7 @@ void SettingsScreen::draw() {
     drawRow(kRow1Y, "Bonus");
     char bonusBuf[24];
     snprintf(bonusBuf, sizeof(bonusBuf), "+%u Min antippen", static_cast<unsigned>(kBonusMinutes));
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_right);
     M5.Display.setTextSize(1);
     M5.Display.drawString(bonusBuf, 306, kRow1Y + (kRowHeight - 4) / 2);
@@ -141,19 +142,19 @@ void SettingsScreen::draw() {
     drawRow(kRow2Y, "Nachtmodus");
     M5.Display.setTextDatum(middle_right);
     M5.Display.setTextSize(2);
-    M5.Display.setTextColor(app_.profile.nightModeEnabled ? TFT_GREEN : TFT_RED);
+    M5.Display.setTextColor(app_.profile.nightModeEnabled ? theme::kSuccess : theme::kDanger);
     M5.Display.drawString(app_.profile.nightModeEnabled ? "AN" : "AUS", 306, kRow2Y + (kRowHeight - 4) / 2);
 
     // Zeile 3: PIN aendern.
     drawRow(kRow3Y, "PIN aendern");
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_right);
     M5.Display.setTextSize(1);
     M5.Display.drawString("antippen", 306, kRow3Y + (kRowHeight - 4) / 2);
 
     // Zeile 4: Web-Sync starten.
     drawRow(kRow4Y, "Web-Sync");
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_right);
     M5.Display.setTextSize(1);
     M5.Display.drawString("antippen", 306, kRow4Y + (kRowHeight - 4) / 2);

@@ -8,15 +8,18 @@ alle hier genannten Design-Entscheidungen.
 
 **Aktueller Stand: alle 6 Phasen (0–5) sind umgesetzt** (siehe Abschnitt 14
 des Plans) – State-Machine, Storage-Layer, Erststart-Einrichtung mit
-Kind-Profil-Auswahl, Home-Screen mit echtem Sprite-Charakter (32×32-PNGs von
-der SD-Karte, 6 Entwicklungsstufen mit Blinzel-/Traurig-Varianten – siehe
-"Sprite-Grafik" unten), Aufgaben-Modus für alle vier Multiple-Choice-Fächer
-inkl. Spaced Repetition und Schwierigkeitsanstieg, Gedächtnistraining, alle
-9 Spiele, Alltagsfunktionen (Uhr/Wecker, Timer, Checkliste, Steckbrief),
-Nachtmodus, Eltern-PIN-geschützte Einstellungen und ein Web-Interface
-(Fortschrittsansicht, Aufgaben-Verwaltung, Tageslimit, ArduinoOTA). Damit
-ist die komplette im Plan vorgesehene Funktionalität im Code vorhanden –
-siehe aber unbedingt den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
+Kind-Profil-Auswahl, Home-Screen mit einem Charakter, der als **Menschenkind**
+über 6 Stufen zum Kampfkünstler-Kind heranwächst und trainiert (32×32-PNG-
+Sprites von der SD-Karte, Gürtelfarben weiss→gelb→grün→braun→schwarz, mit
+frei wählbarer Hautfarbe/Haarfarbe/Kleidungsfarbe – siehe "Sprite-Grafik"
+unten), Aufgaben-Modus für alle vier Multiple-Choice-Fächer inkl. Spaced
+Repetition und Schwierigkeitsanstieg, Gedächtnistraining, alle 9 Spiele,
+Alltagsfunktionen (Uhr/Wecker, Timer, Checkliste, Steckbrief, Aussehen),
+Nachtmodus, Eltern-PIN-geschützte Einstellungen, ein durchgängiges 80er-
+Jahre-/Synthwave-Farbschema und ein Web-Interface (Fortschrittsansicht,
+Aufgaben-Verwaltung, Tageslimit, ArduinoOTA). Damit ist die komplette im
+Plan vorgesehene Funktionalität im Code vorhanden – siehe aber unbedingt
+den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
 
 ## Vor dem ersten Flashen: zwei Dinge anpassen
 
@@ -93,16 +96,40 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
   Alltagsfunktionen-Menü, Zahnrad-Icon → Eltern-PIN-Eingabe →
   Einstellungen.
   - **Sprite-Grafik:** der Charakter ist ein echtes 32×32-Pixel-Art-Sprite
-    von der SD-Karte (`sdcard/sprites/character/`), pro Entwicklungsstufe
-    (Ei/Baby/Kind/Junior/Experte/Meister) mit blinzelnder Idle-Animation
-    (wechselt sekündlich) und eigener trauriger Variante bei Inaktivität
-    (Abschnitt 9). Die Dateien wurden prozedural erzeugt (siehe
+    von der SD-Karte (`sdcard/sprites/character/`) – ein Menschenkind, kein
+    Tier/keine Fantasiekreatur. Pro Entwicklungsstufe (Ei/Baby/Kind/Junior/
+    Experte/Meister) trägt es einen Karate-Gi mit zum Trainingsfortschritt
+    passender Gürtelfarbe (weiss→gelb→grün→braun→schwarz) und wird
+    zunehmend kampfbereiter (Stirnband ab Junior, Schlagpose ab Experte,
+    Kampfhaltung mit beiden Fäusten ab Meister) – angelehnt an 90er-
+    Arcade-Kampfspiele wie Street Fighter II/Mortal Kombat. Dazu blinzelnde
+    Idle-Animation (wechselt sekündlich) und eigene traurige Variante bei
+    Inaktivität (Abschnitt 9). Die Dateien wurden prozedural erzeugt (siehe
     [`tools/generate_sprites.py`](tools/generate_sprites.py)) – Skript
     erneut ausführen (`python3 tools/generate_sprites.py`, benötigt
-    `pip install pillow`), um Farben/Formen anzupassen, oder die PNGs unter
+    `pip install pillow`), um Formen anzupassen, oder die PNGs unter
     `sdcard/sprites/character/<stufe>_<idle1|idle2|sad>.png` durch eigene
-    32×32-Artworks mit transparentem Hintergrund ersetzen – keine Codeänderung
-    nötig, solange die Dateinamen gleich bleiben.
+    32×32-Artworks mit transparentem Hintergrund ersetzen (Markerfarben aus
+    `src/core/CharacterTraits.h` beachten) – keine Codeänderung nötig,
+    solange die Dateinamen gleich bleiben.
+  - **Aussehen frei wählbar:** Hautfarbe (4 Voreinstellungen), Haarfarbe (6)
+    und Kleidungsfarbe (6, nur der Gi – der Gürtel bleibt fest) lassen sich
+    jederzeit über den Screen "Aussehen" (Alltagsfunktionen-Menü, siehe
+    unten) mit </>-Pfeilen durchblättern; die Vorschau aktualisiert sich
+    live, jede Änderung wird sofort gespeichert. Technisch ein
+    Palette-Swap zur Laufzeit (`src/core/CharacterRenderer.*`): die
+    Sprite-Dateien enthalten an diesen Stellen reservierte Markerfarben
+    statt fester Farben, die beim Zeichnen durch die gewählte Trait-Farbe
+    ersetzt werden – deshalb reichen 18 Bilddateien statt hunderter
+    Farbkombinationen.
+  - **Farbschema:** die komplette Nicht-Spiel-UI (inkl. der Kopf-/
+    Statusleisten aller 9 Spiele) nutzt ein durchgängiges 80er-Jahre-/
+    Synthwave-Farbschema (dunkles Indigo/Lila + Neonpink/-cyan/-orange/
+    -gold, siehe [`src/core/Theme.h`](src/core/Theme.h)) statt einzelner
+    `TFT_*`-Farben – zentral an einer Stelle anpassbar. Ausnahmen bewusst
+    unverändert: Text/Icon-Linien bleiben weiss (Lesbarkeit), und ein paar
+    "wiedererkennungskritische" Farben (Französisch-Flagge, Basketball-/
+    Fussball-Icon, die vier Merkspiel-Farben) folgen nicht dem Theme.
 - **Fach-Auswahl:** Icon-Grid zu Mathe, Rechtschreibung, Französisch (nur
   ab Klasse 3), Quiz und Gedächtnistraining.
 - **Aufgaben-Modus:** Multiple-Choice-Frage antippen; richtige Antwort gibt
@@ -139,8 +166,8 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
     Spielzeitguthaben und kehren bei Null automatisch zu Home zurück.
     Highscores (wo sinnvoll) werden lokal in `/highscores.json`
     gespeichert.
-- **Alltagsfunktionen-Menü:** Icon-Grid (2×2) zu Uhr/Wecker, Timer,
-  Checkliste und Steckbrief.
+- **Alltagsfunktionen-Menü:** Icon-Grid (3×2, ein Feld bleibt leer) zu
+  Uhr/Wecker, Timer, Checkliste, Steckbrief und Aussehen.
   - **Uhr/Wecker:** grosse Digitaluhr, eine einstellbare Alarmzeit (Glocke
     antippen = an/aus, +/- für Stunde/Minute). Der Wecker löst auch aus,
     wenn gerade ein anderer Screen aktiv ist (`AlarmService`).
@@ -150,6 +177,10 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
     abgehakt, gibt es einmal pro Tag eine kleine EP-Belohnung.
   - **Steckbrief:** Übersicht über Name, Stufe, EP, Klasse, freigeschaltete
     Spiele und Tage seit der letzten Pflege.
+  - **Aussehen:** live Vorschau des Charakters, darunter drei Zeilen
+    (Haut/Haare/Kleidung) mit </>-Pfeilen zum Durchblättern der
+    Farbvoreinstellungen. Nicht Eltern-PIN-geschützt – das Kind kann
+    seinen Charakter jederzeit selbst anpassen.
 - **Nachtmodus:** dimmt den Bildschirm automatisch zwischen 20 und 7 Uhr
   (Default, RTC-basiert, `NightModeService`) – in den Einstellungen an/aus
   schaltbar.
@@ -182,6 +213,9 @@ src/main.cpp                 Einstiegspunkt (setup()/loop())
 src/core/                    Screen-unabhängige Module
   Screen.h / ScreenId.h / StateMachine.*   Zustandsautomat (Abschnitt 5)
   CharacterEngine.*         Tamagotchi-Charaktersystem (Abschnitt 9)
+  CharacterRenderer.*        Sprite-Rendering + Trait-Palette-Swap (Abschnitt 4)
+  CharacterTraits.h          Trait-Farbvoreinstellungen + Markerfarben
+  Theme.h                    Zentrales 80er-/Synthwave-Farbschema (Abschnitt 4)
   PlaytimeAccount.*         Spielzeitkonto (Abschnitt 7)
   PlaytimeTicker.*            Gemeinsame Spielzeit-Verbrauchslogik fuer alle Spiele
   HighscoreStore.*             Lokale Highscores je Spiel (/highscores.json)
@@ -215,6 +249,7 @@ src/screens/                 Konkrete Screens (je eine Klasse pro Screen)
   TimerScreen.*                 Countdown-Timer (2/5/10 Min Presets)
   ChecklistScreen.*             Morgen-Routine-Checkliste
   SteckbriefScreen.*            Charakter-Uebersicht (nur lesend)
+  CharacterCustomizeScreen.*     "Aussehen" - Haut/Haare/Kleidung waehlen (nicht PIN-geschuetzt)
   PinEntryScreen.*               Eltern-PIN-Eingabe (pruefen/neu setzen)
   SettingsScreen.*               Eltern-Einstellungen (PIN-geschuetzt)
   WebSyncScreen.*                 Zeigt SSID/Passwort/IP, startet/stoppt WebServerService

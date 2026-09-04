@@ -4,6 +4,7 @@
 
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
+#include "../core/Theme.h"
 
 namespace {
 constexpr int kHomeIconSize = 28;
@@ -33,15 +34,15 @@ bool SubjectSelectScreen::touchedHomeIcon(int x, int y) const {
 void SubjectSelectScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void SubjectSelectScreen::drawEntry(const Entry& entry, int cx, int cy, int cellSize) const {
     const int half = cellSize / 2 - 6;
-    M5.Display.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 10, TFT_NAVY);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 10, theme::kPanel);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_center);
 
     const int r = half - 10;
@@ -55,6 +56,8 @@ void SubjectSelectScreen::drawEntry(const Entry& entry, int cx, int cy, int cell
             M5.Display.drawString("Aa", cx, cy);
             break;
         case EntryKind::Franzoesisch: {
+            // Franzoesische Flagge - bewusst nicht Teil des Farbschemas
+            // (Wiedererkennungswert als Fach-Icon wichtiger als Theme-Treue).
             const int stripeW = (2 * r) / 3;
             M5.Display.fillRect(cx - stripeW, cy - r / 2, stripeW, r, TFT_BLUE);
             M5.Display.fillRect(cx - stripeW / 3, cy - r / 2, stripeW, r, TFT_WHITE);
@@ -66,14 +69,14 @@ void SubjectSelectScreen::drawEntry(const Entry& entry, int cx, int cy, int cell
             M5.Display.drawString("?", cx, cy);
             break;
         case EntryKind::Gedaechtnis:
-            M5.Display.fillRoundRect(cx - r, cy - r / 2, r - 2, r, 4, TFT_ORANGE);
-            M5.Display.fillRoundRect(cx + 2, cy - r / 2, r - 2, r, 4, TFT_CYAN);
+            M5.Display.fillRoundRect(cx - r, cy - r / 2, r - 2, r, 4, theme::kAccentOrange);
+            M5.Display.fillRoundRect(cx + 2, cy - r / 2, r - 2, r, 4, theme::kAccentCyan);
             break;
     }
 }
 
 void SubjectSelectScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillScreen(theme::kBackground);
 
     Entry entries[kMaxEntries];
     const int count = buildEntries(entries, kMaxEntries);

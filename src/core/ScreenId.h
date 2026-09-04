@@ -26,6 +26,7 @@ enum class ScreenId {
     Timer,
     Checklist,
     Steckbrief,
+    CharacterCustomize,
     PinEntry,
     Settings,
     WebSync,

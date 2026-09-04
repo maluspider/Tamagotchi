@@ -4,6 +4,7 @@
 
 #include "../core/PinCode.h"
 #include "../core/ScreenId.h"
+#include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
 
 namespace {
@@ -101,16 +102,16 @@ void PinEntryScreen::update(uint32_t deltaMs) {
 void PinEntryScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void PinEntryScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
-    M5.Display.fillRect(0, 0, M5.Display.width(), kTopBarHeight, showError_ ? TFT_RED : TFT_NAVY);
+    M5.Display.fillScreen(theme::kBackground);
+    M5.Display.fillRect(0, 0, M5.Display.width(), kTopBarHeight, showError_ ? theme::kDanger : theme::kPanel);
 
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_center);
     M5.Display.setTextSize(2);
     M5.Display.drawString(app_.pinEntrySetNewMode ? "Neuen PIN festlegen" : "Eltern-PIN eingeben",
@@ -120,9 +121,9 @@ void PinEntryScreen::draw() {
         const int cx = M5.Display.width() / 2 - 45 + i * 30;
         const int cy = 40;
         if (i < static_cast<int>(entered_.length())) {
-            M5.Display.fillCircle(cx, cy, 6, TFT_WHITE);
+            M5.Display.fillCircle(cx, cy, 6, theme::kText);
         } else {
-            M5.Display.drawCircle(cx, cy, 6, TFT_WHITE);
+            M5.Display.drawCircle(cx, cy, 6, theme::kText);
         }
     }
 
@@ -136,9 +137,9 @@ void PinEntryScreen::draw() {
         const int row = index / kCols;
         const int cx = col * cellW + cellW / 2;
         const int cy = kTopBarHeight + row * cellH + cellH / 2;
-        const uint16_t color = (kKeyLabels[index][0] == 'C') ? TFT_ORANGE : TFT_DARKGREY;
+        const uint16_t color = (kKeyLabels[index][0] == 'C') ? theme::kAccentOrange : theme::kPanelLight;
         M5.Display.fillRoundRect(cx - cellW / 2 + 6, cy - cellH / 2 + 6, cellW - 12, cellH - 12, 6, color);
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(middle_center);
         M5.Display.setTextSize(3);
         M5.Display.drawString(kKeyLabels[index], cx, cy);

@@ -8,6 +8,7 @@
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
+#include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
 #include "KidProfiles.h"
 #include "config.h"
@@ -15,7 +16,7 @@
 namespace {
 // Wird pro Profil-Zone durchrotiert (falls mehr als 2 Kinder eingetragen
 // werden) - siehe include/KidProfiles.h.
-constexpr uint16_t kChoiceColors[] = {TFT_ORANGE, TFT_CYAN, TFT_GREENYELLOW, TFT_PINK};
+constexpr uint16_t kChoiceColors[] = {theme::kAccentOrange, theme::kAccentCyan, theme::kSuccess, theme::kAccentPink};
 constexpr size_t kChoiceColorCount = sizeof(kChoiceColors) / sizeof(kChoiceColors[0]);
 } // namespace
 
@@ -36,19 +37,19 @@ void ProfileSetupScreen::drawChoice(int x, int w, size_t profileIndex) const {
     // icon-first fuer die juengere Zielgruppe, Abschnitt 5).
     const int cx = x + w / 2;
     const int headCy = 20 + (h - 40) / 3;
-    M5.Display.fillCircle(cx, headCy, 22, TFT_WHITE);
-    M5.Display.drawCircle(cx, headCy, 22, TFT_BLACK);
-    M5.Display.fillCircle(cx - 8, headCy - 4, 3, TFT_BLACK);
-    M5.Display.fillCircle(cx + 8, headCy - 4, 3, TFT_BLACK);
+    M5.Display.fillCircle(cx, headCy, 22, theme::kText);
+    M5.Display.drawCircle(cx, headCy, 22, theme::kOutline);
+    M5.Display.fillCircle(cx - 8, headCy - 4, 3, theme::kOutline);
+    M5.Display.fillCircle(cx + 8, headCy - 4, 3, theme::kOutline);
 
-    M5.Display.setTextColor(TFT_BLACK);
+    M5.Display.setTextColor(theme::kOutline);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(3);
     M5.Display.drawString(kKidProfiles[profileIndex].name, cx, headCy + 55);
 }
 
 void ProfileSetupScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillScreen(theme::kBackground);
     const int w = M5.Display.width() / static_cast<int>(kKidProfileCount);
     for (size_t i = 0; i < kKidProfileCount; ++i) {
         drawChoice(static_cast<int>(i) * w, w, i);

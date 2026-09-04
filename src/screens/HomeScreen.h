@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "../core/AppContext.h"
+#include "../core/CharacterRenderer.h"
 #include "../core/Screen.h"
 #include "../core/StateMachine.h"
 
@@ -33,6 +34,7 @@ private:
 
     AppContext& app_;
     StateMachine& stateMachine_;
+    CharacterRenderer characterRenderer_;
     uint32_t msSinceLastRedraw_ = 0;
     bool lowBatterySaveDone_ = false;
     bool spriteBlinkToggle_ = false; // wechselt idle1/idle2 pro Redraw-Tick

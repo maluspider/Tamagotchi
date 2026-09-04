@@ -6,6 +6,7 @@
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
+#include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
 #include "../core/storage/ProgressStore.h"
 #include "config.h"
@@ -14,8 +15,8 @@ BootScreen::BootScreen(AppContext& app, StateMachine& stateMachine)
     : app_(app), stateMachine_(stateMachine) {}
 
 void BootScreen::onEnter() {
-    M5.Display.fillScreen(TFT_BLACK);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.fillScreen(theme::kBackground);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(2);
     M5.Display.drawString("Laedt...", M5.Display.width() / 2, M5.Display.height() / 2);

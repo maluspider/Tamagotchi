@@ -2,6 +2,8 @@
 
 #include <M5Unified.h>
 
+#include "../core/Theme.h"
+
 namespace {
 constexpr int kHomeIconSize = 28;
 constexpr int kCols = 3;
@@ -35,21 +37,25 @@ bool GamesMenuScreen::touchedHomeIcon(int x, int y) const {
 void GamesMenuScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void GamesMenuScreen::drawIcon(int index, int cx, int cy, int r, bool unlocked) const {
-    M5.Display.fillRoundRect(cx - r, cy - r, r * 2, r * 2, 8, unlocked ? TFT_NAVY : TFT_DARKGREY);
+    M5.Display.fillRoundRect(cx - r, cy - r, r * 2, r * 2, 8, unlocked ? theme::kPanel : theme::kMuted);
 
     if (!unlocked) {
         // Schloss-Symbol (Buegel + Koerper) statt Spiel-Icon.
-        M5.Display.drawRect(cx - 6, cy - 2, 12, 10, TFT_WHITE);
-        M5.Display.drawCircle(cx, cy - 4, 5, TFT_WHITE);
+        M5.Display.drawRect(cx - 6, cy - 2, 12, 10, theme::kText);
+        M5.Display.drawCircle(cx, cy - 4, 5, theme::kText);
         return;
     }
 
+    // Die einzelnen Spiel-Glyphen bleiben bewusst bei ihren "realweltlichen"
+    // Wiedererkennungsfarben (Basketball orange, Fussball schwarz/weiss
+    // usw.) statt dem Theme zu folgen - Wiedererkennbarkeit schlaegt hier
+    // Theme-Treue, wie bei der Frankreich-Flagge in SubjectSelectScreen.
     const int s = r - 8;
     switch (kGames[index].screen) {
         case ScreenId::Snake:
@@ -102,7 +108,7 @@ void GamesMenuScreen::drawIcon(int index, int cx, int cy, int r, bool unlocked) 
 }
 
 void GamesMenuScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillScreen(theme::kBackground);
 
     const int cellW = M5.Display.width() / kCols;
     const int cellH = (M5.Display.height() - 10) / kRows;

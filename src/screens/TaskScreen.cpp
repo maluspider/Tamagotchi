@@ -6,6 +6,7 @@
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
+#include "../core/Theme.h"
 #include "config.h"
 
 namespace {
@@ -114,14 +115,14 @@ void TaskScreen::update(uint32_t deltaMs) {
 void TaskScreen::drawHomeIcon() const {
     const int x = M5.Display.width() - kHomeIconSize - 6;
     const int y = 6;
-    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, theme::kText);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, theme::kText);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, theme::kText);
 }
 
 void TaskScreen::drawQuestion() const {
-    M5.Display.fillRect(0, 0, M5.Display.width(), kQuestionAreaHeight, TFT_NAVY);
-    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.fillRect(0, 0, M5.Display.width(), kQuestionAreaHeight, theme::kPanel);
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(3);
     M5.Display.drawString(current_.frage.c_str(), M5.Display.width() / 2, kQuestionAreaHeight / 2);
@@ -130,17 +131,17 @@ void TaskScreen::drawQuestion() const {
     const int zoneHeight = areaHeight / current_.antwortenCount;
     for (uint8_t i = 0; i < current_.antwortenCount; ++i) {
         const int y = kQuestionAreaHeight + i * zoneHeight;
-        M5.Display.drawRect(4, y + 2, M5.Display.width() - 8, zoneHeight - 4, TFT_WHITE);
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.drawRect(4, y + 2, M5.Display.width() - 8, zoneHeight - 4, theme::kPanelLight);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextSize(3);
         M5.Display.drawString(current_.antworten[i].c_str(), M5.Display.width() / 2, y + zoneHeight / 2);
     }
 }
 
 void TaskScreen::drawFeedback() const {
-    const uint16_t color = lastAnswerCorrect_ ? TFT_GREEN : TFT_RED;
+    const uint16_t color = lastAnswerCorrect_ ? theme::kSuccess : theme::kDanger;
     M5.Display.fillRect(0, kQuestionAreaHeight, M5.Display.width(), M5.Display.height() - kQuestionAreaHeight, color);
-    M5.Display.setTextColor(TFT_BLACK);
+    M5.Display.setTextColor(theme::kOutline);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(4);
     const char* text = lastAnswerCorrect_ ? "Richtig!" : "Naechstes Mal!";
@@ -148,10 +149,10 @@ void TaskScreen::drawFeedback() const {
 }
 
 void TaskScreen::draw() {
-    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillScreen(theme::kBackground);
 
     if (phase_ == Phase::NoTasksAvailable) {
-        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(middle_center);
         M5.Display.setTextSize(2);
         M5.Display.drawString("Keine Aufgaben gefunden", M5.Display.width() / 2, M5.Display.height() / 2);
