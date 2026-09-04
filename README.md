@@ -39,9 +39,13 @@ Fehler.
    [`sdcard/tasks/`](sdcard/tasks) auf die microSD-Karte kopieren (siehe
    "SD-Karte" unten). Ohne diese Dateien zeigt der Aufgaben-Modus "Keine
    Aufgaben gefunden" an. **Hinweis:** Der mitgelieferte Content ist
-   selbst verfasster Übungscontent (25–30 Fragen pro Fach/Klasse) zum
-   Ausprobieren der Engine, kein geprüfter Lehrplan-21/Passepartout-Stoff – siehe
-   Abschnitt 16 des Plans.
+   selbst verfasster Übungscontent (45–79 Fragen pro Fach/Klasse, total
+   376) zum Ausprobieren der Engine, kein geprüfter Lehrplan-21/
+   Passepartout-Stoff – siehe Abschnitt 16 des Plans. Deckt jetzt auch
+   Schwierigkeitsstufen 4–5 ab (vorher meist nur 1–3), damit der
+   automatische monatliche Schwierigkeits-Anstieg (Abschnitt 8.4)
+   tatsächlich schwierigere Fragen zu servieren hat, statt bei Stufe 3 zu
+   stagnieren.
 
 ## Hardware
 

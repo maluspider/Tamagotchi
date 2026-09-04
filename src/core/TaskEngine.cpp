@@ -75,7 +75,17 @@ bool TaskEngine::pickNextTask(Task& out, const SpacedRepetitionStore& srs, const
         }
     }
 
+    // Kuerzlich falsch beantwortete Items (Box 1) zusaetzlich hoeher
+    // gewichten, indem sie mehrfach in den Kandidatenkreis aufgenommen
+    // werden - sie sollen unter mehreren gleichzeitig faelligen Items eher
+    // an die Reihe kommen als laengst gefestigte (Nutzer-Feedback: "falsche
+    // Antworten oefters wiederholt").
     std::vector<size_t> candidates = due;
+    for (size_t idx : due) {
+        if (srs.boxFor(pool_[idx].id) <= 1) {
+            candidates.push_back(idx);
+        }
+    }
     for (int n = 0; n < 2 && !fresh.empty(); ++n) {
         const size_t pick = esp_random() % fresh.size();
         candidates.push_back(fresh[pick]);

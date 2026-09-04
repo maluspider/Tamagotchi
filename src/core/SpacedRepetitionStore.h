@@ -23,6 +23,10 @@ public:
 
     bool hasItem(const String& id) const;
     bool isDue(const String& id, const String& todayIso) const;
+    // Aktuelle Box eines bekannten Items (1, falls unbekannt) - fuer
+    // TaskEngine::pickNextTask(), um kuerzlich falsch beantwortete Items
+    // (Box 1) unter den faelligen Kandidaten staerker zu gewichten.
+    uint8_t boxFor(const String& id) const;
 
     // Richtig: eine Box aufsteigen (max. 5). Falsch: zurueck auf Box 1.
     // Aktualisiert gleichzeitig die naechste Wiederholung gemaess der

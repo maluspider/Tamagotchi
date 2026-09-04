@@ -8,10 +8,16 @@
 namespace {
 
 // Intervall bis zur naechsten Wiederholung je Box (docs/projektplan.md
-// Abschnitt 8.3).
+// Abschnitt 8.3). Box 1 (frisch falsch beantwortet oder neu) wird
+// absichtlich noch am selben Tag wieder faellig (0 statt 1 Tag) - eine
+// falsche Antwort faellt auf Box 1 zurueck, sollte dem Kind aber
+// zeitnah/noch in derselben Sitzung erneut begegnen koennen, nicht erst am
+// naechsten Kalendertag (Nutzer-Feedback: "falsche Antworten oefters
+// wiederholt"). Siehe auch TaskEngine::pickNextTask(), das Box-1-Items
+// zusaetzlich hoeher gewichtet.
 int intervalDaysForBox(uint8_t box) {
     switch (box) {
-        case 1: return 1;
+        case 1: return 0;
         case 2: return 2;
         case 3: return 4;
         case 4: return 7;
@@ -71,6 +77,15 @@ bool SpacedRepetitionStore::hasItem(const String& id) const {
         }
     }
     return false;
+}
+
+uint8_t SpacedRepetitionStore::boxFor(const String& id) const {
+    for (const auto& item : items_) {
+        if (item.id == id) {
+            return item.box;
+        }
+    }
+    return 1;
 }
 
 bool SpacedRepetitionStore::isDue(const String& id, const String& todayIso) const {
