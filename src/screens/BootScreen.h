@@ -19,9 +19,17 @@ public:
 
 private:
     void drawLogo();
+    void drawSdError();
 
     AppContext& app_;
     StateMachine& stateMachine_;
     bool initDone_ = false;
     uint32_t splashElapsedMs_ = 0;
+    // true, solange SD.begin() zuletzt fehlgeschlagen ist - dann wird statt
+    // des normalen Ladevorgangs eine gut lesbare Fehlermeldung gezeigt und
+    // SD.begin() periodisch automatisch erneut versucht (z. B. falls die
+    // Karte neu eingesteckt wird), ohne dass ein manueller Neustart noetig
+    // waere.
+    bool sdError_ = false;
+    uint32_t sdRetryElapsedMs_ = 0;
 };

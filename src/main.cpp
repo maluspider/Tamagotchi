@@ -62,6 +62,12 @@ bool displayManuallyOff = false;
 } // namespace
 
 void setup() {
+    // Fuer Diagnose ueber "pio device monitor" - u. a. BootScreen protokolliert
+    // hier den Erfolg/Misserfolg von SD.begin() plus Kartentyp/-groesse, damit
+    // sich ein "SD-Karte nicht erkannt"-Problem ohne Geraet-in-der-Hand
+    // eingrenzen laesst (z. B. SDXC->32GB-Kompatibilitaet vs. Verkabelung).
+    Serial.begin(115200);
+
     auto cfg = M5.config();
     M5.begin(cfg);
 

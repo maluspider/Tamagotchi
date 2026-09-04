@@ -18,6 +18,8 @@ constexpr const char* kLogoText = "Henri & Theo";
 // Initialisierung startet - ohne das waere das Logo oft nur einen Frame
 // lang sichtbar und damit praktisch kein "Startlogo".
 constexpr uint32_t kSplashDurationMs = 1800;
+// Wie oft SD.begin() nach einem Fehlschlag automatisch erneut versucht wird.
+constexpr uint32_t kSdRetryIntervalMs = 2500;
 } // namespace
 
 BootScreen::BootScreen(AppContext& app, StateMachine& stateMachine)
@@ -61,16 +63,59 @@ void BootScreen::drawLogo() {
     M5.Display.drawString("Laedt...", cx, cy + 42);
 }
 
-void BootScreen::update(uint32_t deltaMs) {
-    splashElapsedMs_ += deltaMs;
-    if (splashElapsedMs_ < kSplashDurationMs) {
-        return;
-    }
+void BootScreen::drawSdError() {
+    // Unabhaengig vom Nachtmodus/dessen Timing immer garantiert lesbar - ein
+    // SD-Fehler beim Start ist zu wichtig, um womoeglich dunkel zu bleiben.
+    M5.Display.setBrightness(200);
+    M5.Display.fillScreen(theme::kBackground);
+    M5.Display.fillRect(0, 0, M5.Display.width(), 34, theme::kDanger);
+    M5.Display.setTextColor(theme::kText);
+    M5.Display.setTextDatum(middle_center);
+    M5.Display.setTextSize(2);
+    M5.Display.drawString("SD-Karte nicht erkannt", M5.Display.width() / 2, 17);
 
+    M5.Display.setTextDatum(top_left);
+    M5.Display.setTextSize(1);
+    constexpr const char* kLines[] = {
+        "Bitte pruefen:",
+        "",
+        "- Karte richtig eingesteckt?",
+        "- FAT32 formatiert (nicht exFAT)?",
+        "- Karte 32GB oder kleiner (SDHC)?",
+        "  Manche 64/128GB-SDXC-Karten",
+        "  werden von diesem Geraet nicht",
+        "  erkannt, auch wenn FAT32-",
+        "  formatiert.",
+        "",
+        "Neuer Versuch automatisch alle paar",
+        "Sekunden - Karte kann im laufenden",
+        "Betrieb neu gesteckt werden.",
+    };
+    int y = 46;
+    for (const char* line : kLines) {
+        M5.Display.drawString(line, 10, y);
+        y += 14;
+    }
+}
+
+void BootScreen::update(uint32_t deltaMs) {
     if (initDone_) {
         return;
     }
-    initDone_ = true;
+
+    splashElapsedMs_ += deltaMs;
+
+    if (sdError_) {
+        // Regelmaessig automatisch erneut versuchen, statt einen manuellen
+        // Neustart zu verlangen, falls die Karte neu eingesteckt wird.
+        sdRetryElapsedMs_ += deltaMs;
+        if (sdRetryElapsedMs_ < kSdRetryIntervalMs) {
+            return;
+        }
+        sdRetryElapsedMs_ = 0;
+    } else if (splashElapsedMs_ < kSplashDurationMs) {
+        return;
+    }
 
     // Core2s SD-Karte haengt am selben SPI-Bus, den M5Unified in M5.begin()
     // bereits mit den Core2-spezifischen Pins konfiguriert hat. Ohne
@@ -78,7 +123,22 @@ void BootScreen::update(uint32_t deltaMs) {
     // (nicht zu Core2 passenden) Default-Belegung verwenden und die Karte
     // faelschlicherweise als nicht vorhanden melden, selbst wenn sie korrekt
     // eingesteckt und formatiert ist.
-    SD.begin(config::kSdChipSelectPin, SPI);
+    Serial.println("BootScreen: SD.begin() ...");
+    const bool sdOk = SD.begin(config::kSdChipSelectPin, SPI);
+    Serial.printf("BootScreen: SD.begin() -> %s\n", sdOk ? "OK" : "FEHLGESCHLAGEN");
+    if (sdOk) {
+        Serial.printf("BootScreen: SD-Kartentyp=%d Groesse=%lluMB\n", static_cast<int>(SD.cardType()),
+                       static_cast<unsigned long long>(SD.cardSize() / (1024ULL * 1024ULL)));
+    }
+
+    if (!sdOk) {
+        sdError_ = true;
+        drawSdError();
+        return;
+    }
+    sdError_ = false;
+    initDone_ = true;
+
     if (!SD.exists("/progress")) {
         // Wird von SpacedRepetitionStore fuer /progress/aufgaben_<fach>.json
         // benoetigt (Abschnitt 6/8.3) - das SD-Filesystem legt Verzeichnisse

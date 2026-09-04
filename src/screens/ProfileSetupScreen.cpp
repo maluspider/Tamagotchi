@@ -69,7 +69,21 @@ void ProfileSetupScreen::commitSelection(size_t profileIndex) {
     profile.guard = pincode::hash(config::kDefaultParentalCode);
     profile.isValid = true;
 
-    profilestore::save(profile);
+    if (!profilestore::save(profile)) {
+        // SD-Karte nicht beschreibbar (siehe BootScreens Fehleranzeige) -
+        // nicht so tun, als waere das Profil gespeichert: sonst ginge der
+        // gesamte Fortschritt beim naechsten Neustart unbemerkt wieder
+        // verloren (gleiche Fehlerklasse wie beim PIN-Aendern, siehe
+        // PinEntryScreen::submitIfComplete()).
+        M5.Display.fillRect(0, M5.Display.height() - 30, M5.Display.width(), 30, theme::kDanger);
+        M5.Display.setTextColor(theme::kText);
+        M5.Display.setTextDatum(middle_center);
+        M5.Display.setTextSize(1);
+        M5.Display.drawString("SD-Karte nicht beschreibbar - bitte pruefen und nochmal antippen",
+                               M5.Display.width() / 2, M5.Display.height() - 15);
+        return;
+    }
+
     app_.profile = profile;
 
     app_.character.load(0, "");

@@ -104,13 +104,30 @@ lokale Checkout auf dem aktuellen Stand von
 `claude/tamagotchi-device-review-v8dxml` ist (`git pull`), und
 `.pio/build/` löschen, um einen sauberen Neu-Build zu erzwingen.
 
-**SD-Karte wird nicht erkannt, obwohl korrekt FAT32-formatiert und befüllt
-(behoben):** Core2s SD-Karte hängt am selben SPI-Bus, den `M5.begin()`
-bereits mit den Core2-spezifischen Pins konfiguriert. `SD.begin(cs)` ohne
-explizite Angabe des `SPI`-Objekts nutzte stattdessen dessen (nicht zu
-Core2 passende) Default-Belegung und meldete die Karte fälschlicherweise
-als fehlend. Behoben in `BootScreen.cpp` (`SD.begin(config::kSdChipSelectPin,
-SPI)`).
+**SD-Karte wird nicht erkannt, obwohl korrekt FAT32-formatiert und befüllt:**
+Zwei getrennte mögliche Ursachen:
+1. **SPI-Bus-Fehlkonfiguration (behoben):** Core2s SD-Karte hängt am selben
+   SPI-Bus, den `M5.begin()` bereits mit den Core2-spezifischen Pins
+   konfiguriert. `SD.begin(cs)` ohne explizite Angabe des `SPI`-Objekts
+   nutzte stattdessen dessen (nicht zu Core2 passende) Default-Belegung und
+   meldete die Karte fälschlicherweise als fehlend. Behoben in
+   `BootScreen.cpp` (`SD.begin(config::kSdChipSelectPin, SPI)`).
+2. **Karten-/Formatierungskompatibilität (weiterhin offen, siehe unten):**
+   auch nach obigem Fix meldete eine 128GB-SDXC-Karte (FAT32-formatiert)
+   weiterhin "nicht erkannt". `BootScreen` zeigt seit dieser Runde bei
+   einem SD-Fehlschlag eine deutliche, garantiert helle Fehlermeldung mit
+   Troubleshooting-Hinweisen (statt eines stillen Hängenbleibens) und
+   versucht automatisch alle paar Sekunden erneut. Zusätzlich protokolliert
+   `BootScreen` jetzt über `Serial` (115200 Baud, `pio device monitor`) den
+   `SD.begin()`-Erfolg sowie `SD.cardType()`/`SD.cardSize()` bei Erfolg –
+   das liefert bei einem erneuten Fehlschlag konkrete Diagnosedaten statt
+   eines reinen "geht nicht". **Empfehlung, bis geklärt:** zum Test eine
+   SDHC-Karte mit ≤ 32GB probieren (die Arduino-ESP32-`SD`-Bibliothek ist
+   mit grösseren SDXC-Karten über SPI bekanntermassen manchmal unzuverlässig,
+   unabhängig vom SPI-Bus-Fix), und/oder die 128GB-Karte mit dem offiziellen
+   [SD-Association-Formatierungstool](https://www.sdcard.org/downloads/formatter/)
+   (nicht dem Windows-Standarddialog, der über 32GB gar kein FAT32 anbietet)
+   neu formatieren.
 
 **`/dev/ttyACM0`: Permission denied beim Flashen (Linux):** Der aktuelle
 Nutzer ist noch nicht (oder erst nach Neuanmeldung) Mitglied der Gruppe
@@ -129,7 +146,11 @@ PlatformIO-Doku) und den Rechner neu starten.
   80er-/Synthwave-Neon-Logo ("Henri & Theo" – anpassbar in
   `src/screens/BootScreen.cpp`, Konstante `kLogoText`) vor demselben
   Sonne+Gitter-Hintergrund wie die übrige Retro-Optik, bevor SD-Karte/Profil
-  geladen werden.
+  geladen werden. Schlägt die SD-Erkennung fehl, erscheint statt eines
+  stillen Hängenbleibens eine deutliche, garantiert helle Fehlermeldung mit
+  Troubleshooting-Hinweisen (siehe "Bekannte Setup-Probleme" oben) – neue
+  Versuche laufen automatisch alle paar Sekunden, ein manueller Neustart ist
+  nicht nötig, sobald die Karte wieder korrekt sitzt.
 - **Home-Screen:** zeigt Charakter + Namen, Uhrzeit, verfügbare Spielzeit.
   Untere Icon-Leiste (4 Zonen): Stift-Icon → Fach-Auswahl, Play-Dreieck →
   Spiele-Menü (nur mit Spielzeitguthaben aktiv), Uhr-Icon →
