@@ -23,7 +23,7 @@ private:
         ScreenId screen;
         CharacterStage requiredStage;
     };
-    static constexpr int kGameCount = 9;
+    static constexpr int kGameCount = 10;
     static const GameEntry kGames[kGameCount];
 
     void drawIcon(int index, int cx, int cy, int r, bool unlocked) const;

@@ -21,6 +21,7 @@
 #include "screens/GedaechtnisScreen.h"
 #include "screens/HomeScreen.h"
 #include "screens/KampfModusScreen.h"
+#include "screens/LabyrinthScreen.h"
 #include "screens/MoorhuhnJagdScreen.h"
 #include "screens/PinballScreen.h"
 #include "screens/PinEntryScreen.h"
@@ -96,6 +97,9 @@ void setup() {
 
     stateMachine.registerScreen(ScreenId::GamesMenu, [] {
         return std::make_unique<GamesMenuScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::Labyrinth, [] {
+        return std::make_unique<LabyrinthScreen>(appContext, stateMachine);
     });
     stateMachine.registerScreen(ScreenId::Snake, [] {
         return std::make_unique<SnakeScreen>(appContext, stateMachine);

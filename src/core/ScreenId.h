@@ -12,6 +12,7 @@ enum class ScreenId {
     Clock,
 
     GamesMenu,
+    Labyrinth,
     Snake,
     Tetris,
     SpaceInvaders,

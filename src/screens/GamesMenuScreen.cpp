@@ -8,11 +8,18 @@
 namespace {
 constexpr int kHomeIconSize = 28;
 constexpr int kCols = 3;
-constexpr int kRows = 3;
+constexpr int kRows = 4;
 } // namespace
 
-// Freischalt-Reihenfolge exakt nach docs/projektplan.md Abschnitt 9.
+// Freischalt-Reihenfolge exakt nach docs/projektplan.md Abschnitt 9. Das
+// Ball-Labyrinth ist bewusst das einfachste Spiel (Nutzerwunsch: "als
+// ersten einfachsten Game ein Ball-Labyrinth einbauen") und steht deshalb
+// an erster Stelle - freigeschaltet ab derselben Stufe wie Snake ("Baby"),
+// da das Spiele-Menue selbst erst ab dieser Stufe ueberhaupt erreichbar
+// ist (siehe HomeScreen::handleBottomBarTouch()); eine noch frühere
+// Freischaltung waere von Home aus nicht erreichbar.
 const GamesMenuScreen::GameEntry GamesMenuScreen::kGames[GamesMenuScreen::kGameCount] = {
+    {ScreenId::Labyrinth, CharacterStage::Baby},
     {ScreenId::Snake, CharacterStage::Baby},
     {ScreenId::Tetris, CharacterStage::Kind},
     {ScreenId::Puzzle, CharacterStage::Kind},
@@ -59,6 +66,12 @@ void GamesMenuScreen::drawIcon(int index, int cx, int cy, int r, bool unlocked) 
     // Theme-Treue, wie bei der Frankreich-Flagge in SubjectSelectScreen.
     const int s = r - 8;
     switch (kGames[index].screen) {
+        case ScreenId::Labyrinth:
+            M5.Display.drawRect(cx - s, cy - s, s * 2, s * 2, TFT_WHITE);
+            M5.Display.drawLine(cx - s, cy, cx + s / 2, cy, TFT_WHITE);
+            M5.Display.drawLine(cx + s / 2, cy, cx + s / 2, cy + s, TFT_WHITE);
+            M5.Display.fillCircle(cx + s / 2, cy - s / 2, 3, TFT_GREEN);
+            break;
         case ScreenId::Snake:
             M5.Display.drawLine(cx - s, cy, cx - s / 2, cy - s / 2, TFT_GREEN);
             M5.Display.drawLine(cx - s / 2, cy - s / 2, cx, cy, TFT_GREEN);

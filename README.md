@@ -222,9 +222,12 @@ PlatformIO-Doku) und den Rechner neu starten.
 - **Gedächtnistraining:** für Klasse-1-Profile ein Karten-Memory (Paare
   finden), für Klasse-3-Profile ein Simon-Says-Sequenzspiel (Reihenfolge
   nachtippen, wird jede Runde länger).
-- **Spiele-Menü:** 3×3-Icon-Grid aller 9 Spiele; gesperrte Spiele (noch
+- **Spiele-Menü:** 3×4-Icon-Grid aller 10 Spiele; gesperrte Spiele (noch
   nicht erreichte Charakterstufe, Abschnitt 9) sind ausgegraut mit
   Schloss-Symbol und lassen sich nicht öffnen.
+  - **Ball-Labyrinth** (ab Baby, das einfachste Spiel, steht deshalb an
+    erster Stelle): Gerät neigen bewegt die Kugel per Trägheits-Sensor
+    durch einen kleinen "S"-Wandparcours zu einem grünen Ziel unten links.
   - **Snake** (ab Baby): Antippen relativ zur Bildschirmmitte steuert die
     Richtung.
   - **Tetris** (ab Kind): linkes/mittleres/rechtes Bildschirmdrittel =
@@ -327,6 +330,8 @@ src/core/                    Screen-unabhängige Module
   PlaytimeAccount.*         Spielzeitkonto (Abschnitt 7)
   PlaytimeTicker.*            Gemeinsame Spielzeit-Verbrauchslogik fuer alle Spiele
   HighscoreStore.*             Lokale Highscores je Spiel (/highscores.json)
+  Haptics.*                   Kurzes, nicht blockierendes Vibrationsfeedback (Spiele/Quiz)
+  TextFit.*                    Auto-Umbruch/-Verkleinerung fuer variabel langen Text
   Subject.h                  Die vier Multiple-Choice-Faecher
   TaskEngine.*                Aufgaben-Engine (Pool laden, naechste Aufgabe waehlen)
   SpacedRepetitionStore.*      Leitner-5-Boxen je Fach (Abschnitt 8.3)
@@ -349,9 +354,9 @@ src/screens/                 Konkrete Screens (je eine Klasse pro Screen)
   TaskScreen.*                Aufgaben-Modus (alle vier Faecher)
   GedaechtnisScreen.*           Karten-Memory (Klasse 1) / Sequenzspiel (Klasse 3)
   GamesMenuScreen.*             Spiele-Menue mit Freischalt-Anzeige
-  SnakeScreen.* / TetrisScreen.* / SpaceInvadersScreen.* / PinballScreen.* /
-  BasketballScreen.* / FussballScreen.* / PuzzleScreen.* /
-  MoorhuhnJagdScreen.* / KampfModusScreen.*   Die 9 Spiele (Abschnitt 10)
+  LabyrinthScreen.* / SnakeScreen.* / TetrisScreen.* / SpaceInvadersScreen.* /
+  PinballScreen.* / BasketballScreen.* / FussballScreen.* / PuzzleScreen.* /
+  MoorhuhnJagdScreen.* / KampfModusScreen.*   Die 10 Spiele (Abschnitt 10)
   AlltagMenuScreen.*            Alltagsfunktionen-Menue (icon-first)
   ClockScreen.*                 Uhr/Wecker-Einstellung
   TimerScreen.*                 Countdown-Timer (2/5/10 Min Presets)
