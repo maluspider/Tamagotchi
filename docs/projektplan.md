@@ -1,0 +1,300 @@
+# Projektplan: Tamagotchi-Lernspielgerät auf 2× M5Stack Core2
+
+> Diese Fassung enthält die Ergebnisse eines Plan-Reviews (siehe Abschnitt 15).
+> Stellen, an denen sich der ursprüngliche Plan inhaltlich geändert hat, sind
+> mit **»Review:«** markiert. Rein technische Klarstellungen ohne
+> Verhaltensänderung sind mit **»Klarstellung:«** markiert.
+
+## 1. Zielsetzung
+
+Zwei M5Stack Core2 (je eines für die Kinder, 1. und 3. Klasse Baselland) werden zu einem tamagotchiartigen Lerngerät: Ein Charakter entwickelt sich weiter, wenn altersgerechte Schulaufgaben (Mathe, Rechtschreibung, Französisch-Vokabeln, Quiz, Gedächtnistraining) richtig gelöst werden. Richtige Antworten geben Spielzeit für 9 vollständige Mini-Games im Stil japanischer 90er-Jahre-Videospiele. Zusätzlich: Uhr, Wecker und weitere Alltagsfunktionen.
+
+## 2. Hardware
+
+- 2× M5Stack **Core2** (nicht Fire, nicht CoreS3 – Begründung siehe Projektverlauf)
+- Je ein USB-C-Kabel/Netzteil zum Laden
+- Optional: microSD-Karte pro Gerät (Aufgaben-Content, Sprites, Fortschrittsdaten-Backup)
+- Optional (Phase 2): stabile Ladestation/Dock fürs Kinderzimmer
+
+**Kernspezifikationen Core2** (für die Codeplanung relevant):
+- ESP32-D0WDQ6-V3, 240 MHz Dual-Core
+- 16 MB Flash, 8 MB PSRAM
+- 320×240 IPS-Touchscreen (kapazitiv, FT6336U)
+- **6-Achsen-IMU** (MPU6886 bzw. BMI270): 3-Achsen-Beschleunigungsmesser + 3-Achsen-Gyroskop, Vibrationsmotor, RTC (BM8563)
+- Lautsprecher (I2S, NS4168-Verstärker), Mikrofon, microSD-Slot
+- Akku ca. 390–500 mAh (je nach Revision)
+
+**Klarstellung (Core2-Revision):** Welche Core2-Hardware-Revision (V1.0/V1.1) verbaut ist, spielt für den Code keine Rolle – `M5Unified` erkennt Power-Management- und IMU-Chip automatisch und abstrahiert sie über dieselbe API. Einzige relevante Unterscheidung ist "Core2" vs. "Core2 for AWS IoT EduKit" (anderer IMU-Chip, daher "MPU6886 bzw. BMI270" oben) – auch diese Variante läuft mit `M5Unified` einwandfrei, ist für den Kauf aber nicht nötig.
+
+**Bewegungssensorik – Antwort auf die Frage "sind Bewegungssensoren vorhanden?":**
+Ja. Der eingebaute 6-Achsen-IMU liefert sowohl Neigung (Tilt, über den Beschleunigungsmesser) als auch Drehrate (Gyroskop). Das reicht für:
+- **Zielsteuerung per Neigen** (z. B. Moorhuhn-Jagd, Abschnitt 10) – Gerät kippen bewegt ein Fadenkreuz
+- **Ball-/Flipper-Beeinflussung** (Pinball) durch leichtes Schütteln/Neigen
+- Grobe Bewegungserkennung, aber **keine präzise Gestenerkennung im Raum** wie bei einer Spielekonsole mit Kamera – für die geplanten Spiele reicht das völlig aus.
+
+## 3. Software-Stack
+
+- **Framework:** Arduino über PlatformIO (bessere Versionierung/Struktur als Arduino IDE)
+- **Hardware-Abstraktion:** `M5Unified` + `M5GFX` (offizielle Bibliothek, deckt Touch, IMU, RTC, Power, Lautsprecher einheitlich ab)
+- **Grafik:** Sprite-basiertes Rendering direkt über `M5GFX`-Sprites (Offscreen-Buffer im PSRAM) für flüssige Pixel-Art-Grafik – kein LVGL nötig, das wäre für Spiele eher hinderlich
+- **Daten:** `ArduinoJson` für Speicherformate, `Preferences` (NVS) für kleine/häufige Werte (z. B. aktuelles Spielzeitkonto), microSD für grössere Datenmengen (Aufgabenpools, Fortschrittshistorie, Sprite-Assets)
+- **Web-Interface (Phase 5):** `ESPAsyncWebServer` + `AsyncTCP`
+  **Review:** Das ursprüngliche `me-no-dev/ESPAsyncWebServer` ist praktisch unmaintained. Für Phase 5 den aktiv gepflegten Fork **`ESP32Async/ESPAsyncWebServer`** (inkl. `ESP32Async/AsyncTCP`) verwenden, sonst drohen Kompatibilitätsprobleme mit aktuellen ESP32-Arduino-Cores.
+- **Versionsverwaltung:** Ein gemeinsames Repo, Geräte-Profil (1. Klasse / 3. Klasse) als Kompilier- oder Laufzeit-Konfiguration, damit dieselbe Codebasis beide Geräte bedient
+  **Review (entschieden):** Laufzeit-Konfiguration. Eine gemeinsame Firmware für beide Geräte; die Klassenstufe wird beim allerersten Start per Touch gewählt (siehe `ProfileSetupScreen`, Abschnitt 5) und danach in `profile.json` persistiert. Vorteil: nur eine Firmware-Version pflegen/flashen, kein Risiko, versehentlich das falsche PlatformIO-Environment aufs falsche Gerät zu flashen.
+- **OTA-Updates. Review (neu):** Der ursprüngliche Plan sah keinen Update-Weg nach der Erstinstallation vor. Sobald die Geräte in den Kinderzimmern "deployed" sind, ist erneutes Flashen per USB-Kabel für jeden Bugfix unnötige Reibung. Da ohnehin ein Webserver in Phase 5 gebaut wird, sollte `ArduinoOTA` bzw. Web-basiertes OTA möglichst früh (spätestens mit Phase 5, idealerweise schon als kleiner Baustein in Phase 4) ergänzt werden, statt es ganz wegzulassen.
+
+## 4. Grafikstil-Spezifikation
+
+Gewünschter Stil: **japanische Videospiele der 90er Jahre** (SNES-/frühe PS1-Ära, z. B. Chrono Trigger, Secret of Mana, Dragon Quest, Street Fighter II als Referenzen).
+
+**Konkrete Vorgaben für die Asset-Erstellung:**
+- **Proportionen:** Chibi/SD-Stil (überproportional grosser Kopf, kompakter Körper) – typisch für die Ära, wirkt kindgerecht und ist einfacher zu zeichnen/animieren als realistische Proportionen
+- **Farbpalette:** kräftig, gesättigt, begrenzt (ca. 16–32 Farben pro Sprite), wie bei 16-Bit-Konsolen üblich
+- **Outlines:** klare, meist dunkle/schwarze Umrisslinien um Sprites – typisches Merkmal der Ära
+- **Auflösung Sprites:** Standard-Objekte/Charakter (Home-Screen, Aufgaben) 32×32 px; Kampf-Modus-Charaktere grösser, 48×48 bis 64×64 px, da dort mehr Bilddetail für Angriffe/Treffer gebraucht wird
+- **Animationsphasen (Richtwert):** Idle 2–4 Frames, Lauf/Bewegung 4–6 Frames, Angriff/Aktion 3–5 Frames
+- **Hintergründe:** einfache, sich wiederholende Pixel-Art-Hintergründe (Parallax nicht nötig, Bildschirm ist klein)
+
+**Wichtig für die Architektur:** Sprites werden als Dateien (z. B. Bitmaps/Sprite-Sheets) von der SD-Karte geladen, nicht im Code hardcodiert. So können Platzhalter-Grafiken (einfache Formen) in Phase 0/1 verwendet und später ohne Codeänderung durch finale Artworks ersetzt werden. **Klarstellung:** In Phase 0 gibt es noch keine Sprite-Dateien; der Home-Screen zeichnet den Charakter prozedural (Kreis/Formen per `M5GFX`-Primitiven, Farbe/Grösse abhängig von Entwicklungsstufe) als Platzhalter, exakt an der Stelle, die später durch `M5GFX`-Sprite-Loading ersetzt wird (`HomeScreen::drawPlaceholderCharacter()`).
+
+## 5. Systemarchitektur (Screens/State Machine)
+
+```
+BOOT
+ └─ Home (Tamagotchi-Charakter, Status, Uhrzeit)
+     ├─ Aufgaben-Modus (Fach wählen → Aufgabe → Auswertung → zurück zu Home)
+     ├─ Spiele-Menü (nur mit vorhandenem Zeitguthaben betretbar)
+     │    └─ [Snake | Tetris | Space Invaders | Pinball | Basketball | Fussball | Puzzle | Moorhuhn-Jagd | Kampf-Modus]
+     ├─ Alltagsfunktionen-Menü (Uhr/Wecker/Timer/Kalender/...)
+     └─ Einstellungen (Eltern-PIN-geschützt)
+```
+
+Jeder Screen als eigene Klasse mit `update()`/`draw()`, zentrale State-Machine im Hauptloop schaltet zwischen Screens um. Charakter-Engine, Aufgaben-Engine und Spielzeitkonto sind eigenständige Module, die von mehreren Screens genutzt werden (nicht an einen Screen gebunden).
+
+**Klarstellung (Phase-0-Stand):** Aktuell implementiert sind `BootScreen` → `ProfileSetupScreen` (nur beim allerersten Start, legt `profile.json` an) → `HomeScreen`. Aufgaben-Modus, Spiele-Menü, Alltagsfunktionen-Menü und Einstellungen folgen in den Phasen 1–4 (Abschnitt 14).
+
+**Review (State-Machine-Sicherheit):** Ein Screen kann nicht direkt `switchTo()` aus seiner eigenen `update()`-Methode heraus sicher aufrufen, weil dabei das eigene Objekt zerstört würde, während sein Code noch auf dem Aufruf-Stack liegt (Use-after-free). Die `StateMachine` bietet deshalb zwei Methoden: `switchTo()` für den einmaligen Erststart aus `main.cpp` heraus, und `requestSwitch()` für den sicheren, verzögerten Wechsel aus einem laufenden Screen heraus (wird erst zu Beginn des nächsten `update()`-Aufrufs angewendet).
+
+## 6. Datenmodell
+
+**Review (Abgleich mit Abschnitt 13):** Die ursprüngliche Beispiel-JSON unten bündelte Profil, Charakter, Spielzeit und Aufgaben-Fortschritt in einem Objekt, während Abschnitt 13 sie auf mehrere Dateien aufteilte. Diese Uneindeutigkeit wurde aufgelöst – die Aufteilung ist jetzt verbindlich:
+
+| Datei | Inhalt | Änderungsfrequenz |
+|---|---|---|
+| `/profile.json` | `profil` (Name, Klasse, Geräte-ID) + `guard` (gehashter Eltern-PIN) | selten (i. d. R. einmalig bei Ersteinrichtung) |
+| `/progress.json` | `charakter` (Stufe/EP/letzte Pflege) + `spielzeitkonto` | häufig (bei jeder gelösten Aufgabe / jedem Spiel) |
+| `/progress/aufgaben_<fach>.json` | `aufgaben_fortschritt` je Fach (Leitner-Box-Zustand, Abschnitt 8.3) | häufig, aber pro Fach unabhängig |
+| `/tasks/<fach>_<klasse>.json` | statische Aufgabenpools (Content, siehe Abschnitt 8.2/13) | selten, i. d. R. nur bei Content-Pflege (Phase 5) |
+
+Begründung für die Trennung von `progress.json` und den Aufgaben-Fortschrittsdateien: `spielzeitkonto` ändert sich sehr häufig (mehrmals pro Session), `aufgaben_fortschritt` kann mit der Zeit gross werden (hunderte Items, Abschnitt 15.5). Beides bei jeder kleinen Änderung gemeinsam neu zu schreiben wäre unnötig teuer und vergrössert das Risiko-Fenster für den Stromausfall-Fall (siehe unten).
+
+**Review (Datenintegrität – Stromausfall):** Kinder trennen das Gerät auch mal mitten im Speichervorgang von der Stromversorgung (leerer Akku, Kabel rausgezogen). Ein direktes Überschreiben der Zieldatei würde in diesem Fall eine abgeschnittene/kaputte JSON-Datei hinterlassen und im schlimmsten Fall den gesamten Fortschritt eines Kindes zerstören. Alle JSON-Dateien werden deshalb **atomar** geschrieben: erst in eine `.tmp`-Datei, dann die bisherige gültige Version nach `.bak` rotieren, dann `.tmp` atomar auf den Zielnamen umbenennen. Lesen fällt automatisch auf `.bak` zurück, falls die Zieldatei fehlt oder beschädigt ist. Implementiert in `src/core/storage/JsonStore.{h,cpp}`, von `ProfileStore`/`ProgressStore` genutzt – siehe Abschnitt 15.1.
+
+**Review (Eltern-PIN-Speicherung):** SD-Karten sind entnehmbar – läge der PIN im Klartext in `profile.json`, könnte ihn jedes Kind am PC auslesen. Der PIN wird deshalb nie im Klartext gespeichert, sondern als Salt + iterierter Streuwert unter dem unauffälligen Feldnamen `guard` (statt z. B. `eltern_pin`). Bewusst keine "echte" Kryptografie (dafür ist ein 4-stelliger Kinder-PIN kein Ziel), aber genug Obskurität gegen zufälliges Auslesen. Implementiert in `src/core/PinCode.{h,cpp}`.
+
+Aktualisiertes Beispiel für `/progress.json` (Phase-0-Umfang; `statistik`/`aufgaben_fortschritt` kommen mit der Aufgaben-Engine in Phase 1/2 dazu):
+
+```json
+{
+  "charakter": {
+    "erfahrungspunkte": 340,
+    "letzte_pflege": "2026-09-02"
+  },
+  "spielzeitkonto": {
+    "datum": "2026-09-03",
+    "heute_verdient_min": 24,
+    "heute_verbraucht_min": 10
+  }
+}
+```
+
+**Review (Freischaltungen nicht redundant speichern):** Das Feld `faehigkeiten` aus der ursprünglichen Beispiel-JSON (z. B. `"basketball_freigeschaltet"`) wird bewusst **nicht** persistiert. Welche Spiele/Skins frei sind, ergibt sich deterministisch aus der Charakterstufe (Abschnitt 9) und wird bei Bedarf berechnet statt dupliziert gespeichert – das vermeidet, dass gespeicherter und tatsächlicher Zustand auseinanderlaufen können.
+
+`stufe` wird ebenfalls nicht separat gespeichert, sondern aus `erfahrungspunkte` über dieselbe Schwellentabelle wie beim Runtime-Zustand hergeleitet (`CharacterEngine::stageForXp`) – aus demselben Grund.
+
+## 7. Spielzeit-Ökonomie
+
+- **2 Minuten Spielzeit** pro richtig gelöster Aufgabe, gutgeschrieben aufs Tageskonto
+- **Tageslimit: 60 Minuten verbrauchbare Spielzeit** (Rest verfällt am Tagesende, kein Übertrag – hält es einfach und fair zwischen den Kindern)
+- Reset des Tageskontos um Mitternacht via RTC (funktioniert auch offline zuverlässig – Vorteil des Core2)
+- ~~**Rückschritt bei Fehler:** falsche Antwort kostet Erfahrungspunkte des Charakters (kein Spielzeitabzug, das wäre demotivierend) – Charakter kann dadurch eine Stufe zurückfallen, wenn EP unter die Stufenschwelle fällt~~
+
+  **Review (geändert):** Falsche Antworten kosten **keine** Erfahrungspunkte mehr, und der Charakter kann dadurch **nicht** mehr eine Stufe zurückfallen. Begründung: EP-Verlust mit sichtbarem Stufen-Downgrade ist trotz des schon vermiedenen Spielzeitabzugs weiterhin ein Bestrafungssignal für falsche Antworten – das entmutigt gerade bei jüngeren Kindern das Raten/Ausprobieren, wo viel Lernen stattfindet. Es riskiert zudem ein "Flackern" der Stufe direkt an einer XP-Schwelle (richtig → Stufenaufstieg → falsch → Rückstufung → ...), was für ein Kind willkürlich wirkt. Neue Regel: **kein Rückschritt**, nur langsameres Vorwärtskommen bei vielen Fehlern (weniger neue EP). "Traurig" wirkt der Charakter ausschliesslich bei mehrtägiger Inaktivität (siehe Abschnitt 9), nie durch einzelne falsche Antworten.
+
+## 8. Aufgaben-Engine
+
+### 8.1 Fächer je Klasse (Baselland, Lehrplan 21/Passepartout – als Ausgangsraster, Feininhalte später mit echtem Schulmaterial abgleichen)
+
+**1. Klasse:**
+- Mathe: Zahlenraum bis 20, Addition/Subtraktion, Mengen erfassen
+- Rechtschreibung/Deutsch: Buchstaben, einfache Wörter lesen/erkennen, Anlaute
+- Quiz: einfache Sachfragen (Tiere, Farben, Formen)
+- Gedächtnistraining: Bild-Paare merken (Memory-Prinzip)
+- *(Kein Französisch – Fremdsprachenbeginn in Baselland/Passepartout ist die 3. Klasse)*
+
+**3. Klasse:**
+- Mathe: Zahlenraum bis 1000, kleines Einmaleins, einfache Textaufgaben
+- Rechtschreibung: Wortfamilien, einfache Rechtschreibregeln, Diktat-artige Aufgaben
+- Französisch-Vokabeln: Grundwortschatz (Begrüssung, Zahlen, Farben, Familie) – passend zum Fremdsprachenbeginn in der 3. Klasse
+- Quiz: altersgerechtes Allgemeinwissen
+- Gedächtnistraining: Sequenzen merken, Zuordnungsspiele
+
+### 8.2 Aufgaben-Datenstruktur
+
+```json
+{
+  "id": "mathe_1kl_add_014",
+  "fach": "mathe",
+  "klasse": 1,
+  "schwierigkeit": 2,
+  "typ": "multiple_choice",
+  "frage": "5 + 3 = ?",
+  "antworten": ["7", "8", "9"],
+  "richtig": 1
+}
+```
+Aufgabenpools als separate JSON-Dateien pro Fach/Klasse auf der SD-Karte (`/tasks/mathe_1.json` etc.) – einfach erweiterbar, ohne Neu-Flashen.
+
+### 8.3 Spaced Repetition (vereinfachtes Leitner-System, 5 Boxen)
+
+| Box | Intervall bis Wiederholung |
+|---|---|
+| 1 | täglich |
+| 2 | alle 2 Tage |
+| 3 | alle 4 Tage |
+| 4 | wöchentlich |
+| 5 | alle 2 Wochen |
+
+Richtig beantwortet → eine Box aufsteigen. Falsch → zurück auf Box 1. Bei jeder Aufgaben-Session: fällige Items aus den Boxen zuerst, dazu 1–2 neue Items gemischt.
+
+### 8.4 Schwierigkeitsanstieg (Zeit **und** Trefferquote)
+
+- Rollierende Trefferquote der letzten 10 Aufgaben pro Fach wird getrackt
+- **Trefferquote ≥ 85 %** → Schwierigkeitsstufe steigt um 1 (bis zum Maximum der Klassenstufe)
+- **Trefferquote < 50 %** → Schwierigkeitsstufe bleibt oder sinkt leicht, mehr Wiederholungen leichterer Items
+- Zusätzlich langsamer automatischer Anstieg über die Zeit (z. B. +1 Basisstufe pro Schulmonat), damit das Gerät auch bei durchschnittlicher Leistung mit dem Schuljahr mitwächst
+- Schwierigkeitsstufe wird bei Auswahl der nächsten Aufgabe aus dem Pool als Filter genutzt
+
+**Review (Präzedenz geklärt):** Die performance-basierte Anpassung und der monatliche Auto-Anstieg konnten sich bisher widersprechen – bei einem Kind mit Trefferquote < 50 % hätte der monatliche Anstieg die Schwierigkeit trotzdem nach oben ziehen können, gegen die Schutzregel für schwache Trefferquoten. **Entschieden:** Der monatliche Auto-Anstieg hebt ausschliesslich die **Obergrenze** (die maximal erreichbare Schwierigkeitsstufe der Klassenstufe), nie die aktuell wirksame Schwierigkeit direkt. Die tatsächlich verwendete Schwierigkeit bleibt weiterhin performance-gesteuert (85 %/50 %-Regel) und kann dadurch nie gegen eine aktuell gedrückte Schwierigkeit "gewinnen" – sie kann höchstens bis zur (jetzt höheren) Obergrenze steigen, wenn die Trefferquote das hergibt.
+
+## 9. Tamagotchi-Charaktersystem
+
+**Entwicklungsstufen:** Ei → Baby → Kind → Junior → Experte → Meister (6 Stufen, EP-Schwellen z. B. 0/100/300/700/1500/3000)
+
+**Freischaltungen pro Stufe (9 Spiele total):**
+- Baby: Snake
+- Kind: Tetris, Puzzle
+- Junior: Space Invaders, Moorhuhn-Jagd, neuer Skin
+- Experte: Pinball, Basketball
+- Meister: Fussball, Kampf-Modus, Sonder-Skin/Umgebung
+
+~~**Rückschritt:** EP-Verlust bei Fehlern kann eine Stufe zurückfallen lassen (nicht sofort ein Spiel wieder sperren, aber visuelles Feedback – Charakter wirkt "trauriger").~~ **Review (geändert, siehe Abschnitt 7):** Kein Rückschritt mehr durch Fehler – Stufen steigen ausschliesslich vorwärts. Mehrtägige Inaktivität lässt den Charakter "müde/traurig" wirken (kein harter Rückschritt, aber Anreiz zum täglichen Nutzen) – das bleibt der **einzige** Auslöser für den "traurig"-Zustand.
+
+## 10. Spiele (vollständige Varianten, Steuerungskonzept für Core2)
+
+Für alle Spiele: On-Screen-Touch-Zonen (grosse Tap-Flächen) als primäre Steuerung, IMU-Neigung als optionale bzw. bei manchen Spielen zentrale Alternative.
+
+1. **Snake** – Touch-Zonen links/rechts/oben/unten am Bildschirmrand oder Swipe-Richtung; klassisches Wachstums-/Kollisionsprinzip, Highscore lokal gespeichert
+2. **Tetris** – Touch-Zonen: links/rechts bewegen, tippen = drehen, unten swipen = fallen lassen; Standard-7-Steine-Set, steigende Fallgeschwindigkeit
+3. **Space Invaders** – links/rechts-Zonen + Feuer-Button, Wellen mit steigendem Schwierigkeitsgrad
+4. **Pinball** – zwei Touch-Zonen unten links/rechts als Flipper, Neigungssteuerung (Tilt/IMU) für leichte Balleinflussnahme, wie beim Original
+5. **Basketball** – Swipe-Geste (Richtung + Stärke) zum Werfen, Wurfwinkel/Distanz variieren
+6. **Fussball** – Swipe zum Schiessen aufs Tor, einfacher Torwart-Gegner mit steigender Reaktionsgeschwindigkeit
+7. **Puzzle** – Direktes Touch-Ziehen von Puzzleteilen (Drag&Drop), Bildmotive aus dem Charakter-Universum
+8. **Moorhuhn-Jagd (Shooting Gallery)** – Ziele (Hühner o. Ä., thematisch austauschbar) bewegen sich nach Skript-Pfaden über den Bildschirm. **Steuerung: Neigungssensor (IMU) bewegt ein Fadenkreuz**, Antippen des Bildschirms löst den Schuss aus; alternativ Touch-Drag als ruhigere Zielmethode. Score nach Trefferzahl/Zeit, steigende Geschwindigkeit/mehr Ziele als Schwierigkeitskurve
+9. **Kampf-Modus (Street-Fighter-inspiriert)** – Vereinfachte 1-gegen-1-Variante gegen eine KI (kein Splitscreen/2-Spieler-Modus, dafür ist der 2"-Bildschirm zu klein): Touch-Zonen links/rechts für Bewegung, zwei grosse Buttons für Schlag/Tritt, eine Swipe-Geste für eine Spezialattacke.
+   > **Scope-Hinweis:** Ein vollwertiges Fighting-Game mit klassischen Combo-Eingaben (Viertelkreis-Bewegungen etc.) ist auf einem 2"-Touchscreen kaum sauber und kindgerecht umsetzbar. Geplant ist eine bewusst vereinfachte Variante mit wenigen, klar erkennbaren Aktionen statt komplexer Eingabefolgen – im Look wie Street Fighter, aber in der Steuerungstiefe für Kinder passend reduziert.
+
+Freischalt-Reihenfolge folgt dem Charaktersystem (Abschnitt 9) – hält Motivation über die Zeit aufrecht statt alles von Anfang an verfügbar zu machen.
+
+**Review (Scope/Ressourcen):** 9 vollständige Spiele + Aufgaben-Engine + Spaced Repetition + Charaktersystem + Web-Interface sind viel Fläche für ein Hobbyprojekt auf einem Mikrocontroller. Jedes Spiel ist für sich ein kleines eigenständiges Projekt (v. a. Tetris/Pinball/Kampf-Modus). Die Phasenplanung (Abschnitt 14) staffelt das bereits sinnvoll – "Phase 3: alle 9 Spiele vollständig" ist trotzdem realistisch der grösste Zeitblock im gesamten Plan und sollte entsprechend budgetiert werden.
+
+## 11. Alltagsfunktionen
+
+**Kernanforderung:**
+- Uhr (grosse, kindgerechte Anzeige, analog oder digital wählbar)
+- Wecker (mit Vibration + Sound, mehrere Alarme möglich)
+
+**Zusätzliche Vorschläge:**
+- **Timer/Stoppuhr** – z. B. für Zähneputzen (2-Min-Timer mit Countdown-Animation des Charakters)
+- **Tages-/Routine-Checkliste** – z. B. "Anziehen, Zähneputzen, Znüni einpacken" zum Abhaken am Morgen, gibt kleine EP-Belohnung
+- **Geburtstags-/Ereignis-Countdown** – Countdown-Anzeige zu Ereignissen wie Geburtstag, Ferienbeginn
+- **Einfacher Taschenrechner** – für den 3.-Klässler auch als "Übungswerkzeug" nutzbar
+- **Charakter-Steckbrief** – Übersicht über Stufe, Fähigkeiten, Statistiken ("mein Tamagotchi")
+- **Nachtmodus** – Bildschirm dimmt/schaltet sich nach einstellbarer Uhrzeit automatisch ab (RTC-basiert, auch ohne WLAN zuverlässig)
+- **Eltern-PIN** – für Einstellungen, Tageslimit-Anpassung, evtl. manuelles Zeitguthaben
+
+**Review (RTC-Drift/NTP, neu):** Die BM8563-RTC hält die Zeit offline zuverlässig, driftet aber wie jede Quarz-RTC über Monate hinweg und kennt keine automatischen CEST/CET-Umstellungen (relevant für einen Schweizer Haushalt). Sobald WLAN verfügbar ist (spätestens Phase 5), sollte ein NTP-Sync-Pfad die RTC nachstellen – die RTC bleibt dabei die primäre, offline-taugliche Zeitquelle, NTP ist nur eine gelegentliche Korrektur. Vorbereitet in `src/core/RtcClock.{h,cpp}` (`syncFromNtpIfAvailable()`, aktuell ein No-op ohne WLAN-Konfiguration – Anknüpfungspunkt für Phase 5).
+
+## 12. Web-Interface (Phase 5, nicht von Anfang an nötig)
+
+**Zweck:**
+- Fortschritt/Statistik einsehen (für Eltern)
+- Neue Aufgaben hinzufügen/bearbeiten, ohne Gerät neu zu flashen
+- Tageslimit, Minuten-pro-Aufgabe zentral anpassen
+
+**Technischer Ansatz:** ESP32 im Access-Point- oder Stationsmodus, `ESPAsyncWebServer` liefert einfache HTML-Seite (Tabelle mit Aufgaben, Formular zum Hinzufügen), Daten als JSON über die vorhandene SD-Struktur – kein separates Backend nötig, das Core2 ist Server und Speicher zugleich. **Siehe Abschnitt 3 (Review) zur Bibliothekswahl (`ESP32Async`-Fork statt `me-no-dev`) und zu OTA-Updates.**
+
+## 13. Speicherung (SD-Karten-Struktur)
+
+```
+/profile.json
+/progress.json
+/progress/aufgaben_mathe.json
+/progress/aufgaben_rechtschreibung.json
+/progress/aufgaben_franzoesisch.json
+/progress/aufgaben_quiz.json
+/progress/aufgaben_gedaechtnis.json
+/tasks/mathe_1.json
+/tasks/mathe_3.json
+/tasks/rechtschreibung_1.json
+/tasks/rechtschreibung_3.json
+/tasks/franzoesisch_3.json
+/tasks/quiz_1.json
+/tasks/quiz_3.json
+/tasks/gedaechtnis_1.json
+/tasks/gedaechtnis_3.json
+/sprites/...
+```
+
+**Review:** Struktur an das aufgelöste Datenmodell aus Abschnitt 6 angepasst (Aufgaben-Fortschritt pro Fach statt in `progress.json` gebündelt; siehe dortige Tabelle für Begründung). Jede hier gelistete `.json`-Datei existiert zur Laufzeit zusätzlich potenziell als `.tmp`- (während des Schreibens) bzw. `.bak`-Variante (Backup der letzten gültigen Version) – siehe Abschnitt 6, Review zur Datenintegrität.
+
+## 14. Projektphasen
+
+| Phase | Inhalt |
+|---|---|
+| 0 | Hardware-Setup, PlatformIO-Projekt, Grundgerüst State-Machine, Home-Screen mit Platzhalter-Charakter |
+| 1 (MVP) | Ein Fach (z. B. Mathe) inkl. Aufgaben-Engine ohne Spaced Repetition, Spielzeitkonto, 1 Spiel (Snake), Uhr/Wecker |
+| 2 | Alle Fächer, Spaced Repetition, Schwierigkeitsanstieg, Charaktersystem mit Stufen |
+| 3 | Alle 9 Spiele vollständig |
+| 4 | Erweiterte Alltagsfunktionen, Nachtmodus, Eltern-PIN, (idealerweise) erster OTA-Baustein |
+| 5 | Web-Interface für Sync/Content-Pflege, OTA-Updates spätestens hier vollständig |
+
+**Stand:** Phase 0 ist im Code umgesetzt (State-Machine, `BootScreen`, `ProfileSetupScreen`, `HomeScreen` mit Platzhalter-Charakter, Storage-Layer mit atomaren Schreibvorgängen). Siehe `README.md` für den aktuellen Stand und Build-Anleitung.
+
+## 15. Review-Zusammenfassung
+
+Kurzüberblick über alle inhaltlichen Änderungen gegenüber der ursprünglichen Planfassung (Details jeweils an der zitierten Stelle oben):
+
+1. **Datenintegrität (Abschnitt 6):** Atomares Schreiben (`.tmp` → `.bak`-Rotation → Umbenennen) für alle JSON-Dateien auf der SD-Karte, gegen Datenverlust durch Stromausfall/Batterie-leer mitten im Schreibvorgang.
+2. **Datenmodell-Aufteilung (Abschnitt 6/13):** Eindeutige, dokumentierte Aufteilung auf `profile.json` / `progress.json` / `progress/aufgaben_<fach>.json` / `tasks/<fach>_<klasse>.json` statt widersprüchlicher Beispiele.
+3. **Eltern-PIN (Abschnitt 6):** Nie im Klartext gespeichert, sondern gesalzen/gehasht unter unauffälligem Feldnamen.
+4. **Schwierigkeits-Präzedenz (Abschnitt 8.4):** Monatlicher Auto-Anstieg hebt nur die Obergrenze, überschreibt nie eine performance-bedingt gedrückte Schwierigkeit.
+5. **Kein EP-/Stufen-Rückschritt mehr (Abschnitt 7/9):** Falsche Antworten kosten keine EP und lösen keinen Stufenabstieg mehr aus – vermeidet Bestrafungssignale beim Lernen und "Flackern" der Stufe an XP-Schwellen. "Traurig" ausschliesslich durch Inaktivität.
+6. **Geräte-Profil (Abschnitt 3):** Laufzeit-Konfiguration (eine Firmware, Auswahl beim Erststart) statt Kompilierzeit-Flag.
+7. **ESPAsyncWebServer-Fork (Abschnitt 3/12):** `ESP32Async`-Fork statt des unmaintained `me-no-dev`-Originals.
+8. **OTA-Updates (Abschnitt 3/14, neu):** Als expliziter Punkt ergänzt statt implizit wegzulassen.
+9. **RTC-Drift/NTP (Abschnitt 11, neu):** NTP-Sync-Pfad für verfügbares WLAN ergänzt, RTC bleibt Offline-Primärquelle.
+10. **Icon-first-Navigation (Abschnitt 5, neu):** Für die jüngere Zielgruppe (1. Klasse, eingeschränkte Lesefähigkeit) Ziffern-/Icon-basierte statt textbasierte Auswahl-Screens, ab `ProfileSetupScreen` umgesetzt.
+11. **Akku/Low-Battery (Abschnitt 2, neu):** Home-Screen zeigt eine Akku-Warnung bei niedrigem Ladestand und stösst bei kritischem Ladestand einen sichernden Speichervorgang an, statt nur zu hoffen, dass der Akku nicht mitten im nächsten Schreibvorgang leer wird.
+12. **Freischaltungen nicht redundant gespeichert (Abschnitt 6):** `faehigkeiten`/`stufe` werden aus der Charakterstufe/EP hergeleitet statt separat persistiert (vermeidet Drift zwischen gespeichertem und tatsächlichem Zustand).
+
+Weiterhin offen/nicht Teil des Reviews (Scope/Ressourcen-Hinweise ohne konkrete Planänderung): Umfang von 9 vollständigen Spielen (Abschnitt 10) und Content-Autorenschaft für die Aufgabenpools (Abschnitt 8) bleiben die grössten Zeitrisiken des Projekts und sind bewusst nicht reduziert worden, sondern nur explizit benannt.
+
+## 16. Kleinere offene Punkte für die Code-Phase
+
+- Genaue EP-Schwellen/Stufenwerte final festlegen (Vorschlagswerte oben als Startpunkt)
+- Finale Sprite-Assets: selbst zeichnen, KI-generieren oder bestehende freie Assets im 90er-Stil anpassen?
+- Soll der Eltern-PIN pro Gerät gleich oder unterschiedlich sein? (Aktuell: identischer Default-PIN auf beiden Geräten, siehe `config::kDefaultParentalCode` – muss vor "produktivem" Einsatz in den Einstellungen geändert werden, sobald Abschnitt 11/Einstellungen in Phase 4 existiert.)
+- Gegner-KI-Schwierigkeit im Kampf-Modus und beim Fussball-Torwart: wie stark soll sie mit dem Charakterlevel mitwachsen?
