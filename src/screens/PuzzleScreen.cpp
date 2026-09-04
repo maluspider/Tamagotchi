@@ -127,9 +127,10 @@ void PuzzleScreen::drawTile(int colorId, int x, int y, int size) {
 void PuzzleScreen::drawHomeIcon() {
     const int x = canvas_.width() - kHomeIconSize - 6;
     const int y = 6;
-    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    canvas_.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    canvas_.fillRoundRect(x, y, kHomeIconSize, kHomeIconSize, 6, theme::kAccentGold);
+    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 6, theme::kOutline);
+    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 5, x + 6, y + 14, x + kHomeIconSize - 6, y + 14, theme::kOutline);
+    canvas_.fillRect(x + 9, y + 13, kHomeIconSize - 18, kHomeIconSize - 18, theme::kOutline);
 }
 
 void PuzzleScreen::draw() {

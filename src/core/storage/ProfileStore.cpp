@@ -27,7 +27,7 @@ Profile load() {
     profile.alarmEnabled = doc["wecker"]["aktiv"] | false;
     profile.alarmHour = doc["wecker"]["stunde"] | static_cast<uint8_t>(7);
     profile.alarmMinute = doc["wecker"]["minute"] | static_cast<uint8_t>(0);
-    profile.nightModeEnabled = doc["nachtmodus"]["aktiv"] | true;
+    profile.nightModeEnabled = doc["nachtmodus"]["aktiv"] | false;
     profile.nightStartHour = doc["nachtmodus"]["start_stunde"] | static_cast<uint8_t>(20);
     profile.nightEndHour = doc["nachtmodus"]["ende_stunde"] | static_cast<uint8_t>(7);
     profile.dailyLimitMinutesOverride = doc["einstellungen"]["tageslimit_min"] | static_cast<uint16_t>(0);

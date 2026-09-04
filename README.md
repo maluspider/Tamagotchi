@@ -15,11 +15,14 @@ frei wählbarer Hautfarbe/Haarfarbe/Kleidungsfarbe – siehe "Sprite-Grafik"
 unten), Aufgaben-Modus für alle vier Multiple-Choice-Fächer inkl. Spaced
 Repetition und Schwierigkeitsanstieg, Gedächtnistraining, alle 9 Spiele,
 Alltagsfunktionen (Uhr/Wecker, Timer, Checkliste, Steckbrief, Aussehen),
-Nachtmodus, Eltern-PIN-geschützte Einstellungen, ein durchgängiges 80er-
-Jahre-/Synthwave-Farbschema und ein Web-Interface (Fortschrittsansicht,
-Aufgaben-Verwaltung, Tageslimit, ArduinoOTA). Damit ist die komplette im
-Plan vorgesehene Funktionalität im Code vorhanden – siehe aber unbedingt
-den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
+Nachtmodus, Eltern-PIN-geschützte Einstellungen (inkl. Uhrzeit einstellen),
+ein durchgängiges, knalliges 80er-Jahre-/Arcade-Neon-Farbschema und ein
+Web-Interface (Fortschrittsansicht, Aufgaben-Verwaltung, Tageslimit,
+ArduinoOTA). Damit ist die komplette im Plan vorgesehene Funktionalität im
+Code vorhanden – **und inzwischen auf echter Hardware kompiliert, geflasht
+und getestet**, siehe "Bekannte Setup-Probleme" und "Bekannte
+Laufzeit-Probleme (behoben)" unten für die dabei gefundenen und behobenen
+Fehler.
 
 ## Vor dem ersten Flashen: zwei Dinge anpassen
 
@@ -101,7 +104,26 @@ lokale Checkout auf dem aktuellen Stand von
 `claude/tamagotchi-device-review-v8dxml` ist (`git pull`), und
 `.pio/build/` löschen, um einen sauberen Neu-Build zu erzwingen.
 
-## Bedienung (Stand nach Phase 5)
+**SD-Karte wird nicht erkannt, obwohl korrekt FAT32-formatiert und befüllt
+(behoben):** Core2s SD-Karte hängt am selben SPI-Bus, den `M5.begin()`
+bereits mit den Core2-spezifischen Pins konfiguriert. `SD.begin(cs)` ohne
+explizite Angabe des `SPI`-Objekts nutzte stattdessen dessen (nicht zu
+Core2 passende) Default-Belegung und meldete die Karte fälschlicherweise
+als fehlend. Behoben in `BootScreen.cpp` (`SD.begin(config::kSdChipSelectPin,
+SPI)`).
+
+**`/dev/ttyACM0`: Permission denied beim Flashen (Linux):** Der aktuelle
+Nutzer ist noch nicht (oder erst nach Neuanmeldung) Mitglied der Gruppe
+`dialout`, die den seriellen Port besitzt. Prüfen mit
+`getent group dialout` und `groups`; fehlt die Mitgliedschaft:
+`sudo usermod -aG dialout $USER`, dann **komplett aus- und wieder
+einloggen** (ein neues Terminal allein reicht nicht) – für den aktuellen
+Terminal reicht notfalls `newgrp dialout` als Sofort-Workaround. Existiert
+zusätzlich `/etc/udev/rules.d/99-platformio-udev.rules` noch nicht, die
+PlatformIO-udev-Regeln nachinstallieren (`pio run -t udev` bzw. gemäss
+PlatformIO-Doku) und den Rechner neu starten.
+
+## Bedienung (Stand nach Phase 5, mit Hardware-Fixes)
 
 - **Home-Screen:** zeigt Charakter + Namen, Uhrzeit, verfügbare Spielzeit.
   Untere Icon-Leiste (4 Zonen): Stift-Icon → Fach-Auswahl, Play-Dreieck →
@@ -136,13 +158,23 @@ lokale Checkout auf dem aktuellen Stand von
     ersetzt werden – deshalb reichen 18 Bilddateien statt hunderter
     Farbkombinationen.
   - **Farbschema:** die komplette Nicht-Spiel-UI (inkl. der Kopf-/
-    Statusleisten aller 9 Spiele) nutzt ein durchgängiges 80er-Jahre-/
-    Synthwave-Farbschema (dunkles Indigo/Lila + Neonpink/-cyan/-orange/
-    -gold, siehe [`src/core/Theme.h`](src/core/Theme.h)) statt einzelner
-    `TFT_*`-Farben – zentral an einer Stelle anpassbar. Ausnahmen bewusst
-    unverändert: Text/Icon-Linien bleiben weiss (Lesbarkeit), und ein paar
+    Statusleisten aller 9 Spiele) nutzt ein durchgängiges, auf maximale
+    Knalligkeit finalisiertes 80er-Jahre-/Arcade-Neon-Farbschema (fast
+    schwarzes Indigo/Lila + Neonpink/-cyan/-orange/-gold, siehe
+    [`src/core/Theme.h`](src/core/Theme.h)) statt einzelner `TFT_*`-Farben –
+    zentral an einer Stelle anpassbar. Ausnahmen bewusst unverändert:
+    Text/Icon-Linien bleiben weiss (Lesbarkeit), und ein paar
     "wiedererkennungskritische" Farben (Französisch-Flagge, Basketball-/
     Fussball-Icon, die vier Merkspiel-Farben) folgen nicht dem Theme.
+  - **Retro-Hintergründe (SNES-/Street-Fighter-Stage-Look):** Home-Screen,
+    alle drei Icon-Menüs (Spiele/Alltag/Fach-Auswahl) und der Kampf-Modus
+    zeichnen zusätzlich einen prozeduralen "Synthwave"-Hintergrund –
+    untergehende Sonne (Gold→Pink-Verlauf) über einem perspektivischen
+    Bodengitter, das zum unteren Bildschirmrand aufweitet
+    ([`src/core/RetroBackdrop.*`](src/core/RetroBackdrop.h)). Reine
+    Vektorgrafik aus Theme-Farben, keine zusätzlichen Bild-Dateien nötig.
+    Liegt bewusst hinter Icons/Charakter/Panels, damit die Lesbarkeit für
+    die junge Zielgruppe erhalten bleibt.
 - **Fach-Auswahl:** Icon-Grid zu Mathe, Rechtschreibung, Französisch (nur
   ab Klasse 3), Quiz und Gedächtnistraining.
 - **Aufgaben-Modus:** Multiple-Choice-Frage antippen; richtige Antwort gibt
@@ -179,11 +211,18 @@ lokale Checkout auf dem aktuellen Stand von
     Spielzeitguthaben und kehren bei Null automatisch zu Home zurück.
     Highscores (wo sinnvoll) werden lokal in `/highscores.json`
     gespeichert.
+  - **Zurück-Button:** alle 9 Spiele haben oben rechts ein Haus-Icon zum
+    sofortigen Zurückkehren zu Home (**behoben:** fehlte zuvor bei Snake
+    komplett; bei den anderen 8 Spielen gab es das Icon zwar schon, aber in
+    einer schwer erkennbaren reinen Weiss-Umriss-Optik – jetzt einheitlich
+    als deutlich sichtbares goldenes Badge).
 - **Alltagsfunktionen-Menü:** Icon-Grid (3×2, vollständig gefüllt) zu
   Uhr/Wecker, Timer, Checkliste, Steckbrief, Aussehen und Geburtstag.
   - **Uhr/Wecker:** grosse Digitaluhr, eine einstellbare Alarmzeit (Glocke
     antippen = an/aus, +/- für Stunde/Minute). Der Wecker löst auch aus,
-    wenn gerade ein anderer Screen aktiv ist (`AlarmService`).
+    wenn gerade ein anderer Screen aktiv ist (`AlarmService`). Die
+    Uhrzeit/das Datum selbst stellt man in den Einstellungen unter
+    "Uhrzeit einstellen" (siehe unten).
   - **Timer:** drei Presets (2/5/10 Min) antippen zum Starten, piept +
     vibriert bei Ablauf.
   - **Checkliste:** drei feste Morgen-Routine-Punkte abhaken; sind alle
@@ -200,14 +239,22 @@ lokale Checkout auf dem aktuellen Stand von
     Glückwunsch-Meldung. Ist am Profil kein Geburtstag hinterlegt, erscheint
     stattdessen ein Hinweis.
 - **Nachtmodus:** dimmt den Bildschirm automatisch zwischen 20 und 7 Uhr
-  (Default, RTC-basiert, `NightModeService`) – in den Einstellungen an/aus
+  (Default-Zeitfenster, RTC-basiert, `NightModeService`) – **standardmässig
+  jetzt AUS** (Default vor dem Hardware-Test war fälschlich AN, siehe
+  "Bekannte Laufzeit-Probleme" unten), in den Einstellungen an/aus
   schaltbar.
 - **Einstellungen (Eltern-PIN-geschützt):** Zahnrad-Icon auf dem
   Home-Screen antippen, PIN eingeben (Standard `0000`, siehe
   `config::kDefaultParentalCode` – vor "produktivem" Einsatz über "PIN
-  ändern" in den Einstellungen anpassen). Dort: Tageslimit anpassen
-  (±5 Min), Bonus-Spielzeit vergeben (+10 Min), Nachtmodus an/aus, PIN
-  ändern, Web-Sync starten.
+  ändern" in den Einstellungen anpassen; ein geänderter PIN übersteht jetzt
+  zuverlässig einen Neustart, siehe "Bekannte Laufzeit-Probleme" unten).
+  Dort: Tageslimit anpassen (±5 Min), Bonus-Spielzeit vergeben (+10 Min),
+  Nachtmodus an/aus, **Uhrzeit einstellen** (Jahr/Monat/Tag/Stunde/Minute
+  per Stepper, `DateTimeSetScreen`), PIN ändern, Web-Sync starten.
+- **Power-Taste (Gerät):** kurz drücken schaltet das Display an/aus (Akku
+  sparen, ohne die App zu verlassen – Nachtmodus/Spiellogik pausieren
+  währenddessen), langes Drücken (≥ 2 Sekunden) sichert den Fortschritt und
+  startet das Gerät neu.
 - **Web-Sync** (Abschnitt 12): startet einen geräteeigenen WLAN-
   Access-Point (SSID/Passwort/IP werden auf dem Gerät angezeigt) mit
   einem kleinen Web-Interface unter `http://192.168.4.1` – Fortschritt
@@ -233,7 +280,8 @@ src/core/                    Screen-unabhängige Module
   CharacterEngine.*         Tamagotchi-Charaktersystem (Abschnitt 9)
   CharacterRenderer.*        Sprite-Rendering + Trait-Palette-Swap (Abschnitt 4)
   CharacterTraits.h          Trait-Farbvoreinstellungen + Markerfarben
-  Theme.h                    Zentrales 80er-/Synthwave-Farbschema (Abschnitt 4)
+  Theme.h                    Zentrales 80er-/Arcade-Neon-Farbschema (Abschnitt 4)
+  RetroBackdrop.*            Prozeduraler Synthwave-Hintergrund (Sonne+Gitter, SNES-Look)
   PlaytimeAccount.*         Spielzeitkonto (Abschnitt 7)
   PlaytimeTicker.*            Gemeinsame Spielzeit-Verbrauchslogik fuer alle Spiele
   HighscoreStore.*             Lokale Highscores je Spiel (/highscores.json)
@@ -271,25 +319,50 @@ src/screens/                 Konkrete Screens (je eine Klasse pro Screen)
   BirthdayScreen.*               Geburtstags-Countdown (Monat/Tag aus KidProfiles.h)
   PinEntryScreen.*               Eltern-PIN-Eingabe (pruefen/neu setzen)
   SettingsScreen.*               Eltern-Einstellungen (PIN-geschuetzt)
+  DateTimeSetScreen.*            Datum/Uhrzeit der RTC einstellen (aus Settings)
   WebSyncScreen.*                 Zeigt SSID/Passwort/IP, startet/stoppt WebServerService
 docs/projektplan.md          Vollstaendiger Projektplan inkl. Review
 ```
 
-## Hinweis zum Kompilieren in dieser Session
+## Bekannte Laufzeit-Probleme (auf echter Hardware gefunden, behoben)
 
-Der Code wurde in dieser Cloud-Umgebung geschrieben, aber **nicht** über
-`pio run` gebaut/verifiziert – der Netzwerkzugriff auf die
-PlatformIO-Paketregistrierung (zum Laden der ESP32-Toolchain und
-Libraries) ist hier durch die Organisations-Egress-Policy blockiert. Bitte
-vor dem Flashen lokal `pio run` ausführen, um sicherzustellen, dass alles
-sauber kompiliert. Die Spiele-Physik (Pinball/Basketball/Fussball/
-Moorhuhn-Jagd) wurde mangels Testgeraet nicht live gespielt – Konstanten
-sind plausible Startwerte, siehe Abschnitt 16 des Plans.
+Der Code wurde inzwischen erfolgreich auf echter Core2-Hardware kompiliert,
+geflasht und gespielt. Dabei gefundene und in dieser Runde behobene
+Fehler:
 
-**Besonders zu pruefen: das Web-Interface (Abschnitt 12).** WLAN/Access-
-Point, der synchrone `WebServer` und `ArduinoOTA` sind der am wenigsten
-verifizierbare Teil dieses Projekts – vor Verlass darauf einmal real
-durchspielen: Web-Sync im Geraet oeffnen, mit einem Handy/Laptop am
-angezeigten AP anmelden, `http://192.168.4.1` aufrufen, eine Test-Aufgabe
-hinzufuegen/loeschen, Tageslimit aendern, und `pio run -t upload
---upload-port <angezeigte-IP>` fuer ein OTA-Update probieren.
+- **Home-Screen flackerte sekündlich:** `HomeScreen` zeichnete mehrere
+  aufeinanderfolgende Aufrufe direkt auf `M5.Display` statt (wie alle
+  Spiele) über ein Offscreen-`M5Canvas`. Behoben, siehe Klassenkommentar in
+  `HomeScreen.h`.
+- **SD-Karte "nicht erkannt" trotz korrektem FAT32/Ordnern:** SPI-Bus-
+  Fehlkonfiguration, siehe "Bekannte Setup-Probleme" oben.
+- **Display viel zu dunkel / Nachtmodus fälschlich aktiv:** `nightModeEnabled`
+  war default `true` statt `false`, zusätzlich konnte eine noch unplausible
+  RTC-Werkszeit (Jahr < 2024) den Nachtmodus vor der ersten Zeiteinstellung
+  auslösen. Beides behoben (`ProfileStore.h`, `NightModeService::check()`
+  mit Plausibilitäts-Guard).
+- **Eltern-PIN nach Neustart wieder auf Default zurückgesetzt:** Der neue
+  PIN wurde beim Ändern zwar sofort im Speicher übernommen, aber
+  `profilestore::save()`s Rückgabewert nie geprüft – schlug das Schreiben
+  auf die (zu diesem Zeitpunkt wegen des SPI-Bus-Fehlers nicht
+  funktionierende) SD-Karte fehl, wirkte die Änderung nur bis zum nächsten
+  Neustart. `PinEntryScreen` rollt den PIN jetzt bei einem Speicherfehler
+  zurück und zeigt einen Fehler, statt stillschweigend zu "vergessen".
+- **Kein Zurück-/Home-Button in den Spielen:** siehe "Zurück-Button" oben.
+- **Uhrzeit liess sich nicht einstellen:** neuer `DateTimeSetScreen`, siehe
+  "Einstellungen" oben.
+- **Power-Taste ohne Funktion:** kurzer/langer Druck jetzt belegt, siehe
+  "Power-Taste" oben.
+
+Die Spiele-Physik (Pinball/Basketball/Fussball/Moorhuhn-Jagd)-Konstanten
+sind weiterhin Startwerte, die bei Bedarf nach mehr Spielzeit noch
+nachjustiert werden können (Abschnitt 16 des Plans).
+
+**Weiterhin am wenigsten auf echter Hardware verifiziert: das
+Web-Interface (Abschnitt 12).** WLAN/Access-Point, der synchrone
+`WebServer` und `ArduinoOTA` wurden in dieser Session nicht live
+durchgespielt – vor Verlass darauf einmal real testen: Web-Sync im Gerät
+öffnen, mit einem Handy/Laptop am angezeigten AP anmelden,
+`http://192.168.4.1` aufrufen, eine Test-Aufgabe hinzufügen/löschen,
+Tageslimit ändern, und `pio run -t upload --upload-port <angezeigte-IP>`
+für ein OTA-Update probieren.

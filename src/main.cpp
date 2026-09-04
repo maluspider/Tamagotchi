@@ -14,6 +14,7 @@
 #include "screens/CharacterCustomizeScreen.h"
 #include "screens/ChecklistScreen.h"
 #include "screens/ClockScreen.h"
+#include "screens/DateTimeSetScreen.h"
 #include "screens/FussballScreen.h"
 #include "screens/GamesMenuScreen.h"
 #include "screens/GedaechtnisScreen.h"
@@ -39,6 +40,20 @@ namespace {
 AppContext appContext;
 StateMachine stateMachine;
 uint32_t lastFrameMs = 0;
+
+// Nutzerwunsch: "langer Tastendruck soll zu Reset fuehren, kurzer
+// Tastendruck Bildschirm an/abschalten um Batterie zu sparen" - beides
+// ueber M5.BtnPWR (Core2s Power-Taste, von M5Unified als virtuelles
+// Button_Class-Objekt bereitgestellt, siehe M5.begin()).
+constexpr uint32_t kPowerButtonResetHoldMs = 2000;
+
+// Wird true, solange das Display manuell abgeschaltet ist. Waehrenddessen
+// wird sowohl der NightModeService (der sonst jede Schleife die Helligkeit
+// neu setzen und den manuellen Toggle sofort ueberschreiben wuerde) als
+// auch die StateMachine (Spiele-/Aufgabenlogik, Touch-Eingaben) pausiert,
+// damit ausversehentliche Tipps auf dem dunklen Screen nichts veraendern
+// und keine Spielzeit verbraucht wird, waehrend das Geraet "aus" ist.
+bool displayManuallyOff = false;
 
 } // namespace
 
@@ -126,6 +141,9 @@ void setup() {
     stateMachine.registerScreen(ScreenId::WebSync, [] {
         return std::make_unique<WebSyncScreen>(appContext, stateMachine);
     });
+    stateMachine.registerScreen(ScreenId::DateTimeSet, [] {
+        return std::make_unique<DateTimeSetScreen>(appContext, stateMachine);
+    });
 
     stateMachine.switchTo(ScreenId::Boot);
     lastFrameMs = millis();
@@ -134,16 +152,45 @@ void setup() {
 void loop() {
     M5.update();
 
+    // Langer Druck (>= 2s) auf die Power-Taste: sofortiger Neustart, nach
+    // vorherigem Sichern des Fortschritts (siehe AppContext::persistProgress).
+    // pressedFor() liefert schon waehrend des Haltens true, ein Warten auf
+    // das Loslassen ist fuer einen Reset nicht noetig.
+    if (M5.BtnPWR.pressedFor(kPowerButtonResetHoldMs)) {
+        appContext.persistProgress();
+        ESP.restart();
+    }
+
+    // Kurzer Klick: Display an-/abschalten, um Akku zu sparen.
+    if (M5.BtnPWR.wasClicked()) {
+        displayManuallyOff = !displayManuallyOff;
+        if (displayManuallyOff) {
+            M5.Display.sleep();
+        } else {
+            M5.Display.wakeup();
+        }
+    }
+
     // Screen-unabhaengig, damit der Wecker auch klingelt, waehrend das Kind
-    // nicht auf dem Uhr-Screen ist (siehe AlarmService.h).
+    // nicht auf dem Uhr-Screen ist (siehe AlarmService.h) - auch bei
+    // abgeschaltetem Display soll ein gestellter Wecker weiter klingeln.
     alarmservice::check(appContext.profile);
-    // Ebenfalls screen-unabhaengig, damit der Nachtmodus greift, egal
-    // welcher Screen gerade aktiv ist (siehe NightModeService.h).
-    nightmodeservice::check(appContext.profile);
 
     const uint32_t now = millis();
     const uint32_t deltaMs = now - lastFrameMs;
     lastFrameMs = now;
+
+    if (displayManuallyOff) {
+        // Siehe Kommentar bei displayManuallyOff oben: Nachtmodus-Check und
+        // StateMachine-Update bewusst ausgesetzt, solange das Display manuell
+        // aus ist.
+        delay(10);
+        return;
+    }
+
+    // Screen-unabhaengig, damit der Nachtmodus greift, egal welcher Screen
+    // gerade aktiv ist (siehe NightModeService.h).
+    nightmodeservice::check(appContext.profile);
 
     stateMachine.update(deltaMs);
 

@@ -40,11 +40,15 @@ private:
     static constexpr size_t kMaxLength = static_cast<size_t>(kCols) * static_cast<size_t>(kRows);
     static constexpr uint32_t kStepIntervalMs = 180;
 
+    static constexpr int kHomeIconSize = 28;
+
     void resetGame();
     void spawnFood();
     void step();
     void handleInput();
     void drawPlayfield();
+    void drawHomeIcon();
+    bool touchedHomeIcon(int x, int y) const;
     void endGame();
 
     AppContext& app_;

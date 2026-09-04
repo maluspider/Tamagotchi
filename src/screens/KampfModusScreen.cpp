@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/RetroBackdrop.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 
@@ -214,20 +215,24 @@ void KampfModusScreen::drawButtons() {
 void KampfModusScreen::drawHomeIcon() {
     const int x = canvas_.width() - kHomeIconSize - 6;
     const int y = 6;
-    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
-    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
-    canvas_.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+    canvas_.fillRoundRect(x, y, kHomeIconSize, kHomeIconSize, 6, theme::kAccentGold);
+    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 6, theme::kOutline);
+    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 5, x + 6, y + 14, x + kHomeIconSize - 6, y + 14, theme::kOutline);
+    canvas_.fillRect(x + 9, y + 13, kHomeIconSize - 18, kHomeIconSize - 18, theme::kOutline);
 }
 
 void KampfModusScreen::draw() {
     canvas_.fillScreen(theme::kBackground);
+    // Arena-Hintergrund im SNES-/Strassenkaempfer-Look (Nutzerwunsch:
+    // "Backgrounds Super-Nintendo-Stil") statt der schlichten grauen
+    // Boden-Trennlinie - Horizont liegt exakt auf kGroundY, sodass die
+    // Kaempfer sichtbar auf der "Buehne" stehen.
+    retrobackdrop::drawSynthwaveGrid(&canvas_, canvas_.width(), canvas_.height(), kGroundY);
     canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
     canvas_.setTextDatum(top_left);
     canvas_.drawString("Kampf-Modus", 4, 4);
-
-    canvas_.drawLine(0, kGroundY, canvas_.width(), kGroundY, TFT_DARKGREY);
 
     drawHealthBars();
     drawFighter(playerX_, aiX_ > playerX_, TFT_CYAN, playerFlashMs_ > 0);

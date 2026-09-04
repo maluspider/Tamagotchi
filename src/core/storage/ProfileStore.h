@@ -29,8 +29,11 @@ struct Profile {
 
     // Nachtmodus (Abschnitt 11, Phase 4): Bildschirm dimmt zwischen
     // nightStartHour und nightEndHour (RTC-basiert, Wraparound ueber
-    // Mitternacht wird unterstuetzt). Siehe NightModeService.
-    bool nightModeEnabled = true;
+    // Mitternacht wird unterstuetzt). Siehe NightModeService. Standardmaessig
+    // AUS - ein frisch angelegtes Profil (und v.a. eine RTC ohne bereits
+    // gesetzte Uhrzeit) soll nicht ungefragt/unerwartet dunkel starten;
+    // Eltern schalten es bei Bedarf in den Einstellungen ein.
+    bool nightModeEnabled = false;
     uint8_t nightStartHour = 20;
     uint8_t nightEndHour = 7;
 

@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "../core/CharacterEngine.h"
+#include "../core/RetroBackdrop.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -53,9 +54,10 @@ constexpr int kBottomBarHeight = 40;
 } // namespace
 
 HomeScreen::HomeScreen(AppContext& app, StateMachine& stateMachine)
-    : app_(app), stateMachine_(stateMachine) {}
+    : app_(app), stateMachine_(stateMachine), canvas_(&M5.Display) {}
 
 void HomeScreen::onEnter() {
+    canvas_.createSprite(M5.Display.width(), M5.Display.height());
     msSinceLastRedraw_ = kRedrawIntervalMs; // beim Betreten sofort zeichnen
     lowBatterySaveDone_ = false;
     draw();
@@ -130,7 +132,7 @@ bool HomeScreen::drawSpriteCharacter() {
     const float scale = spriteScaleForStage(stage);
     const int cx = M5.Display.width() / 2;
     const int cy = M5.Display.height() / 2;
-    if (!characterRenderer_.draw(stage, mood, app_.profile, cx, cy, scale)) {
+    if (!characterRenderer_.draw(stage, mood, app_.profile, cx, cy, scale, &canvas_)) {
         // Kein Sprite auf der SD-Karte (oder Karte fehlt) - Aufrufer
         // zeichnet stattdessen die Platzhalter-Grafik.
         return false;
@@ -138,84 +140,84 @@ bool HomeScreen::drawSpriteCharacter() {
 
     if (app_.profile.name.length() > 0) {
         const int halfHeight = static_cast<int>(config::kSpriteSourceSizePx * scale / 2.0f);
-        M5.Display.setTextColor(theme::kText);
-        M5.Display.setTextDatum(top_center);
-        M5.Display.setTextSize(2);
-        M5.Display.drawString(app_.profile.name.c_str(), cx, cy + halfHeight + 6);
+        canvas_.setTextColor(theme::kText);
+        canvas_.setTextDatum(top_center);
+        canvas_.setTextSize(2);
+        canvas_.drawString(app_.profile.name.c_str(), cx, cy + halfHeight + 6);
     }
     return true;
 }
 
-void HomeScreen::drawPlaceholderCharacter() const {
+void HomeScreen::drawPlaceholderCharacter() {
     const int cx = M5.Display.width() / 2;
     const int cy = M5.Display.height() / 2;
     const CharacterStage stage = app_.character.stage();
     const int r = radiusForStage(stage);
     const uint16_t color = colorForStage(stage);
 
-    M5.Display.fillCircle(cx, cy, r, color);
-    M5.Display.drawCircle(cx, cy, r, theme::kOutline);
+    canvas_.fillCircle(cx, cy, r, color);
+    canvas_.drawCircle(cx, cy, r, theme::kOutline);
 
     const String today = rtcclock::todayIso();
     if (app_.character.isSad(today)) {
         // Traurige Augen (nach unten geneigte Striche statt Punkte) -
         // einziger Ausloeser ist Inaktivitaet, nie eine falsche Antwort
         // (Abschnitt 7/9, Review).
-        M5.Display.drawLine(cx - r / 2, cy - r / 4, cx - r / 4, cy - r / 3, theme::kOutline);
-        M5.Display.drawLine(cx + r / 4, cy - r / 3, cx + r / 2, cy - r / 4, theme::kOutline);
+        canvas_.drawLine(cx - r / 2, cy - r / 4, cx - r / 4, cy - r / 3, theme::kOutline);
+        canvas_.drawLine(cx + r / 4, cy - r / 3, cx + r / 2, cy - r / 4, theme::kOutline);
     } else {
-        M5.Display.fillCircle(cx - r / 3, cy - r / 4, 3, theme::kOutline);
-        M5.Display.fillCircle(cx + r / 3, cy - r / 4, 3, theme::kOutline);
+        canvas_.fillCircle(cx - r / 3, cy - r / 4, 3, theme::kOutline);
+        canvas_.fillCircle(cx + r / 3, cy - r / 4, 3, theme::kOutline);
     }
 
     // Name des Kindes/Charakters (aus dem beim Erststart gewaehlten Profil,
     // include/KidProfiles.h) unter dem Platzhalter-Charakter.
     if (app_.profile.name.length() > 0) {
-        M5.Display.setTextColor(theme::kText);
-        M5.Display.setTextDatum(top_center);
-        M5.Display.setTextSize(2);
-        M5.Display.drawString(app_.profile.name.c_str(), cx, cy + r + 8);
+        canvas_.setTextColor(theme::kText);
+        canvas_.setTextDatum(top_center);
+        canvas_.setTextSize(2);
+        canvas_.drawString(app_.profile.name.c_str(), cx, cy + r + 8);
     }
 }
 
-void HomeScreen::drawStatusBar() const {
-    M5.Display.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
+void HomeScreen::drawStatusBar() {
+    canvas_.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
 
     m5::rtc_time_t time_;
     M5.Rtc.getTime(&time_);
     char buf[6];
     snprintf(buf, sizeof(buf), "%02d:%02d", time_.hours, time_.minutes);
-    M5.Display.setTextColor(theme::kText);
-    M5.Display.setTextDatum(top_left);
-    M5.Display.setTextSize(2);
-    M5.Display.drawString(buf, 6, 6);
+    canvas_.setTextColor(theme::kText);
+    canvas_.setTextDatum(top_left);
+    canvas_.setTextSize(2);
+    canvas_.drawString(buf, 6, 6);
 
     // Verfuegbare Spielzeit als Zahl + kleines Dreieck-Icon statt Textlabel
     // (Review: Icon statt Wort fuer die juengere Zielgruppe, Abschnitt 5).
     const uint16_t available = app_.playtime.availableMinutes();
-    M5.Display.setTextDatum(top_right);
-    M5.Display.drawNumber(available, M5.Display.width() - 10, 6);
+    canvas_.setTextDatum(top_right);
+    canvas_.drawNumber(available, M5.Display.width() - 10, 6);
     const int iconX = M5.Display.width() - 34;
-    M5.Display.fillTriangle(iconX, 8, iconX, 22, iconX + 12, 15, theme::kAccentGold);
+    canvas_.fillTriangle(iconX, 8, iconX, 22, iconX + 12, 15, theme::kAccentGold);
 
     if (M5.Power.getBatteryLevel() <= config::kLowBatteryWarningPercent) {
-        M5.Display.drawRect(M5.Display.width() / 2 - 12, 8, 20, 12, theme::kDanger);
-        M5.Display.fillRect(M5.Display.width() / 2 + 8, 11, 3, 6, theme::kDanger);
+        canvas_.drawRect(M5.Display.width() / 2 - 12, 8, 20, 12, theme::kDanger);
+        canvas_.fillRect(M5.Display.width() / 2 + 8, 11, 3, 6, theme::kDanger);
     }
 }
 
-void HomeScreen::drawBottomBar() const {
+void HomeScreen::drawBottomBar() {
     const int y = M5.Display.height() - kBottomBarHeight;
-    M5.Display.fillRect(0, y, M5.Display.width(), kBottomBarHeight, theme::kPanel);
+    canvas_.fillRect(0, y, M5.Display.width(), kBottomBarHeight, theme::kPanel);
 
     const int zoneW = M5.Display.width() / 4;
 
     // Aufgaben: Stift-Symbol (immer verfuegbar, Abschnitt 5).
     {
         const int cx = zoneW / 2;
-        M5.Display.drawLine(cx - 8, y + 28, cx + 8, y + 12, theme::kText);
-        M5.Display.drawLine(cx - 8, y + 28, cx - 4, y + 24, theme::kText);
-        M5.Display.fillTriangle(cx + 6, y + 10, cx + 10, y + 14, cx + 8, y + 16, theme::kAccentGold);
+        canvas_.drawLine(cx - 8, y + 28, cx + 8, y + 12, theme::kText);
+        canvas_.drawLine(cx - 8, y + 28, cx - 4, y + 24, theme::kText);
+        canvas_.fillTriangle(cx + 6, y + 10, cx + 10, y + 14, cx + 8, y + 16, theme::kAccentGold);
     }
 
     // Spiele: Play-Dreieck - ausgegraut, solange nicht freigeschaltet
@@ -226,38 +228,44 @@ void HomeScreen::drawBottomBar() const {
         const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
         const bool hasTime = app_.playtime.availableMinutes() > 0;
         const uint16_t color = (unlocked && hasTime) ? theme::kAccentCyan : theme::kMuted;
-        M5.Display.fillTriangle(cx - 8, y + 10, cx - 8, y + 30, cx + 10, y + 20, color);
+        canvas_.fillTriangle(cx - 8, y + 10, cx - 8, y + 30, cx + 10, y + 20, color);
     }
 
     // Alltag: Kreis mit Zeigern (Uhr stellvertretend fuers Alltags-Menue).
     {
         const int cx = 2 * zoneW + zoneW / 2;
         const int cy = y + 20;
-        M5.Display.drawCircle(cx, cy, 12, theme::kText);
-        M5.Display.drawLine(cx, cy, cx, cy - 8, theme::kText);
-        M5.Display.drawLine(cx, cy, cx + 6, cy, theme::kText);
+        canvas_.drawCircle(cx, cy, 12, theme::kText);
+        canvas_.drawLine(cx, cy, cx, cy - 8, theme::kText);
+        canvas_.drawLine(cx, cy, cx + 6, cy, theme::kText);
     }
 
     // Einstellungen: einfaches Zahnrad-Symbol.
     {
         const int cx = 3 * zoneW + zoneW / 2;
         const int cy = y + 20;
-        M5.Display.drawCircle(cx, cy, 10, theme::kText);
-        M5.Display.drawCircle(cx, cy, 4, theme::kText);
+        canvas_.drawCircle(cx, cy, 10, theme::kText);
+        canvas_.drawCircle(cx, cy, 4, theme::kText);
         for (int i = 0; i < 6; ++i) {
             const float angle = static_cast<float>(i) * 3.14159f / 3.0f;
             const int tx = cx + static_cast<int>(13.0f * cosf(angle));
             const int ty = cy + static_cast<int>(13.0f * sinf(angle));
-            M5.Display.fillCircle(tx, ty, 2, theme::kText);
+            canvas_.fillCircle(tx, ty, 2, theme::kText);
         }
     }
 }
 
 void HomeScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
+    canvas_.fillScreen(theme::kBackground);
+    // 80er-/SNES-Arcade-Optik (Nutzerwunsch: "Backgrounds Super-Nintendo-
+    // Stil, Strassenkaempfer") - Sonne+Bodengitter hinter dem Charakter,
+    // Horizont knapp oberhalb der unteren Icon-Leiste.
+    retrobackdrop::drawSynthwaveGrid(&canvas_, M5.Display.width(), M5.Display.height(),
+                                      M5.Display.height() - kBottomBarHeight - 24);
     if (!drawSpriteCharacter()) {
         drawPlaceholderCharacter();
     }
     drawStatusBar();
     drawBottomBar();
+    canvas_.pushSprite(0, 0);
 }

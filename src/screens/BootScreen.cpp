@@ -28,7 +28,13 @@ void BootScreen::update(uint32_t) {
     }
     initDone_ = true;
 
-    SD.begin(config::kSdChipSelectPin);
+    // Core2s SD-Karte haengt am selben SPI-Bus, den M5Unified in M5.begin()
+    // bereits mit den Core2-spezifischen Pins konfiguriert hat. Ohne
+    // explizite Angabe wuerde SD.begin() den globalen SPI-Bus in seiner
+    // (nicht zu Core2 passenden) Default-Belegung verwenden und die Karte
+    // faelschlicherweise als nicht vorhanden melden, selbst wenn sie korrekt
+    // eingesteckt und formatiert ist.
+    SD.begin(config::kSdChipSelectPin, SPI);
     if (!SD.exists("/progress")) {
         // Wird von SpacedRepetitionStore fuer /progress/aufgaben_<fach>.json
         // benoetigt (Abschnitt 6/8.3) - das SD-Filesystem legt Verzeichnisse

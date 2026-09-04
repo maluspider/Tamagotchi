@@ -100,7 +100,7 @@ void CharacterCustomizeScreen::draw() {
     M5.Display.drawString("Aussehen", 6, 3);
 
     const CharacterStage stage = app_.character.stage();
-    if (!renderer_.draw(stage, "idle1", app_.profile, M5.Display.width() / 2, kPreviewCy, kPreviewScale)) {
+    if (!renderer_.draw(stage, "idle1", app_.profile, M5.Display.width() / 2, kPreviewCy, kPreviewScale, &M5.Display)) {
         // Fallback, falls kein Sprite existiert (SD-Karte fehlt) - die
         // Vorschau bleibt so trotzdem nachvollziehbar statt leer.
         M5.Display.fillCircle(M5.Display.width() / 2, kPreviewCy, 30, theme::kMuted);

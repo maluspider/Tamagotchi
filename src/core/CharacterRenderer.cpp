@@ -47,7 +47,8 @@ void CharacterRenderer::applyTraitColors(const Profile& profile) {
     }
 }
 
-bool CharacterRenderer::draw(CharacterStage stage, const char* mood, const Profile& profile, int cx, int cy, float scale) {
+bool CharacterRenderer::draw(CharacterStage stage, const char* mood, const Profile& profile, int cx, int cy, float scale,
+                              LovyanGFX* target) {
     const String path = String(config::kSpriteCharacterDir) + CharacterEngine::stageAssetKey(stage) + "_" + mood + ".png";
     if (!SD.exists(path)) {
         // Kein Sprite auf der SD-Karte (oder Karte fehlt) - Aufrufer
@@ -85,6 +86,6 @@ bool CharacterRenderer::draw(CharacterStage stage, const char* mood, const Profi
     canvas_.fillSprite(traits::kTransparentKey);
     canvas_.drawPng(buffer.get(), fileSize, 0, 0);
     applyTraitColors(profile);
-    canvas_.pushRotateZoom(cx, cy, 0.0f, scale, scale, traits::kTransparentKey);
+    canvas_.pushRotateZoom(target, cx, cy, 0.0f, scale, scale, traits::kTransparentKey);
     return true;
 }

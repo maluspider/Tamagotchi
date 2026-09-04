@@ -97,9 +97,18 @@ void SnakeScreen::endGame() {
     highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
 }
 
+bool SnakeScreen::touchedHomeIcon(int x, int y) const {
+    return x >= M5.Display.width() - kHomeIconSize - 6 && y <= kHomeIconSize + 6;
+}
+
 void SnakeScreen::handleInput() {
     const auto touch = M5.Touch.getDetail();
     if (!touch.wasPressed()) {
+        return;
+    }
+
+    if (touchedHomeIcon(touch.x, touch.y)) {
+        stateMachine_.requestSwitch(ScreenId::Home);
         return;
     }
 
@@ -167,6 +176,15 @@ void SnakeScreen::drawPlayfield() {
     canvas_.fillRect(fx, fy, kCellSize - 1, kCellSize - 1, TFT_RED);
 }
 
+void SnakeScreen::drawHomeIcon() {
+    const int x = canvas_.width() - kHomeIconSize - 6;
+    const int y = 6;
+    canvas_.fillRoundRect(x, y, kHomeIconSize, kHomeIconSize, 6, theme::kAccentGold);
+    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 6, theme::kOutline);
+    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 5, x + 6, y + 14, x + kHomeIconSize - 6, y + 14, theme::kOutline);
+    canvas_.fillRect(x + 9, y + 13, kHomeIconSize - 18, kHomeIconSize - 18, theme::kOutline);
+}
+
 void SnakeScreen::draw() {
     canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
 
@@ -196,5 +214,6 @@ void SnakeScreen::draw() {
         canvas_.drawString("Tippen zum Neustart", canvas_.width() / 2, canvas_.height() / 2 + 35);
     }
 
+    drawHomeIcon();
     canvas_.pushSprite(0, 0);
 }

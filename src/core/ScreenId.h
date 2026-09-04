@@ -31,4 +31,5 @@ enum class ScreenId {
     PinEntry,
     Settings,
     WebSync,
+    DateTimeSet,
 };

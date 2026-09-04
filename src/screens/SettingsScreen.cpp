@@ -72,10 +72,15 @@ void SettingsScreen::handleInput() {
     } else if (y >= kRow2Y && y < kRow2Y + kRowHeight) {
         toggleNightMode();
     } else if (y >= kRow3Y && y < kRow3Y + kRowHeight) {
+        // Kein erneuter PIN-Check noetig - Settings selbst ist bereits
+        // Eltern-PIN-geschuetzt (siehe Klassenkommentar).
+        stateMachine_.requestSwitch(ScreenId::DateTimeSet);
+        return;
+    } else if (y >= kRow4Y && y < kRow4Y + kRowHeight) {
         app_.pinEntrySetNewMode = true;
         stateMachine_.requestSwitch(ScreenId::PinEntry);
         return;
-    } else if (y >= kRow4Y && y < kRow4Y + kRowHeight) {
+    } else if (y >= kRow5Y && y < kRow5Y + kRowHeight) {
         stateMachine_.requestSwitch(ScreenId::WebSync);
         return;
     }
@@ -145,19 +150,26 @@ void SettingsScreen::draw() {
     M5.Display.setTextColor(app_.profile.nightModeEnabled ? theme::kSuccess : theme::kDanger);
     M5.Display.drawString(app_.profile.nightModeEnabled ? "AN" : "AUS", 306, kRow2Y + (kRowHeight - 4) / 2);
 
-    // Zeile 3: PIN aendern.
-    drawRow(kRow3Y, "PIN aendern");
+    // Zeile 3: Uhrzeit einstellen.
+    drawRow(kRow3Y, "Uhrzeit");
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_right);
     M5.Display.setTextSize(1);
     M5.Display.drawString("antippen", 306, kRow3Y + (kRowHeight - 4) / 2);
 
-    // Zeile 4: Web-Sync starten.
-    drawRow(kRow4Y, "Web-Sync");
+    // Zeile 4: PIN aendern.
+    drawRow(kRow4Y, "PIN aendern");
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_right);
     M5.Display.setTextSize(1);
     M5.Display.drawString("antippen", 306, kRow4Y + (kRowHeight - 4) / 2);
+
+    // Zeile 5: Web-Sync starten.
+    drawRow(kRow5Y, "Web-Sync");
+    M5.Display.setTextColor(theme::kText);
+    M5.Display.setTextDatum(middle_right);
+    M5.Display.setTextSize(1);
+    M5.Display.drawString("antippen", 306, kRow5Y + (kRowHeight - 4) / 2);
 
     drawHomeIcon();
 }

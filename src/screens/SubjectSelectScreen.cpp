@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/RetroBackdrop.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
 #include "../core/Theme.h"
@@ -77,6 +78,7 @@ void SubjectSelectScreen::drawEntry(const Entry& entry, int cx, int cy, int cell
 
 void SubjectSelectScreen::draw() {
     M5.Display.fillScreen(theme::kBackground);
+    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), M5.Display.height() - 70);
 
     Entry entries[kMaxEntries];
     const int count = buildEntries(entries, kMaxEntries);

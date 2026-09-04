@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/RetroBackdrop.h"
 #include "../core/Theme.h"
 
 namespace {
@@ -109,6 +110,7 @@ void GamesMenuScreen::drawIcon(int index, int cx, int cy, int r, bool unlocked) 
 
 void GamesMenuScreen::draw() {
     M5.Display.fillScreen(theme::kBackground);
+    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), M5.Display.height() - 70);
 
     const int cellW = M5.Display.width() / kCols;
     const int cellH = (M5.Display.height() - 10) / kRows;

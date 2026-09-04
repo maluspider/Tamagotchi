@@ -1,5 +1,7 @@
 #pragma once
 
+#include <M5GFX.h>
+
 #include <cstdint>
 
 #include "../core/AppContext.h"
@@ -17,6 +19,13 @@
 // Fallback - das Geraet bleibt so auch ohne (vollstaendige) Sprite-Assets
 // benutzbar. Die untere Icon-Leiste fuehrt zu Aufgaben-Modus/Spiele/Uhr
 // (Abschnitt 5, Phase-1-Umfang).
+//
+// Zeichnet ueber ein M5Canvas-Offscreen-Sprite wie SnakeScreen (Abschnitt 3)
+// statt direkt auf M5.Display: der Screen redraws 1x/Sekunde fuer die
+// Uhrzeit, und mehrere aufeinanderfolgende Direkt-Display-Aufrufe
+// (Hintergrund loeschen, dann Charakter, dann Status-/Bottom-Bar) waren auf
+// echter Hardware als sichtbares Flackern erkennbar - das Offscreen-Canvas
+// wird komplett fertig gezeichnet und dann in einem Rutsch angezeigt.
 class HomeScreen : public Screen {
 public:
     HomeScreen(AppContext& app, StateMachine& stateMachine);
@@ -27,14 +36,15 @@ public:
 
 private:
     bool drawSpriteCharacter();
-    void drawPlaceholderCharacter() const;
-    void drawStatusBar() const;
-    void drawBottomBar() const;
+    void drawPlaceholderCharacter();
+    void drawStatusBar();
+    void drawBottomBar();
     void handleBottomBarTouch(int x, int y);
 
     AppContext& app_;
     StateMachine& stateMachine_;
     CharacterRenderer characterRenderer_;
+    M5Canvas canvas_;
     uint32_t msSinceLastRedraw_ = 0;
     bool lowBatterySaveDone_ = false;
     bool spriteBlinkToggle_ = false; // wechselt idle1/idle2 pro Redraw-Tick

@@ -31,10 +31,25 @@ void PinEntryScreen::submitIfComplete() {
     }
 
     if (app_.pinEntrySetNewMode) {
+        const pincode::Digest previousGuard = app_.profile.guard;
         app_.profile.guard = pincode::hash(entered_);
-        profilestore::save(app_.profile);
-        app_.pinEntrySetNewMode = false;
         entered_ = "";
+
+        // Schlaegt das Schreiben fehl (z. B. SD-Karte nicht bereit), muss
+        // das im Speicher schon geaenderte guard zurueckgerollt werden -
+        // sonst wuerde der neue PIN nur bis zum naechsten Neustart gelten
+        // und beim naechsten Boot unbemerkt wieder auf den alten Stand
+        // zurueckfallen (genau das vom Nutzer gemeldete Symptom: neuer PIN
+        // "wird nicht akzeptiert", der alte/Standard-PIN funktioniert
+        // weiterhin).
+        if (!profilestore::save(app_.profile)) {
+            app_.profile.guard = previousGuard;
+            showError_ = true;
+            errorTimerMs_ = 1500;
+            return;
+        }
+
+        app_.pinEntrySetNewMode = false;
         stateMachine_.requestSwitch(ScreenId::Settings);
         return;
     }

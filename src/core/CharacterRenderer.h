@@ -26,11 +26,16 @@ class CharacterRenderer {
 public:
     CharacterRenderer();
 
-    // Zeichnet den Charakter zentriert auf (cx, cy). Gibt false zurueck,
-    // wenn keine passende Sprite-Datei existiert (SD-Karte fehlt oder Datei
+    // Zeichnet den Charakter zentriert auf (cx, cy) der uebergebenen
+    // Zielflaeche (M5.Display oder ein Screen-eigenes M5Canvas - Screens mit
+    // periodischem Redraw sollen in ein eigenes Offscreen-Canvas zeichnen und
+    // es erst am Ende in einem Rutsch anzeigen, sonst flackert es auf
+    // echter Hardware sichtbar, siehe HomeScreen). Gibt false zurueck, wenn
+    // keine passende Sprite-Datei existiert (SD-Karte fehlt oder Datei
     // fehlt) - der Aufrufer soll dann eine eigene Platzhalter-Grafik
     // zeichnen.
-    bool draw(CharacterStage stage, const char* mood, const Profile& profile, int cx, int cy, float scale);
+    bool draw(CharacterStage stage, const char* mood, const Profile& profile, int cx, int cy, float scale,
+              LovyanGFX* target);
 
 private:
     void ensureSprite();
