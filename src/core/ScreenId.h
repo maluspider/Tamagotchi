@@ -28,4 +28,5 @@ enum class ScreenId {
     Steckbrief,
     PinEntry,
     Settings,
+    WebSync,
 };

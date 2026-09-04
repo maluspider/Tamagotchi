@@ -30,6 +30,7 @@
 #include "screens/TaskScreen.h"
 #include "screens/TetrisScreen.h"
 #include "screens/TimerScreen.h"
+#include "screens/WebSyncScreen.h"
 
 namespace {
 
@@ -113,6 +114,9 @@ void setup() {
     });
     stateMachine.registerScreen(ScreenId::Settings, [] {
         return std::make_unique<SettingsScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::WebSync, [] {
+        return std::make_unique<WebSyncScreen>(appContext, stateMachine);
     });
 
     stateMachine.switchTo(ScreenId::Boot);

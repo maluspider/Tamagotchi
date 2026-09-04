@@ -6,13 +6,16 @@ Projektplan inkl. Review-Anmerkungen steht in
 [`docs/projektplan.md`](docs/projektplan.md) – dort auch die Begründung für
 alle hier genannten Design-Entscheidungen.
 
-**Aktueller Stand: Phase 0 bis Phase 4** (siehe Abschnitt 14 des Plans) –
-State-Machine, Storage-Layer, Erststart-Einrichtung mit Kind-Profil-
-Auswahl, Home-Screen mit Platzhalter-Charakter, Aufgaben-Modus für alle
-vier Multiple-Choice-Fächer inkl. Spaced Repetition und
+**Aktueller Stand: alle 6 Phasen (0–5) sind umgesetzt** (siehe Abschnitt 14
+des Plans) – State-Machine, Storage-Layer, Erststart-Einrichtung mit
+Kind-Profil-Auswahl, Home-Screen mit Platzhalter-Charakter, Aufgaben-Modus
+für alle vier Multiple-Choice-Fächer inkl. Spaced Repetition und
 Schwierigkeitsanstieg, Gedächtnistraining, alle 9 Spiele, Alltagsfunktionen
-(Uhr/Wecker, Timer, Checkliste, Steckbrief), Nachtmodus und Eltern-PIN-
-geschützte Einstellungen. Das Web-Interface (inkl. OTA) folgt in Phase 5.
+(Uhr/Wecker, Timer, Checkliste, Steckbrief), Nachtmodus, Eltern-PIN-
+geschützte Einstellungen und ein Web-Interface (Fortschrittsansicht,
+Aufgaben-Verwaltung, Tageslimit, ArduinoOTA). Damit ist die komplette im
+Plan vorgesehene Funktionalität im Code vorhanden – siehe aber unbedingt
+den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
 
 ## Vor dem ersten Flashen: zwei Dinge anpassen
 
@@ -78,7 +81,7 @@ pip install intelhex
 Danach `pio run` erneut ausführen – Toolchain und Libraries sind dann schon
 lokal gecacht, der zweite Build ist entsprechend schnell.
 
-## Bedienung (Stand nach Phase 4)
+## Bedienung (Stand nach Phase 5)
 
 - **Home-Screen:** zeigt Charakter + Namen, Uhrzeit, verfügbare Spielzeit.
   Untere Icon-Leiste (4 Zonen): Stift-Icon → Fach-Auswahl, Play-Dreieck →
@@ -140,7 +143,16 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
   `config::kDefaultParentalCode` – vor "produktivem" Einsatz über "PIN
   ändern" in den Einstellungen anpassen). Dort: Tageslimit anpassen
   (±5 Min), Bonus-Spielzeit vergeben (+10 Min), Nachtmodus an/aus, PIN
-  ändern.
+  ändern, Web-Sync starten.
+- **Web-Sync** (Abschnitt 12): startet einen geräteeigenen WLAN-
+  Access-Point (SSID/Passwort/IP werden auf dem Gerät angezeigt) mit
+  einem kleinen Web-Interface unter `http://192.168.4.1` – Fortschritt
+  einsehen, Aufgaben pro Fach hinzufügen/löschen, Tageslimit anpassen,
+  Firmware-Update per `pio run -t upload --upload-port <Geräte-IP>`
+  (ArduinoOTA). Läuft nur, solange der Screen offen ist (Akku), siehe
+  Abschnitt 12/16 für Details und offene Punkte (keine eigene
+  Authentifizierung ausser dem AP-Passwort, kein Bearbeiten bestehender
+  Aufgaben nur Hinzufügen/Löschen).
 
 ## Projektstruktur
 
@@ -163,6 +175,7 @@ src/core/                    Screen-unabhängige Module
   RtcClock.*                RTC-Wrapper, Kalenderarithmetik, NTP-Sync-Stub
   AlarmService.*             Screen-unabhängige Wecker-Pruefung
   NightModeService.*          Screen-unabhängige Nachtmodus-Dimmung
+  WebServerService.*           Web-Interface + ArduinoOTA (nur waehrend WebSyncScreen aktiv)
   PinCode.*                 Gehashter Eltern-PIN (Abschnitt 6, Review)
   AppContext.*               Gemeinsamer Laufzeit-Zustand fuer alle Screens
   storage/                   Atomare JSON-Persistenz auf der SD-Karte
@@ -187,6 +200,7 @@ src/screens/                 Konkrete Screens (je eine Klasse pro Screen)
   SteckbriefScreen.*            Charakter-Uebersicht (nur lesend)
   PinEntryScreen.*               Eltern-PIN-Eingabe (pruefen/neu setzen)
   SettingsScreen.*               Eltern-Einstellungen (PIN-geschuetzt)
+  WebSyncScreen.*                 Zeigt SSID/Passwort/IP, startet/stoppt WebServerService
 docs/projektplan.md          Vollstaendiger Projektplan inkl. Review
 ```
 
@@ -200,3 +214,11 @@ vor dem Flashen lokal `pio run` ausführen, um sicherzustellen, dass alles
 sauber kompiliert. Die Spiele-Physik (Pinball/Basketball/Fussball/
 Moorhuhn-Jagd) wurde mangels Testgeraet nicht live gespielt – Konstanten
 sind plausible Startwerte, siehe Abschnitt 16 des Plans.
+
+**Besonders zu pruefen: das Web-Interface (Abschnitt 12).** WLAN/Access-
+Point, der synchrone `WebServer` und `ArduinoOTA` sind der am wenigsten
+verifizierbare Teil dieses Projekts – vor Verlass darauf einmal real
+durchspielen: Web-Sync im Geraet oeffnen, mit einem Handy/Laptop am
+angezeigten AP anmelden, `http://192.168.4.1` aufrufen, eine Test-Aufgabe
+hinzufuegen/loeschen, Tageslimit aendern, und `pio run -t upload
+--upload-port <angezeigte-IP>` fuer ein OTA-Update probieren.

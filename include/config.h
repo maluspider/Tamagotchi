@@ -48,4 +48,12 @@ constexpr const char* kDefaultParentalCode = "0000";
 constexpr int kLowBatteryWarningPercent = 15;
 constexpr int kCriticalBatterySavePercent = 5;
 
+// --- Web-Sync / OTA (Abschnitt 12, Phase 5) ---
+// WPA2-Passwort fuer den geraeteeigenen Access Point, der nur waehrend
+// WebSyncScreen aktiv ist (Abschnitt 12: "ESP32 im Access-Point-Modus").
+// Muss mindestens 8 Zeichen haben (WPA2-Minimum). Vor "produktivem"
+// Einsatz anpassen, siehe Abschnitt 16.
+constexpr const char* kWebSyncApPassword = "tamagotchi123";
+constexpr const char* kOtaHostname = "tamagotchi";
+
 } // namespace config

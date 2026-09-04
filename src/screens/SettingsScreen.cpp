@@ -74,6 +74,9 @@ void SettingsScreen::handleInput() {
         app_.pinEntrySetNewMode = true;
         stateMachine_.requestSwitch(ScreenId::PinEntry);
         return;
+    } else if (y >= kRow4Y && y < kRow4Y + kRowHeight) {
+        stateMachine_.requestSwitch(ScreenId::WebSync);
+        return;
     }
 
     draw();
@@ -147,6 +150,13 @@ void SettingsScreen::draw() {
     M5.Display.setTextDatum(middle_right);
     M5.Display.setTextSize(1);
     M5.Display.drawString("antippen", 306, kRow3Y + (kRowHeight - 4) / 2);
+
+    // Zeile 4: Web-Sync starten.
+    drawRow(kRow4Y, "Web-Sync");
+    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextDatum(middle_right);
+    M5.Display.setTextSize(1);
+    M5.Display.drawString("antippen", 306, kRow4Y + (kRowHeight - 4) / 2);
 
     drawHomeIcon();
 }
