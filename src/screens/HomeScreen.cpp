@@ -2,6 +2,8 @@
 
 #include <M5Unified.h>
 
+#include <cmath>
+
 #include "../core/CharacterEngine.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
@@ -68,7 +70,7 @@ void HomeScreen::update(uint32_t deltaMs) {
 }
 
 void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
-    const int zoneW = M5.Display.width() / 3;
+    const int zoneW = M5.Display.width() / 4;
     const int zone = x / zoneW;
 
     if (zone == 0) {
@@ -83,7 +85,13 @@ void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
         }
         return;
     }
-    stateMachine_.requestSwitch(ScreenId::Clock);
+    if (zone == 2) {
+        stateMachine_.requestSwitch(ScreenId::AlltagMenu);
+        return;
+    }
+    // Einstellungen sind Eltern-PIN-geschuetzt (Abschnitt 11).
+    app_.pinEntrySetNewMode = false;
+    stateMachine_.requestSwitch(ScreenId::PinEntry);
 }
 
 void HomeScreen::drawPlaceholderCharacter() const {
@@ -148,7 +156,7 @@ void HomeScreen::drawBottomBar() const {
     const int y = M5.Display.height() - kBottomBarHeight;
     M5.Display.fillRect(0, y, M5.Display.width(), kBottomBarHeight, TFT_NAVY);
 
-    const int zoneW = M5.Display.width() / 3;
+    const int zoneW = M5.Display.width() / 4;
 
     // Aufgaben: Stift-Symbol (immer verfuegbar, Abschnitt 5).
     {
@@ -169,13 +177,27 @@ void HomeScreen::drawBottomBar() const {
         M5.Display.fillTriangle(cx - 8, y + 10, cx - 8, y + 30, cx + 10, y + 20, color);
     }
 
-    // Uhr: Kreis mit Zeigern.
+    // Alltag: Kreis mit Zeigern (Uhr stellvertretend fuers Alltags-Menue).
     {
         const int cx = 2 * zoneW + zoneW / 2;
         const int cy = y + 20;
         M5.Display.drawCircle(cx, cy, 12, TFT_WHITE);
         M5.Display.drawLine(cx, cy, cx, cy - 8, TFT_WHITE);
         M5.Display.drawLine(cx, cy, cx + 6, cy, TFT_WHITE);
+    }
+
+    // Einstellungen: einfaches Zahnrad-Symbol.
+    {
+        const int cx = 3 * zoneW + zoneW / 2;
+        const int cy = y + 20;
+        M5.Display.drawCircle(cx, cy, 10, TFT_WHITE);
+        M5.Display.drawCircle(cx, cy, 4, TFT_WHITE);
+        for (int i = 0; i < 6; ++i) {
+            const float angle = static_cast<float>(i) * 3.14159f / 3.0f;
+            const int tx = cx + static_cast<int>(13.0f * cosf(angle));
+            const int ty = cy + static_cast<int>(13.0f * sinf(angle));
+            M5.Display.fillCircle(tx, ty, 2, TFT_WHITE);
+        }
     }
 }
 

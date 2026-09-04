@@ -6,13 +6,13 @@ Projektplan inkl. Review-Anmerkungen steht in
 [`docs/projektplan.md`](docs/projektplan.md) – dort auch die Begründung für
 alle hier genannten Design-Entscheidungen.
 
-**Aktueller Stand: Phase 0 + Phase 1 + Phase 2 + Phase 3** (siehe
-Abschnitt 14 des Plans) – State-Machine, Storage-Layer, Erststart-
-Einrichtung mit Kind-Profil-Auswahl, Home-Screen mit Platzhalter-Charakter,
-Aufgaben-Modus für alle vier Multiple-Choice-Fächer inkl. Spaced
-Repetition und Schwierigkeitsanstieg, Gedächtnistraining, alle 9 Spiele
-und Uhr/Wecker. Alltagsfunktionen-Menü/Einstellungen/Nachtmodus folgen in
-Phase 4, das Web-Interface in Phase 5.
+**Aktueller Stand: Phase 0 bis Phase 4** (siehe Abschnitt 14 des Plans) –
+State-Machine, Storage-Layer, Erststart-Einrichtung mit Kind-Profil-
+Auswahl, Home-Screen mit Platzhalter-Charakter, Aufgaben-Modus für alle
+vier Multiple-Choice-Fächer inkl. Spaced Repetition und
+Schwierigkeitsanstieg, Gedächtnistraining, alle 9 Spiele, Alltagsfunktionen
+(Uhr/Wecker, Timer, Checkliste, Steckbrief), Nachtmodus und Eltern-PIN-
+geschützte Einstellungen. Das Web-Interface (inkl. OTA) folgt in Phase 5.
 
 ## Vor dem ersten Flashen: zwei Dinge anpassen
 
@@ -78,11 +78,13 @@ pip install intelhex
 Danach `pio run` erneut ausführen – Toolchain und Libraries sind dann schon
 lokal gecacht, der zweite Build ist entsprechend schnell.
 
-## Bedienung (Stand nach Phase 3)
+## Bedienung (Stand nach Phase 4)
 
 - **Home-Screen:** zeigt Charakter + Namen, Uhrzeit, verfügbare Spielzeit.
-  Untere Icon-Leiste: Stift-Icon → Fach-Auswahl, Play-Dreieck → Spiele-Menü
-  (nur mit Spielzeitguthaben aktiv), Uhr-Icon → Uhr/Wecker.
+  Untere Icon-Leiste (4 Zonen): Stift-Icon → Fach-Auswahl, Play-Dreieck →
+  Spiele-Menü (nur mit Spielzeitguthaben aktiv), Uhr-Icon →
+  Alltagsfunktionen-Menü, Zahnrad-Icon → Eltern-PIN-Eingabe →
+  Einstellungen.
 - **Fach-Auswahl:** Icon-Grid zu Mathe, Rechtschreibung, Französisch (nur
   ab Klasse 3), Quiz und Gedächtnistraining.
 - **Aufgaben-Modus:** Multiple-Choice-Frage antippen; richtige Antwort gibt
@@ -119,9 +121,26 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
     Spielzeitguthaben und kehren bei Null automatisch zu Home zurück.
     Highscores (wo sinnvoll) werden lokal in `/highscores.json`
     gespeichert.
-- **Uhr/Wecker:** grosse Digitaluhr, eine einstellbare Alarmzeit (Glocke
-  antippen = an/aus, +/- für Stunde/Minute). Der Wecker löst auch aus,
-  wenn gerade ein anderer Screen aktiv ist (`AlarmService`).
+- **Alltagsfunktionen-Menü:** Icon-Grid (2×2) zu Uhr/Wecker, Timer,
+  Checkliste und Steckbrief.
+  - **Uhr/Wecker:** grosse Digitaluhr, eine einstellbare Alarmzeit (Glocke
+    antippen = an/aus, +/- für Stunde/Minute). Der Wecker löst auch aus,
+    wenn gerade ein anderer Screen aktiv ist (`AlarmService`).
+  - **Timer:** drei Presets (2/5/10 Min) antippen zum Starten, piept +
+    vibriert bei Ablauf.
+  - **Checkliste:** drei feste Morgen-Routine-Punkte abhaken; sind alle
+    abgehakt, gibt es einmal pro Tag eine kleine EP-Belohnung.
+  - **Steckbrief:** Übersicht über Name, Stufe, EP, Klasse, freigeschaltete
+    Spiele und Tage seit der letzten Pflege.
+- **Nachtmodus:** dimmt den Bildschirm automatisch zwischen 20 und 7 Uhr
+  (Default, RTC-basiert, `NightModeService`) – in den Einstellungen an/aus
+  schaltbar.
+- **Einstellungen (Eltern-PIN-geschützt):** Zahnrad-Icon auf dem
+  Home-Screen antippen, PIN eingeben (Standard `0000`, siehe
+  `config::kDefaultParentalCode` – vor "produktivem" Einsatz über "PIN
+  ändern" in den Einstellungen anpassen). Dort: Tageslimit anpassen
+  (±5 Min), Bonus-Spielzeit vergeben (+10 Min), Nachtmodus an/aus, PIN
+  ändern.
 
 ## Projektstruktur
 
@@ -143,6 +162,7 @@ src/core/                    Screen-unabhängige Module
   DifficultyTracker.*          Schwierigkeitsanstieg je Fach (Abschnitt 8.4)
   RtcClock.*                RTC-Wrapper, Kalenderarithmetik, NTP-Sync-Stub
   AlarmService.*             Screen-unabhängige Wecker-Pruefung
+  NightModeService.*          Screen-unabhängige Nachtmodus-Dimmung
   PinCode.*                 Gehashter Eltern-PIN (Abschnitt 6, Review)
   AppContext.*               Gemeinsamer Laufzeit-Zustand fuer alle Screens
   storage/                   Atomare JSON-Persistenz auf der SD-Karte
@@ -160,7 +180,13 @@ src/screens/                 Konkrete Screens (je eine Klasse pro Screen)
   SnakeScreen.* / TetrisScreen.* / SpaceInvadersScreen.* / PinballScreen.* /
   BasketballScreen.* / FussballScreen.* / PuzzleScreen.* /
   MoorhuhnJagdScreen.* / KampfModusScreen.*   Die 9 Spiele (Abschnitt 10)
-  ClockScreen.*                Uhr/Wecker-Einstellung
+  AlltagMenuScreen.*            Alltagsfunktionen-Menue (icon-first)
+  ClockScreen.*                 Uhr/Wecker-Einstellung
+  TimerScreen.*                 Countdown-Timer (2/5/10 Min Presets)
+  ChecklistScreen.*             Morgen-Routine-Checkliste
+  SteckbriefScreen.*            Charakter-Uebersicht (nur lesend)
+  PinEntryScreen.*               Eltern-PIN-Eingabe (pruefen/neu setzen)
+  SettingsScreen.*               Eltern-Einstellungen (PIN-geschuetzt)
 docs/projektplan.md          Vollstaendiger Projektplan inkl. Review
 ```
 

@@ -4,10 +4,13 @@
 
 #include "core/AlarmService.h"
 #include "core/AppContext.h"
+#include "core/NightModeService.h"
 #include "core/ScreenId.h"
 #include "core/StateMachine.h"
+#include "screens/AlltagMenuScreen.h"
 #include "screens/BasketballScreen.h"
 #include "screens/BootScreen.h"
+#include "screens/ChecklistScreen.h"
 #include "screens/ClockScreen.h"
 #include "screens/FussballScreen.h"
 #include "screens/GamesMenuScreen.h"
@@ -16,13 +19,17 @@
 #include "screens/KampfModusScreen.h"
 #include "screens/MoorhuhnJagdScreen.h"
 #include "screens/PinballScreen.h"
+#include "screens/PinEntryScreen.h"
 #include "screens/ProfileSetupScreen.h"
 #include "screens/PuzzleScreen.h"
+#include "screens/SettingsScreen.h"
 #include "screens/SnakeScreen.h"
 #include "screens/SpaceInvadersScreen.h"
+#include "screens/SteckbriefScreen.h"
 #include "screens/SubjectSelectScreen.h"
 #include "screens/TaskScreen.h"
 #include "screens/TetrisScreen.h"
+#include "screens/TimerScreen.h"
 
 namespace {
 
@@ -89,6 +96,25 @@ void setup() {
         return std::make_unique<KampfModusScreen>(appContext, stateMachine);
     });
 
+    stateMachine.registerScreen(ScreenId::AlltagMenu, [] {
+        return std::make_unique<AlltagMenuScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::Timer, [] {
+        return std::make_unique<TimerScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::Checklist, [] {
+        return std::make_unique<ChecklistScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::Steckbrief, [] {
+        return std::make_unique<SteckbriefScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::PinEntry, [] {
+        return std::make_unique<PinEntryScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::Settings, [] {
+        return std::make_unique<SettingsScreen>(appContext, stateMachine);
+    });
+
     stateMachine.switchTo(ScreenId::Boot);
     lastFrameMs = millis();
 }
@@ -99,6 +125,9 @@ void loop() {
     // Screen-unabhaengig, damit der Wecker auch klingelt, waehrend das Kind
     // nicht auf dem Uhr-Screen ist (siehe AlarmService.h).
     alarmservice::check(appContext.profile);
+    // Ebenfalls screen-unabhaengig, damit der Nachtmodus greift, egal
+    // welcher Screen gerade aktiv ist (siehe NightModeService.h).
+    nightmodeservice::check(appContext.profile);
 
     const uint32_t now = millis();
     const uint32_t deltaMs = now - lastFrameMs;

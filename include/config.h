@@ -28,6 +28,11 @@ constexpr uint8_t kSadAfterDaysInactive = 2;
 // Abschnitt 16 "offene Punkte" fuer die finale Balance.
 constexpr uint32_t kXpPerCorrectAnswer = 15;
 
+// --- Tages-/Routine-Checkliste (Abschnitt 11) ---
+// "gibt kleine EP-Belohnung" - kleiner als kXpPerCorrectAnswer, da hier
+// nur Abhaken statt tatsaechlichem Lernen stattfindet.
+constexpr uint32_t kChecklistRewardXp = 8;
+
 // --- Schwierigkeitsanstieg (Abschnitt 8.4) ---
 // Maximale Schwierigkeitsstufe, bis zu der der monatliche Auto-Anstieg die
 // Obergrenze je Fach anheben darf. Platzhalterwert wie die uebrigen

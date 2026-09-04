@@ -22,6 +22,18 @@ struct Profile {
     uint8_t alarmHour = 7;
     uint8_t alarmMinute = 0;
 
+    // Nachtmodus (Abschnitt 11, Phase 4): Bildschirm dimmt zwischen
+    // nightStartHour und nightEndHour (RTC-basiert, Wraparound ueber
+    // Mitternacht wird unterstuetzt). Siehe NightModeService.
+    bool nightModeEnabled = true;
+    uint8_t nightStartHour = 20;
+    uint8_t nightEndHour = 7;
+
+    // Eltern-Einstellungen (Abschnitt 11, Phase 4): 0 = Standard aus
+    // config::kDailyPlaytimeLimitMinutes verwenden, sonst individuelles
+    // Tageslimit in Minuten (siehe SettingsScreen).
+    uint16_t dailyLimitMinutesOverride = 0;
+
     bool isValid = false; // false = noch kein Profil auf der SD-Karte angelegt
 };
 

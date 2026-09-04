@@ -1,0 +1,89 @@
+#include "SteckbriefScreen.h"
+
+#include <M5Unified.h>
+
+#include "../core/CharacterEngine.h"
+#include "../core/RtcClock.h"
+#include "../core/ScreenId.h"
+
+namespace {
+constexpr int kHomeIconSize = 28;
+
+// Deckt sich mit der Freischalt-Tabelle in GamesMenuScreen.cpp
+// (Abschnitt 9) - hier nur zur Anzeige einer Gesamtzahl dupliziert, um
+// GamesMenuScreen keine unnoetige public-API dafuer zu geben.
+int unlockedGameCount(CharacterStage stage) {
+    switch (stage) {
+        case CharacterStage::Ei: return 0;
+        case CharacterStage::Baby: return 1;
+        case CharacterStage::Kind: return 3;
+        case CharacterStage::Junior: return 5;
+        case CharacterStage::Experte: return 7;
+        case CharacterStage::Meister: return 9;
+    }
+    return 0;
+}
+} // namespace
+
+SteckbriefScreen::SteckbriefScreen(AppContext& app, StateMachine& stateMachine)
+    : app_(app), stateMachine_(stateMachine) {}
+
+void SteckbriefScreen::onEnter() {
+    draw();
+}
+
+bool SteckbriefScreen::touchedHomeIcon(int x, int y) const {
+    return x >= M5.Display.width() - kHomeIconSize - 6 && y <= kHomeIconSize + 6;
+}
+
+void SteckbriefScreen::update(uint32_t) {
+    const auto touch = M5.Touch.getDetail();
+    if (!touch.wasPressed()) {
+        return;
+    }
+    if (touchedHomeIcon(touch.x, touch.y)) {
+        stateMachine_.requestSwitch(ScreenId::AlltagMenu);
+    }
+}
+
+void SteckbriefScreen::drawHomeIcon() const {
+    const int x = M5.Display.width() - kHomeIconSize - 6;
+    const int y = 6;
+    M5.Display.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
+    M5.Display.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
+    M5.Display.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+}
+
+void SteckbriefScreen::draw() {
+    M5.Display.fillScreen(TFT_BLACK);
+    M5.Display.fillRect(0, 0, M5.Display.width(), 30, TFT_NAVY);
+    M5.Display.setTextColor(TFT_WHITE);
+    M5.Display.setTextDatum(top_left);
+    M5.Display.setTextSize(2);
+    M5.Display.drawString("Mein Steckbrief", 6, 4);
+
+    int y = 44;
+    const int lineHeight = 28;
+    auto drawLine = [&](const String& text) {
+        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextDatum(top_left);
+        M5.Display.setTextSize(2);
+        M5.Display.drawString(text, 14, y);
+        y += lineHeight;
+    };
+
+    drawLine(String("Name: ") + (app_.profile.name.length() ? app_.profile.name : String("-")));
+    drawLine(String("Stufe: ") + CharacterEngine::stageName(app_.character.stage()));
+    drawLine(String("Erfahrungspunkte: ") + String(app_.character.xp()));
+    drawLine(String("Klasse: ") + String(app_.profile.klasse));
+    drawLine(String("Spiele frei: ") + String(unlockedGameCount(app_.character.stage())) + " / 9");
+
+    if (!app_.character.lastCareDateIso().isEmpty()) {
+        const String today = rtcclock::todayIso();
+        const long days =
+            rtcclock::epochDayFromIso(today) - rtcclock::epochDayFromIso(app_.character.lastCareDateIso());
+        drawLine(String("Zuletzt gespielt: vor ") + String(days) + (days == 1 ? " Tag" : " Tagen"));
+    }
+
+    drawHomeIcon();
+}

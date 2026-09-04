@@ -1,8 +1,7 @@
 #pragma once
 
 // Siehe docs/projektplan.md Abschnitt 5 fuer die vollstaendige, geplante
-// Screen-Hierarchie. Alltagsfunktionen-Menue/Einstellungen kommen in
-// Phase 4 dazu.
+// Screen-Hierarchie.
 enum class ScreenId {
     Boot,
     ProfileSetup,
@@ -22,4 +21,11 @@ enum class ScreenId {
     Puzzle,
     MoorhuhnJagd,
     KampfModus,
+
+    AlltagMenu,
+    Timer,
+    Checklist,
+    Steckbrief,
+    PinEntry,
+    Settings,
 };

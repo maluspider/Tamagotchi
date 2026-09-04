@@ -25,6 +25,10 @@ Profile load() {
     profile.alarmEnabled = doc["wecker"]["aktiv"] | false;
     profile.alarmHour = doc["wecker"]["stunde"] | static_cast<uint8_t>(7);
     profile.alarmMinute = doc["wecker"]["minute"] | static_cast<uint8_t>(0);
+    profile.nightModeEnabled = doc["nachtmodus"]["aktiv"] | true;
+    profile.nightStartHour = doc["nachtmodus"]["start_stunde"] | static_cast<uint8_t>(20);
+    profile.nightEndHour = doc["nachtmodus"]["ende_stunde"] | static_cast<uint8_t>(7);
+    profile.dailyLimitMinutesOverride = doc["einstellungen"]["tageslimit_min"] | static_cast<uint16_t>(0);
     profile.isValid = profile.geraetId.length() > 0;
 
     return profile;
@@ -41,6 +45,10 @@ bool save(const Profile& profile) {
     doc["wecker"]["aktiv"] = profile.alarmEnabled;
     doc["wecker"]["stunde"] = profile.alarmHour;
     doc["wecker"]["minute"] = profile.alarmMinute;
+    doc["nachtmodus"]["aktiv"] = profile.nightModeEnabled;
+    doc["nachtmodus"]["start_stunde"] = profile.nightStartHour;
+    doc["nachtmodus"]["ende_stunde"] = profile.nightEndHour;
+    doc["einstellungen"]["tageslimit_min"] = profile.dailyLimitMinutesOverride;
 
     return storage::saveJsonAtomic(config::kProfilePath, doc);
 }

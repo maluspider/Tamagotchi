@@ -51,6 +51,9 @@ void BootScreen::update(uint32_t) {
     const String today = rtcclock::todayIso();
     const String playtimeDate = progress.playtimeDateIso.length() ? progress.playtimeDateIso : today;
     app_.playtime.load(progress.earnedMinutesToday, progress.spentMinutesToday, playtimeDate);
+    if (app_.profile.dailyLimitMinutesOverride > 0) {
+        app_.playtime.setDailyLimitMinutes(app_.profile.dailyLimitMinutesOverride);
+    }
     app_.playtime.rolloverIfNewDay(today);
 
     stateMachine_.requestSwitch(ScreenId::Home);

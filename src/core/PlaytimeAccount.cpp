@@ -23,6 +23,10 @@ void PlaytimeAccount::creditTaskReward() {
     earnedMinutesToday_ = static_cast<uint16_t>(earnedMinutesToday_ + config::kMinutesPerSolvedTask);
 }
 
+void PlaytimeAccount::grantBonusMinutes(uint16_t minutes) {
+    earnedMinutesToday_ = static_cast<uint16_t>(earnedMinutesToday_ + minutes);
+}
+
 bool PlaytimeAccount::spend(uint16_t minutes) {
     if (minutes > availableMinutes()) {
         return false;
@@ -32,9 +36,8 @@ bool PlaytimeAccount::spend(uint16_t minutes) {
 }
 
 uint16_t PlaytimeAccount::availableMinutes() const {
-    const uint16_t cappedEarned = earnedMinutesToday_ < config::kDailyPlaytimeLimitMinutes
-                                       ? earnedMinutesToday_
-                                       : config::kDailyPlaytimeLimitMinutes;
+    const uint16_t cappedEarned =
+        earnedMinutesToday_ < dailyLimitMinutes_ ? earnedMinutesToday_ : dailyLimitMinutes_;
     if (spentMinutesToday_ >= cappedEarned) {
         return 0;
     }

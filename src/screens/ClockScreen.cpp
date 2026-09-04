@@ -62,7 +62,7 @@ void ClockScreen::update(uint32_t deltaMs) {
     const auto touch = M5.Touch.getDetail();
     if (touch.wasPressed()) {
         if (touchedHomeIcon(touch.x, touch.y)) {
-            stateMachine_.requestSwitch(ScreenId::Home);
+            stateMachine_.requestSwitch(ScreenId::AlltagMenu);
             return;
         }
         handleTouch(touch.x, touch.y);
