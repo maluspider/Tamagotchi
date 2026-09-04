@@ -5,8 +5,10 @@
 #include "../core/StateMachine.h"
 
 // Erster Screen nach dem Start (docs/projektplan.md Abschnitt 5).
-// Initialisiert die SD-Karte, laedt Profil/Fortschritt und leitet danach zu
-// ProfileSetup (falls noch kein Profil existiert) oder Home weiter.
+// Zeigt zunaechst kurz ein 80er-/Synthwave-Neon-Logo ("Henri & Theo",
+// Nutzerwunsch), danach initialisiert er die SD-Karte, laedt Profil/
+// Fortschritt und leitet zu ProfileSetup (falls noch kein Profil existiert)
+// oder Home weiter.
 class BootScreen : public Screen {
 public:
     BootScreen(AppContext& app, StateMachine& stateMachine);
@@ -16,7 +18,10 @@ public:
     void draw() override;
 
 private:
+    void drawLogo();
+
     AppContext& app_;
     StateMachine& stateMachine_;
     bool initDone_ = false;
+    uint32_t splashElapsedMs_ = 0;
 };

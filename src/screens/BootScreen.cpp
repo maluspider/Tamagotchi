@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <SD.h>
 
+#include "../core/RetroBackdrop.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
@@ -11,18 +12,61 @@
 #include "../core/storage/ProgressStore.h"
 #include "config.h"
 
+namespace {
+constexpr const char* kLogoText = "Henri & Theo";
+// Mindestanzeigedauer des Logos, bevor die (meist sehr schnelle) SD-/Profil-
+// Initialisierung startet - ohne das waere das Logo oft nur einen Frame
+// lang sichtbar und damit praktisch kein "Startlogo".
+constexpr uint32_t kSplashDurationMs = 1800;
+} // namespace
+
 BootScreen::BootScreen(AppContext& app, StateMachine& stateMachine)
     : app_(app), stateMachine_(stateMachine) {}
 
 void BootScreen::onEnter() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.setTextColor(theme::kText);
-    M5.Display.setTextDatum(middle_center);
-    M5.Display.setTextSize(2);
-    M5.Display.drawString("Laedt...", M5.Display.width() / 2, M5.Display.height() / 2);
+    splashElapsedMs_ = 0;
+    drawLogo();
 }
 
-void BootScreen::update(uint32_t) {
+void BootScreen::drawLogo() {
+    M5.Display.fillScreen(theme::kBackground);
+    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(),
+                                      M5.Display.height() - 80);
+
+    const int cx = M5.Display.width() / 2;
+    const int cy = M5.Display.height() / 2 - 10;
+
+    M5.Display.setTextDatum(middle_center);
+    M5.Display.setTextSize(4);
+
+    // Neon-Glow: mehrere leicht versetzte, gedimmte Kopien rings um den
+    // Schriftzug simulieren ein "Bloom" (M5GFX kennt auf M5.Display keine
+    // echte Transparenz/Weichzeichnung), darueber ein Chrom-/Versatz-Effekt
+    // (Cyan-Kopie leicht verschoben unter der weissen Hauptschrift) - der
+    // klassische 80er-Arcade-Logo-Look.
+    constexpr int kGlowOffsets[][2] = {
+        {-2, -2}, {2, -2}, {-2, 2}, {2, 2}, {-3, 0}, {3, 0}, {0, -3}, {0, 3},
+    };
+    M5.Display.setTextColor(theme::kAccentPink);
+    for (const auto& offset : kGlowOffsets) {
+        M5.Display.drawString(kLogoText, cx + offset[0], cy + offset[1]);
+    }
+    M5.Display.setTextColor(theme::kAccentCyan);
+    M5.Display.drawString(kLogoText, cx + 2, cy + 2);
+    M5.Display.setTextColor(theme::kText);
+    M5.Display.drawString(kLogoText, cx, cy);
+
+    M5.Display.setTextSize(2);
+    M5.Display.setTextColor(theme::kAccentGold);
+    M5.Display.drawString("Laedt...", cx, cy + 42);
+}
+
+void BootScreen::update(uint32_t deltaMs) {
+    splashElapsedMs_ += deltaMs;
+    if (splashElapsedMs_ < kSplashDurationMs) {
+        return;
+    }
+
     if (initDone_) {
         return;
     }

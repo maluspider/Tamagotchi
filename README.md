@@ -125,6 +125,11 @@ PlatformIO-Doku) und den Rechner neu starten.
 
 ## Bedienung (Stand nach Phase 5, mit Hardware-Fixes)
 
+- **Startlogo:** beim Einschalten erscheint für ca. 1,8 Sekunden ein
+  80er-/Synthwave-Neon-Logo ("Henri & Theo" – anpassbar in
+  `src/screens/BootScreen.cpp`, Konstante `kLogoText`) vor demselben
+  Sonne+Gitter-Hintergrund wie die übrige Retro-Optik, bevor SD-Karte/Profil
+  geladen werden.
 - **Home-Screen:** zeigt Charakter + Namen, Uhrzeit, verfügbare Spielzeit.
   Untere Icon-Leiste (4 Zonen): Stift-Icon → Fach-Auswahl, Play-Dreieck →
   Spiele-Menü (nur mit Spielzeitguthaben aktiv), Uhr-Icon →
@@ -251,10 +256,16 @@ PlatformIO-Doku) und den Rechner neu starten.
   Dort: Tageslimit anpassen (±5 Min), Bonus-Spielzeit vergeben (+10 Min),
   Nachtmodus an/aus, **Uhrzeit einstellen** (Jahr/Monat/Tag/Stunde/Minute
   per Stepper, `DateTimeSetScreen`), PIN ändern, Web-Sync starten.
-- **Power-Taste (Gerät):** kurz drücken schaltet das Display an/aus (Akku
-  sparen, ohne die App zu verlassen – Nachtmodus/Spiellogik pausieren
-  währenddessen), langes Drücken (≥ 2 Sekunden) sichert den Fortschritt und
-  startet das Gerät neu.
+- **Power-Taste (Gerät):** kurz drücken schaltet nur das Display an/aus
+  (Akku sparen, ohne die App zu verlassen – Nachtmodus/Spiellogik
+  pausieren währenddessen), langes Drücken (≥ 2 Sekunden) sichert den
+  Fortschritt und schaltet das Gerät **komplett aus** (`M5.Power.powerOff()`,
+  nicht nur ein Neustart). Erneutes Drücken der Power-Taste schaltet es
+  wieder ein – aller Fortschritt (Charakterstufe, EP, Spielzeitkonto, PIN
+  usw.) bleibt erhalten, da er laufend auf der SD-Karte gespeichert wird.
+  Es gibt bewusst **keine** Reset-/"Fortschritt löschen"-Funktion in der
+  Firmware – der einzige Weg dafür ist, die Fortschrittsdateien manuell von
+  der SD-Karte zu entfernen (siehe "SD-Karte" oben für die Dateinamen).
 - **Web-Sync** (Abschnitt 12): startet einen geräteeigenen WLAN-
   Access-Point (SSID/Passwort/IP werden auf dem Gerät angezeigt) mit
   einem kleinen Web-Interface unter `http://192.168.4.1` – Fortschritt
@@ -300,7 +311,7 @@ src/core/                    Screen-unabhängige Module
     ProfileStore.*            /profile.json
     ProgressStore.*           /progress.json
 src/screens/                 Konkrete Screens (je eine Klasse pro Screen)
-  BootScreen.*               Init, laedt Profil/Fortschritt
+  BootScreen.*               Startlogo (Synthwave-Neon-Schriftzug), dann Init/Laedt Profil/Fortschritt
   ProfileSetupScreen.*       Erststart: Kind-Profil waehlen (icon-first)
   HomeScreen.*                Charakter + Statusleiste + Navigation
   SubjectSelectScreen.*        Fach-Auswahl (icon-first)
@@ -352,7 +363,9 @@ Fehler:
 - **Uhrzeit liess sich nicht einstellen:** neuer `DateTimeSetScreen`, siehe
   "Einstellungen" oben.
 - **Power-Taste ohne Funktion:** kurzer/langer Druck jetzt belegt, siehe
-  "Power-Taste" oben.
+  "Power-Taste" oben. Langer Druck schaltet das Gerät **aus** (nicht neu
+  starten) – wieder einschalten per erneutem Tastendruck, kein
+  Fortschrittsverlust, keine Reset-Funktion in der Firmware.
 
 Die Spiele-Physik (Pinball/Basketball/Fussball/Moorhuhn-Jagd)-Konstanten
 sind weiterhin Startwerte, die bei Bedarf nach mehr Spielzeit noch

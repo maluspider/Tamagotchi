@@ -41,11 +41,15 @@ AppContext appContext;
 StateMachine stateMachine;
 uint32_t lastFrameMs = 0;
 
-// Nutzerwunsch: "langer Tastendruck soll zu Reset fuehren, kurzer
-// Tastendruck Bildschirm an/abschalten um Batterie zu sparen" - beides
-// ueber M5.BtnPWR (Core2s Power-Taste, von M5Unified als virtuelles
-// Button_Class-Objekt bereitgestellt, siehe M5.begin()).
-constexpr uint32_t kPowerButtonResetHoldMs = 2000;
+// Nutzerwunsch: "kurzer Tastendruck Bildschirm an/abschalten um Batterie zu
+// sparen, langer Tastendruck schaltet das Geraet komplett aus (nicht
+// zuruecksetzen) - erneutes Druecken schaltet wieder an, aller Fortschritt
+// bleibt erhalten" - beides ueber M5.BtnPWR (Core2s Power-Taste, von
+// M5Unified als virtuelles Button_Class-Objekt bereitgestellt, siehe
+// M5.begin()). Es gibt bewusst KEINE Firmware-Funktion, die Fortschritt
+// zuruecksetzt/loescht - der einzige Weg dafuer bleibt das manuelle
+// Entfernen der Fortschrittsdateien von der SD-Karte.
+constexpr uint32_t kPowerButtonOffHoldMs = 2000;
 
 // Wird true, solange das Display manuell abgeschaltet ist. Waehrenddessen
 // wird sowohl der NightModeService (der sonst jede Schleife die Helligkeit
@@ -152,13 +156,19 @@ void setup() {
 void loop() {
     M5.update();
 
-    // Langer Druck (>= 2s) auf die Power-Taste: sofortiger Neustart, nach
-    // vorherigem Sichern des Fortschritts (siehe AppContext::persistProgress).
-    // pressedFor() liefert schon waehrend des Haltens true, ein Warten auf
-    // das Loslassen ist fuer einen Reset nicht noetig.
-    if (M5.BtnPWR.pressedFor(kPowerButtonResetHoldMs)) {
+    // Langer Druck (>= 2s) auf die Power-Taste: Geraet komplett ausschalten
+    // (ueber den AXP-Power-Chip, nicht nur das Display) statt neu zu
+    // starten - vorher Fortschritt sichern (siehe
+    // AppContext::persistProgress). pressedFor() liefert schon waehrend des
+    // Haltens true, ein Warten auf das Loslassen ist nicht noetig.
+    // M5.Power.powerOff() kappt die Stromversorgung; erneutes Druecken der
+    // Power-Taste startet das Geraet ganz normal ueber setup() neu (das ist
+    // Hardware-/AXP-Verhalten, keine eigene Firmware-Logik noetig) und laedt
+    // den gesamten Fortschritt wie gewohnt von der SD-Karte - es gibt
+    // bewusst KEINEN Reset/Fortschritt-loeschen-Mechanismus in der Firmware.
+    if (M5.BtnPWR.pressedFor(kPowerButtonOffHoldMs)) {
         appContext.persistProgress();
-        ESP.restart();
+        M5.Power.powerOff();
     }
 
     // Kurzer Klick: Display an-/abschalten, um Akku zu sparen.
