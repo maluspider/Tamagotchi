@@ -7,4 +7,7 @@ enum class ScreenId {
     Boot,
     ProfileSetup,
     Home,
+    Task,
+    Snake,
+    Clock,
 };

@@ -40,9 +40,3 @@ void StateMachine::update(uint32_t deltaMs) {
         current_->update(deltaMs);
     }
 }
-
-void StateMachine::draw() {
-    if (current_) {
-        current_->draw();
-    }
-}

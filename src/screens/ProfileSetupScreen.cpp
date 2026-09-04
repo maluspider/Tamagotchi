@@ -7,11 +7,14 @@
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/storage/ProfileStore.h"
+#include "KidProfiles.h"
 #include "config.h"
 
 namespace {
-constexpr uint16_t kColorYoung = TFT_ORANGE; // 1. Klasse
-constexpr uint16_t kColorOld = TFT_CYAN;     // 3. Klasse
+// Wird pro Profil-Zone durchrotiert (falls mehr als 2 Kinder eingetragen
+// werden) - siehe include/KidProfiles.h.
+constexpr uint16_t kChoiceColors[] = {TFT_ORANGE, TFT_CYAN, TFT_GREENYELLOW, TFT_PINK};
+constexpr size_t kChoiceColorCount = sizeof(kChoiceColors) / sizeof(kChoiceColors[0]);
 } // namespace
 
 ProfileSetupScreen::ProfileSetupScreen(AppContext& app, StateMachine& stateMachine)
@@ -21,26 +24,42 @@ void ProfileSetupScreen::onEnter() {
     draw();
 }
 
-void ProfileSetupScreen::drawChoice(int x, int w, uint8_t klasse, uint16_t color) const {
+void ProfileSetupScreen::drawChoice(int x, int w, size_t profileIndex) const {
     const int h = M5.Display.height();
+    const uint16_t color = kChoiceColors[profileIndex % kChoiceColorCount];
     M5.Display.fillRoundRect(x + 10, 20, w - 20, h - 40, 12, color);
+
+    // Kleiner Platzhalter-Kopf ueber dem Namen, damit die Auswahl auch ohne
+    // Lesen als "das ist mein Tamagotchi" erkennbar bleibt (Review:
+    // icon-first fuer die juengere Zielgruppe, Abschnitt 5).
+    const int cx = x + w / 2;
+    const int headCy = 20 + (h - 40) / 3;
+    M5.Display.fillCircle(cx, headCy, 22, TFT_WHITE);
+    M5.Display.drawCircle(cx, headCy, 22, TFT_BLACK);
+    M5.Display.fillCircle(cx - 8, headCy - 4, 3, TFT_BLACK);
+    M5.Display.fillCircle(cx + 8, headCy - 4, 3, TFT_BLACK);
 
     M5.Display.setTextColor(TFT_BLACK);
     M5.Display.setTextDatum(middle_center);
-    M5.Display.setTextSize(6);
-    M5.Display.drawNumber(klasse, x + w / 2, h / 2);
+    M5.Display.setTextSize(3);
+    M5.Display.drawString(kKidProfiles[profileIndex].name, cx, headCy + 55);
 }
 
 void ProfileSetupScreen::draw() {
     M5.Display.fillScreen(TFT_BLACK);
-    const int w = M5.Display.width() / 2;
-    drawChoice(0, w, 1, kColorYoung);
-    drawChoice(w, w, 3, kColorOld);
+    const int w = M5.Display.width() / static_cast<int>(kKidProfileCount);
+    for (size_t i = 0; i < kKidProfileCount; ++i) {
+        drawChoice(static_cast<int>(i) * w, w, i);
+    }
 }
 
-void ProfileSetupScreen::commitSelection(uint8_t klasse) {
+void ProfileSetupScreen::commitSelection(size_t profileIndex) {
+    const KidProfileDefinition& kid = kKidProfiles[profileIndex];
+
     Profile profile;
-    profile.klasse = klasse;
+    profile.name = kid.name;
+    profile.age = kid.age;
+    profile.klasse = klasseForAge(kid.age);
     profile.geraetId = String("geraet-") + String(static_cast<unsigned long>(esp_random()), HEX);
     profile.guard = pincode::hash(config::kDefaultParentalCode);
     profile.isValid = true;
@@ -61,7 +80,10 @@ void ProfileSetupScreen::update(uint32_t) {
         return;
     }
 
-    const int half = M5.Display.width() / 2;
-    const uint8_t klasse = (touch.x < half) ? 1 : 3;
-    commitSelection(klasse);
+    const int w = M5.Display.width() / static_cast<int>(kKidProfileCount);
+    size_t index = static_cast<size_t>(touch.x / w);
+    if (index >= kKidProfileCount) {
+        index = kKidProfileCount - 1;
+    }
+    commitSelection(index);
 }

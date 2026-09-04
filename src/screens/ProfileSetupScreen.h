@@ -1,21 +1,18 @@
 #pragma once
 
-#include <cstdint>
+#include <cstddef>
 
 #include "../core/AppContext.h"
 #include "../core/Screen.h"
 #include "../core/StateMachine.h"
 
-// Erststart-Einrichtung: Klassenstufe (1./3. Klasse) auswaehlen.
-//
-// Review-Anforderung (UX-Luecke, docs/projektplan.md Abschnitt 5): Ein
-// Erstklaessler kann noch nicht zuverlaessig lesen - deshalb bewusst KEIN
-// Text-Menue, sondern zwei grosse Touch-Flaechen mit Ziffern-Icons statt
-// Wort-Labels.
-//
-// Geraete-Profil ist Laufzeit-Konfiguration (eine gemeinsame Firmware fuer
-// beide Geraete, Abschnitt 3) - die Auswahl hier legt profile.json einmalig
-// an.
+// Erststart-Einrichtung: das Kind waehlt sein eigenes, im Code hinterlegtes
+// Profil (include/KidProfiles.h: Name + Alter) per Antippen aus. Der
+// Tamagotchi-Charakter traegt danach diesen Namen, und die
+// Aufgaben-Schwierigkeit richtet sich ueber die Klassenstufe nach dem
+// Alter (Abschnitt 8.1). Geraete-Profil ist Laufzeit-Konfiguration (eine
+// gemeinsame Firmware fuer beide Geraete, Abschnitt 3) - die Auswahl hier
+// legt profile.json einmalig an.
 class ProfileSetupScreen : public Screen {
 public:
     ProfileSetupScreen(AppContext& app, StateMachine& stateMachine);
@@ -25,8 +22,8 @@ public:
     void draw() override;
 
 private:
-    void drawChoice(int x, int w, uint8_t klasse, uint16_t color) const;
-    void commitSelection(uint8_t klasse);
+    void drawChoice(int x, int w, size_t profileIndex) const;
+    void commitSelection(size_t profileIndex);
 
     AppContext& app_;
     StateMachine& stateMachine_;

@@ -27,8 +27,15 @@ public:
     // Abschnitt 5).
     void requestSwitch(ScreenId id);
 
+    // Ruft nur update() auf dem aktiven Screen auf. Es gibt bewusst KEIN
+    // begleitendes draw() hier: jeder Screen entscheidet in seinem eigenen
+    // update() (bzw. onEnter()), wann tatsaechlich neu gezeichnet werden
+    // muss (z. B. HomeScreen/ClockScreen hoechstens 1x/Sekunde,
+    // SnakeScreen jeden Frame). Ein zusaetzlicher, bedingungsloser
+    // draw()-Aufruf hier wuerde diese Drosselung wirkungslos machen und
+    // bei den nicht Sprite-gepufferten Screens (alle ausser SnakeScreen)
+    // auf echter Hardware sichtbar flackern.
     void update(uint32_t deltaMs);
-    void draw();
 
     ScreenId currentId() const { return currentId_; }
 

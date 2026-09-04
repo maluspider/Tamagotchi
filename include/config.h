@@ -23,6 +23,11 @@ constexpr uint16_t kDailyPlaytimeLimitMinutes = 60;
 // (Abschnitt 9, Review: einziger Ausloeser fuer "traurig") ---
 constexpr uint8_t kSadAfterDaysInactive = 2;
 
+// --- XP pro richtig geloester Aufgabe (Abschnitt 9) ---
+// Platzhalterwert, wie die Stufenschwellen in CharacterEngine.cpp - siehe
+// Abschnitt 16 "offene Punkte" fuer die finale Balance.
+constexpr uint32_t kXpPerCorrectAnswer = 15;
+
 // --- Eltern-PIN (Abschnitt 6, Review: nie im Klartext gespeichert) ---
 // Muss ueber die Einstellungen (Phase 4) individuell gesetzt werden, sobald
 // diese existieren - siehe docs/projektplan.md Abschnitt 16.

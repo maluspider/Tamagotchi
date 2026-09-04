@@ -1,0 +1,12 @@
+[
+  {"id": "mathe_1_001", "fach": "mathe", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "3 + 2 = ?", "antworten": ["4", "5", "6"], "richtig": 1},
+  {"id": "mathe_1_002", "fach": "mathe", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "5 + 4 = ?", "antworten": ["8", "9", "10"], "richtig": 1},
+  {"id": "mathe_1_003", "fach": "mathe", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "7 - 3 = ?", "antworten": ["3", "4", "5"], "richtig": 1},
+  {"id": "mathe_1_004", "fach": "mathe", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "9 - 6 = ?", "antworten": ["2", "3", "4"], "richtig": 1},
+  {"id": "mathe_1_005", "fach": "mathe", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "8 + 7 = ?", "antworten": ["14", "15", "16"], "richtig": 1},
+  {"id": "mathe_1_006", "fach": "mathe", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "12 - 5 = ?", "antworten": ["6", "7", "8"], "richtig": 1},
+  {"id": "mathe_1_007", "fach": "mathe", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "6 + 6 = ?", "antworten": ["11", "12", "13"], "richtig": 1},
+  {"id": "mathe_1_008", "fach": "mathe", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "20 - 8 = ?", "antworten": ["11", "12", "13"], "richtig": 1},
+  {"id": "mathe_1_009", "fach": "mathe", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "4 + 9 = ?", "antworten": ["12", "13", "14"], "richtig": 1},
+  {"id": "mathe_1_010", "fach": "mathe", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "15 - 7 = ?", "antworten": ["7", "8", "9"], "richtig": 1}
+]

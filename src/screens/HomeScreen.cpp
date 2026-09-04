@@ -4,6 +4,7 @@
 
 #include "../core/CharacterEngine.h"
 #include "../core/RtcClock.h"
+#include "../core/ScreenId.h"
 #include "config.h"
 
 namespace {
@@ -28,6 +29,7 @@ int radiusForStage(CharacterStage stage) {
 }
 
 constexpr uint32_t kRedrawIntervalMs = 1000; // Uhrzeit-Anzeige reicht sekundengenau
+constexpr int kBottomBarHeight = 40;
 
 } // namespace
 
@@ -52,6 +54,12 @@ void HomeScreen::update(uint32_t deltaMs) {
         lowBatterySaveDone_ = true;
     }
 
+    const auto touch = M5.Touch.getDetail();
+    if (touch.wasPressed() && touch.y >= M5.Display.height() - kBottomBarHeight) {
+        handleBottomBarTouch(touch.x, touch.y);
+        return;
+    }
+
     msSinceLastRedraw_ += deltaMs;
     if (msSinceLastRedraw_ >= kRedrawIntervalMs) {
         msSinceLastRedraw_ = 0;
@@ -59,9 +67,28 @@ void HomeScreen::update(uint32_t deltaMs) {
     }
 }
 
+void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
+    const int zoneW = M5.Display.width() / 3;
+    const int zone = x / zoneW;
+
+    if (zone == 0) {
+        stateMachine_.requestSwitch(ScreenId::Task);
+        return;
+    }
+    if (zone == 1) {
+        const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
+        const bool hasTime = app_.playtime.availableMinutes() > 0;
+        if (unlocked && hasTime) {
+            stateMachine_.requestSwitch(ScreenId::Snake);
+        }
+        return;
+    }
+    stateMachine_.requestSwitch(ScreenId::Clock);
+}
+
 void HomeScreen::drawPlaceholderCharacter() const {
     const int cx = M5.Display.width() / 2;
-    const int cy = M5.Display.height() / 2 + 10;
+    const int cy = M5.Display.height() / 2;
     const CharacterStage stage = app_.character.stage();
     const int r = radiusForStage(stage);
     const uint16_t color = colorForStage(stage);
@@ -79,6 +106,15 @@ void HomeScreen::drawPlaceholderCharacter() const {
     } else {
         M5.Display.fillCircle(cx - r / 3, cy - r / 4, 3, TFT_BLACK);
         M5.Display.fillCircle(cx + r / 3, cy - r / 4, 3, TFT_BLACK);
+    }
+
+    // Name des Kindes/Charakters (aus dem beim Erststart gewaehlten Profil,
+    // include/KidProfiles.h) unter dem Platzhalter-Charakter.
+    if (app_.profile.name.length() > 0) {
+        M5.Display.setTextColor(TFT_WHITE);
+        M5.Display.setTextDatum(top_center);
+        M5.Display.setTextSize(2);
+        M5.Display.drawString(app_.profile.name.c_str(), cx, cy + r + 8);
     }
 }
 
@@ -108,8 +144,44 @@ void HomeScreen::drawStatusBar() const {
     }
 }
 
+void HomeScreen::drawBottomBar() const {
+    const int y = M5.Display.height() - kBottomBarHeight;
+    M5.Display.fillRect(0, y, M5.Display.width(), kBottomBarHeight, TFT_NAVY);
+
+    const int zoneW = M5.Display.width() / 3;
+
+    // Aufgaben: Stift-Symbol (immer verfuegbar, Abschnitt 5).
+    {
+        const int cx = zoneW / 2;
+        M5.Display.drawLine(cx - 8, y + 28, cx + 8, y + 12, TFT_WHITE);
+        M5.Display.drawLine(cx - 8, y + 28, cx - 4, y + 24, TFT_WHITE);
+        M5.Display.fillTriangle(cx + 6, y + 10, cx + 10, y + 14, cx + 8, y + 16, TFT_YELLOW);
+    }
+
+    // Spiele: Play-Dreieck - ausgegraut, solange nicht freigeschaltet
+    // (Stufe < Baby) oder kein Spielzeitguthaben vorhanden ist (Abschnitt 7:
+    // "Spiele-Menü nur mit vorhandenem Zeitguthaben betretbar").
+    {
+        const int cx = zoneW + zoneW / 2;
+        const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
+        const bool hasTime = app_.playtime.availableMinutes() > 0;
+        const uint16_t color = (unlocked && hasTime) ? TFT_WHITE : TFT_DARKGREY;
+        M5.Display.fillTriangle(cx - 8, y + 10, cx - 8, y + 30, cx + 10, y + 20, color);
+    }
+
+    // Uhr: Kreis mit Zeigern.
+    {
+        const int cx = 2 * zoneW + zoneW / 2;
+        const int cy = y + 20;
+        M5.Display.drawCircle(cx, cy, 12, TFT_WHITE);
+        M5.Display.drawLine(cx, cy, cx, cy - 8, TFT_WHITE);
+        M5.Display.drawLine(cx, cy, cx + 6, cy, TFT_WHITE);
+    }
+}
+
 void HomeScreen::draw() {
     M5.Display.fillScreen(TFT_BLACK);
     drawPlaceholderCharacter();
     drawStatusBar();
+    drawBottomBar();
 }

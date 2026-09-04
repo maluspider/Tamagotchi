@@ -41,7 +41,9 @@ Ja. Der eingebaute 6-Achsen-IMU liefert sowohl Neigung (Tilt, über den Beschleu
 - **Web-Interface (Phase 5):** `ESPAsyncWebServer` + `AsyncTCP`
   **Review:** Das ursprüngliche `me-no-dev/ESPAsyncWebServer` ist praktisch unmaintained. Für Phase 5 den aktiv gepflegten Fork **`ESP32Async/ESPAsyncWebServer`** (inkl. `ESP32Async/AsyncTCP`) verwenden, sonst drohen Kompatibilitätsprobleme mit aktuellen ESP32-Arduino-Cores.
 - **Versionsverwaltung:** Ein gemeinsames Repo, Geräte-Profil (1. Klasse / 3. Klasse) als Kompilier- oder Laufzeit-Konfiguration, damit dieselbe Codebasis beide Geräte bedient
-  **Review (entschieden):** Laufzeit-Konfiguration. Eine gemeinsame Firmware für beide Geräte; die Klassenstufe wird beim allerersten Start per Touch gewählt (siehe `ProfileSetupScreen`, Abschnitt 5) und danach in `profile.json` persistiert. Vorteil: nur eine Firmware-Version pflegen/flashen, kein Risiko, versehentlich das falsche PlatformIO-Environment aufs falsche Gerät zu flashen.
+  **Review (entschieden):** Laufzeit-Konfiguration. Eine gemeinsame Firmware für beide Geräte; das Kind wählt beim allerersten Start per Touch sein eigenes, im Code hinterlegtes Profil (siehe `ProfileSetupScreen`, Abschnitt 5) und das Ergebnis wird danach in `profile.json` persistiert. Vorteil: nur eine Firmware-Version pflegen/flashen, kein Risiko, versehentlich das falsche PlatformIO-Environment aufs falsche Gerät zu flashen.
+
+  **Ergänzung (Name/Alter statt nur Klassenstufe):** Statt direkt "1. Klasse"/"3. Klasse" zu wählen, werden in `include/KidProfiles.h` die eigenen Kinder mit **Name + Alter** eingetragen (compile-time, vom Elternteil im Code gepflegt). Beim Erststart tippt das Kind auf sein eigenes Profil (Name + kleiner Platzhalter-Avatar); der Tamagotchi-Charakter trägt danach diesen Namen (angezeigt auf dem Home-Screen), und die Klassenstufe – die die Aufgaben-Schwierigkeit steuert (Abschnitt 8.1) – wird über `klasseForAge()` aus dem hinterlegten Alter hergeleitet (Schwelle: ab 8 Jahren → 3.-Klasse-Content, sonst 1.-Klasse-Content; bei abweichendem Schulweg im Code anpassbar). Der Charakter selbst wächst wie bisher ausschliesslich über Erfahrungspunkte aus gelösten Aufgaben (Abschnitt 9) – Alter/Name bestimmen nur Namen und Startschwierigkeit, nicht das Fortschrittstempo.
 - **OTA-Updates. Review (neu):** Der ursprüngliche Plan sah keinen Update-Weg nach der Erstinstallation vor. Sobald die Geräte in den Kinderzimmern "deployed" sind, ist erneutes Flashen per USB-Kabel für jeden Bugfix unnötige Reibung. Da ohnehin ein Webserver in Phase 5 gebaut wird, sollte `ArduinoOTA` bzw. Web-basiertes OTA möglichst früh (spätestens mit Phase 5, idealerweise schon als kleiner Baustein in Phase 4) ergänzt werden, statt es ganz wegzulassen.
 
 ## 4. Grafikstil-Spezifikation
@@ -72,9 +74,11 @@ BOOT
 
 Jeder Screen als eigene Klasse mit `update()`/`draw()`, zentrale State-Machine im Hauptloop schaltet zwischen Screens um. Charakter-Engine, Aufgaben-Engine und Spielzeitkonto sind eigenständige Module, die von mehreren Screens genutzt werden (nicht an einen Screen gebunden).
 
-**Klarstellung (Phase-0-Stand):** Aktuell implementiert sind `BootScreen` → `ProfileSetupScreen` (nur beim allerersten Start, legt `profile.json` an) → `HomeScreen`. Aufgaben-Modus, Spiele-Menü, Alltagsfunktionen-Menü und Einstellungen folgen in den Phasen 1–4 (Abschnitt 14).
+**Klarstellung (Stand nach Phase 1):** Implementiert sind `BootScreen` → `ProfileSetupScreen` (nur beim allerersten Start, legt `profile.json` an) → `HomeScreen` mit einer unteren Icon-Leiste zu `TaskScreen` (Aufgaben-Modus, nur Mathe), `SnakeScreen` (erstes Spiel, ab Stufe "Baby" und nur mit Spielzeitguthaben erreichbar) und `ClockScreen` (Uhr/Wecker). `AlarmService` prüft screen-unabhängig aus `main.cpp::loop()`, ob der Wecker gerade auslösen soll. Restliche Fächer, Spaced Repetition, die übrigen 8 Spiele, Alltagsfunktionen-Menü und Eltern-PIN-geschützte Einstellungen folgen in den Phasen 2–4 (Abschnitt 14).
 
 **Review (State-Machine-Sicherheit):** Ein Screen kann nicht direkt `switchTo()` aus seiner eigenen `update()`-Methode heraus sicher aufrufen, weil dabei das eigene Objekt zerstört würde, während sein Code noch auf dem Aufruf-Stack liegt (Use-after-free). Die `StateMachine` bietet deshalb zwei Methoden: `switchTo()` für den einmaligen Erststart aus `main.cpp` heraus, und `requestSwitch()` für den sicheren, verzögerten Wechsel aus einem laufenden Screen heraus (wird erst zu Beginn des nächsten `update()`-Aufrufs angewendet).
+
+**Klarstellung (Zeichnen/Flackern):** Die `StateMachine` ruft absichtlich nur `update()` auf dem aktiven Screen auf, kein begleitendes `draw()`. Jeder Screen entscheidet in seinem eigenen `update()`/`onEnter()`, wann tatsächlich neu gezeichnet wird (z. B. `HomeScreen`/`ClockScreen` höchstens 1×/Sekunde für die Uhrzeit, `TaskScreen` nur bei Zustandswechseln, `SnakeScreen` jeden Frame fürs Animationstempo). Ein zusätzlicher, bedingungsloser `draw()`-Aufruf aus dem Hauptloop würde diese Drosselung wirkungslos machen und auf echter Hardware bei den nicht Sprite-gepufferten Screens sichtbar flackern. `SnakeScreen` zeichnet deshalb konsequent über ein `M5Canvas`-Offscreen-Sprite (Abschnitt 3: "Sprite-basiertes Rendering ... für flüssige Pixel-Art-Grafik") statt direkt auf `M5.Display`.
 
 ## 6. Datenmodell
 
@@ -82,7 +86,7 @@ Jeder Screen als eigene Klasse mit `update()`/`draw()`, zentrale State-Machine i
 
 | Datei | Inhalt | Änderungsfrequenz |
 |---|---|---|
-| `/profile.json` | `profil` (Name, Klasse, Geräte-ID) + `guard` (gehashter Eltern-PIN) | selten (i. d. R. einmalig bei Ersteinrichtung) |
+| `/profile.json` | `profil` (Name, Alter, Klasse, Geräte-ID) + `guard` (gehashter Eltern-PIN) + `wecker` (Alarmzeit/an-aus) | selten (i. d. R. einmalig bei Ersteinrichtung bzw. bei Wecker-Änderung) |
 | `/progress.json` | `charakter` (Stufe/EP/letzte Pflege) + `spielzeitkonto` | häufig (bei jeder gelösten Aufgabe / jedem Spiel) |
 | `/progress/aufgaben_<fach>.json` | `aufgaben_fortschritt` je Fach (Leitner-Box-Zustand, Abschnitt 8.3) | häufig, aber pro Fach unabhängig |
 | `/tasks/<fach>_<klasse>.json` | statische Aufgabenpools (Content, siehe Abschnitt 8.2/13) | selten, i. d. R. nur bei Content-Pflege (Phase 5) |
@@ -271,7 +275,7 @@ Freischalt-Reihenfolge folgt dem Charaktersystem (Abschnitt 9) – hält Motivat
 | 4 | Erweiterte Alltagsfunktionen, Nachtmodus, Eltern-PIN, (idealerweise) erster OTA-Baustein |
 | 5 | Web-Interface für Sync/Content-Pflege, OTA-Updates spätestens hier vollständig |
 
-**Stand:** Phase 0 ist im Code umgesetzt (State-Machine, `BootScreen`, `ProfileSetupScreen`, `HomeScreen` mit Platzhalter-Charakter, Storage-Layer mit atomaren Schreibvorgängen). Siehe `README.md` für den aktuellen Stand und Build-Anleitung.
+**Stand:** Phase 0 und ein erster Teil von Phase 1 sind im Code umgesetzt: State-Machine, Storage-Layer mit atomaren Schreibvorgängen, `BootScreen`, `ProfileSetupScreen` (Kind-Profil-Auswahl aus `include/KidProfiles.h`), `HomeScreen` mit Platzhalter-Charakter + Namen + Navigation, `TaskScreen`/`TaskEngine` (nur Mathe, ohne Spaced Repetition), `SnakeScreen`, `ClockScreen` + `AlarmService`. Offen aus Phase 1: die übrigen Fächer sind bereits in Abschnitt 8.1 beschrieben, aber ohne Content/Engine-Anbindung. Siehe `README.md` für den aktuellen Stand und Build-Anleitung.
 
 ## 15. Review-Zusammenfassung
 
@@ -289,12 +293,15 @@ Kurzüberblick über alle inhaltlichen Änderungen gegenüber der ursprüngliche
 10. **Icon-first-Navigation (Abschnitt 5, neu):** Für die jüngere Zielgruppe (1. Klasse, eingeschränkte Lesefähigkeit) Ziffern-/Icon-basierte statt textbasierte Auswahl-Screens, ab `ProfileSetupScreen` umgesetzt.
 11. **Akku/Low-Battery (Abschnitt 2, neu):** Home-Screen zeigt eine Akku-Warnung bei niedrigem Ladestand und stösst bei kritischem Ladestand einen sichernden Speichervorgang an, statt nur zu hoffen, dass der Akku nicht mitten im nächsten Schreibvorgang leer wird.
 12. **Freischaltungen nicht redundant gespeichert (Abschnitt 6):** `faehigkeiten`/`stufe` werden aus der Charakterstufe/EP hergeleitet statt separat persistiert (vermeidet Drift zwischen gespeichertem und tatsächlichem Zustand).
+13. **Kind-Profile mit Name/Alter statt reiner Klassenwahl (Abschnitt 3, neu):** Name und Alter der Kinder werden in `include/KidProfiles.h` im Code hinterlegt statt beim Erststart nur abstrakt "1./3. Klasse" zu wählen. Der Charakter trägt den Namen des Kindes, die Klassenstufe (und damit die Aufgaben-Schwierigkeit) wird aus dem Alter hergeleitet.
 
 Weiterhin offen/nicht Teil des Reviews (Scope/Ressourcen-Hinweise ohne konkrete Planänderung): Umfang von 9 vollständigen Spielen (Abschnitt 10) und Content-Autorenschaft für die Aufgabenpools (Abschnitt 8) bleiben die grössten Zeitrisiken des Projekts und sind bewusst nicht reduziert worden, sondern nur explizit benannt.
 
 ## 16. Kleinere offene Punkte für die Code-Phase
 
-- Genaue EP-Schwellen/Stufenwerte final festlegen (Vorschlagswerte oben als Startpunkt)
+- Genaue EP-Schwellen/Stufenwerte final festlegen (Vorschlagswerte oben als Startpunkt). EP pro richtig gelöster Aufgabe ist aktuell ebenfalls ein Platzhalter (`config::kXpPerCorrectAnswer = 15`).
 - Finale Sprite-Assets: selbst zeichnen, KI-generieren oder bestehende freie Assets im 90er-Stil anpassen?
 - Soll der Eltern-PIN pro Gerät gleich oder unterschiedlich sein? (Aktuell: identischer Default-PIN auf beiden Geräten, siehe `config::kDefaultParentalCode` – muss vor "produktivem" Einsatz in den Einstellungen geändert werden, sobald Abschnitt 11/Einstellungen in Phase 4 existiert.)
 - Gegner-KI-Schwierigkeit im Kampf-Modus und beim Fussball-Torwart: wie stark soll sie mit dem Charakterlevel mitwachsen?
+- **Vor dem Flashen:** `include/KidProfiles.h` mit den echten Namen/Altern der eigenen Kinder befüllen (aktuell Platzhalter "Kind 1"/"Kind 2") und `sdcard/tasks/mathe_1.json`/`mathe_3.json` auf die SD-Karte unter `/tasks/` kopieren (siehe README).
+- Klassen-Alters-Schwelle (`include/KidProfiles.h::kKlasse3AgeThreshold`, aktuell 8 Jahre) ist ein grober Richtwert und ggf. an den tatsächlichen Schuleintritt der Kinder anzupassen.
