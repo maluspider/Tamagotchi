@@ -6,5 +6,22 @@
   {"id": "fr_3_005", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Was bedeutet 'rouge'?", "antworten": ["Blau", "Gruen", "Rot"], "richtig": 2},
   {"id": "fr_3_006", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'bleu'?", "antworten": ["Blau", "Gelb", "Rot"], "richtig": 0},
   {"id": "fr_3_007", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'Mutter' auf Franzoesisch?", "antworten": ["mere", "pere", "soeur"], "richtig": 0},
-  {"id": "fr_3_008", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'Vater' auf Franzoesisch?", "antworten": ["mere", "pere", "frere"], "richtig": 1}
+  {"id": "fr_3_008", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'Vater' auf Franzoesisch?", "antworten": ["mere", "pere", "frere"], "richtig": 1},
+  {"id": "fr_3_009", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'vier' auf Franzoesisch?", "antworten": ["quatre", "cinq", "six"], "richtig": 0},
+  {"id": "fr_3_010", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'fuenf' auf Franzoesisch?", "antworten": ["quatre", "cinq", "six"], "richtig": 1},
+  {"id": "fr_3_011", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'chat'?", "antworten": ["Hund", "Katze", "Vogel"], "richtig": 1},
+  {"id": "fr_3_012", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'chien'?", "antworten": ["Katze", "Hund", "Pferd"], "richtig": 1},
+  {"id": "fr_3_013", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'Schwester' auf Franzoesisch?", "antworten": ["frere", "soeur", "mere"], "richtig": 1},
+  {"id": "fr_3_014", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'Bruder' auf Franzoesisch?", "antworten": ["frere", "soeur", "pere"], "richtig": 0},
+  {"id": "fr_3_015", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Was bedeutet 'jaune'?", "antworten": ["Gelb", "Gruen", "Rot"], "richtig": 0},
+  {"id": "fr_3_016", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Was bedeutet 'vert'?", "antworten": ["Blau", "Gelb", "Gruen"], "richtig": 2},
+  {"id": "fr_3_017", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'sechs' auf Franzoesisch?", "antworten": ["six", "sept", "huit"], "richtig": 0},
+  {"id": "fr_3_018", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'sieben' auf Franzoesisch?", "antworten": ["six", "sept", "huit"], "richtig": 1},
+  {"id": "fr_3_019", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'au revoir'?", "antworten": ["Guten Morgen", "Auf Wiedersehen", "Bitte"], "richtig": 1},
+  {"id": "fr_3_020", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Was bedeutet 's'il vous plait'?", "antworten": ["Danke", "Bitte", "Entschuldigung"], "richtig": 1},
+  {"id": "fr_3_021", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie sagt man 'Hund' auf Franzoesisch?", "antworten": ["chat", "chien", "oiseau"], "richtig": 1},
+  {"id": "fr_3_022", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie sagt man 'Katze' auf Franzoesisch?", "antworten": ["chat", "chien", "poisson"], "richtig": 0},
+  {"id": "fr_3_023", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'oui'?", "antworten": ["Nein", "Ja", "Vielleicht"], "richtig": 1},
+  {"id": "fr_3_024", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was bedeutet 'non'?", "antworten": ["Ja", "Nein", "Bitte"], "richtig": 1},
+  {"id": "fr_3_025", "fach": "franzoesisch", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie sagt man 'acht' auf Franzoesisch?", "antworten": ["sept", "huit", "neuf"], "richtig": 1}
 ]

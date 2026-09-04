@@ -63,6 +63,8 @@ void ProfileSetupScreen::commitSelection(size_t profileIndex) {
     profile.name = kid.name;
     profile.age = kid.age;
     profile.klasse = klasseForAge(kid.age);
+    profile.birthdayMonth = kid.birthdayMonth;
+    profile.birthdayDay = kid.birthdayDay;
     profile.geraetId = String("geraet-") + String(static_cast<unsigned long>(esp_random()), HEX);
     profile.guard = pincode::hash(config::kDefaultParentalCode);
     profile.isValid = true;

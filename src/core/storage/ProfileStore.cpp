@@ -20,6 +20,8 @@ Profile load() {
     profile.age = doc["profil"]["alter"] | static_cast<uint8_t>(0);
     profile.klasse = doc["profil"]["klasse"] | static_cast<uint8_t>(1);
     profile.geraetId = doc["profil"]["geraet_id"] | "";
+    profile.birthdayMonth = doc["profil"]["geburtstag_monat"] | static_cast<uint8_t>(0);
+    profile.birthdayDay = doc["profil"]["geburtstag_tag"] | static_cast<uint8_t>(0);
     profile.guard.salt = doc["guard"]["salt"] | static_cast<uint32_t>(0);
     profile.guard.value = doc["guard"]["value"] | static_cast<uint32_t>(0);
     profile.alarmEnabled = doc["wecker"]["aktiv"] | false;
@@ -43,6 +45,8 @@ bool save(const Profile& profile) {
     doc["profil"]["alter"] = profile.age;
     doc["profil"]["klasse"] = profile.klasse;
     doc["profil"]["geraet_id"] = profile.geraetId;
+    doc["profil"]["geburtstag_monat"] = profile.birthdayMonth;
+    doc["profil"]["geburtstag_tag"] = profile.birthdayDay;
     doc["guard"]["salt"] = profile.guard.salt;
     doc["guard"]["value"] = profile.guard.value;
     doc["wecker"]["aktiv"] = profile.alarmEnabled;

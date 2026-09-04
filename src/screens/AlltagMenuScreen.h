@@ -8,12 +8,11 @@
 #include "../core/StateMachine.h"
 
 // Alltagsfunktionen-Menue (docs/projektplan.md Abschnitt 5/11): icon-
-// basiertes 3x2-Menue (ein Feld bleibt leer) zu Uhr/Wecker, Timer,
-// Checkliste, Charakter-Steckbrief und "Aussehen" (CharacterCustomizeScreen,
-// Abschnitt 4/9). Taschenrechner und Geburtstags-Countdown aus dem
-// "Zusaetzliche Vorschlaege"-Teil von Abschnitt 11 sind bewusst nicht
-// umgesetzt (Zeitbudget, siehe Abschnitt 16, offener Punkt) - die anderen
-// fuenf decken den Kern der Anforderung ab.
+// basiertes 3x2-Menue zu Uhr/Wecker, Timer, Checkliste, Charakter-
+// Steckbrief, "Aussehen" (CharacterCustomizeScreen, Abschnitt 4/9) und
+// Geburtstags-Countdown (BirthdayScreen). Taschenrechner aus dem
+// "Zusaetzliche Vorschlaege"-Teil von Abschnitt 11 ist bewusst nicht
+// umgesetzt (Zeitbudget, siehe Abschnitt 16, offener Punkt).
 class AlltagMenuScreen : public Screen {
 public:
     AlltagMenuScreen(AppContext& app, StateMachine& stateMachine);
@@ -27,7 +26,7 @@ private:
         ScreenId screen;
         const char* label;
     };
-    static constexpr int kEntryCount = 5;
+    static constexpr int kEntryCount = 6;
     static const Entry kEntries[kEntryCount];
 
     void drawEntry(int index, int cx, int cy, int cellSize) const;

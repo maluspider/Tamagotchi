@@ -6,5 +6,22 @@
   {"id": "quiz_1_005", "fach": "quiz", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welche Farbe entsteht aus Blau und Gelb?", "antworten": ["Gruen", "Rot", "Lila"], "richtig": 0},
   {"id": "quiz_1_006", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Ecken hat ein Dreieck?", "antworten": ["3", "4", "5"], "richtig": 0},
   {"id": "quiz_1_007", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Tier hat einen langen Ruessel?", "antworten": ["Loewe", "Elefant", "Affe"], "richtig": 1},
-  {"id": "quiz_1_008", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Farbe hat der Himmel an einem klaren Tag?", "antworten": ["Gruen", "Blau", "Braun"], "richtig": 1}
+  {"id": "quiz_1_008", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Farbe hat der Himmel an einem klaren Tag?", "antworten": ["Gruen", "Blau", "Braun"], "richtig": 1},
+  {"id": "quiz_1_009", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Tage hat eine Woche?", "antworten": ["5", "6", "7"], "richtig": 2},
+  {"id": "quiz_1_010", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Jahreszeit kommt nach dem Winter?", "antworten": ["Sommer", "Fruehling", "Herbst"], "richtig": 1},
+  {"id": "quiz_1_011", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Tier legt Eier und kann fliegen?", "antworten": ["Hund", "Vogel", "Katze"], "richtig": 1},
+  {"id": "quiz_1_012", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Finger hat eine Hand?", "antworten": ["4", "5", "6"], "richtig": 1},
+  {"id": "quiz_1_013", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Farbe hat Gras?", "antworten": ["Gruen", "Blau", "Rot"], "richtig": 0},
+  {"id": "quiz_1_014", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was braucht eine Pflanze zum Wachsen?", "antworten": ["Wasser", "Salz", "Zucker"], "richtig": 0},
+  {"id": "quiz_1_015", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Tier miaut?", "antworten": ["Hund", "Katze", "Kuh"], "richtig": 1},
+  {"id": "quiz_1_016", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Raeder hat ein Fahrrad?", "antworten": ["1", "2", "3"], "richtig": 1},
+  {"id": "quiz_1_017", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welche Form hat ein Fussball?", "antworten": ["Eckig", "Rund", "Spitz"], "richtig": 1},
+  {"id": "quiz_1_018", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was scheint tagsueber am Himmel?", "antworten": ["Mond", "Sonne", "Sterne"], "richtig": 1},
+  {"id": "quiz_1_019", "fach": "quiz", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Tier hat einen Panzer?", "antworten": ["Schildkroete", "Hase", "Fuchs"], "richtig": 0},
+  {"id": "quiz_1_020", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Jahreszeiten gibt es?", "antworten": ["2", "3", "4"], "richtig": 2},
+  {"id": "quiz_1_021", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Tier bellt?", "antworten": ["Katze", "Hund", "Ente"], "richtig": 1},
+  {"id": "quiz_1_022", "fach": "quiz", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welche Farbe entsteht aus Rot und Weiss?", "antworten": ["Rosa", "Braun", "Grau"], "richtig": 0},
+  {"id": "quiz_1_023", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was fressen Kuehe am liebsten?", "antworten": ["Fleisch", "Gras", "Fisch"], "richtig": 1},
+  {"id": "quiz_1_024", "fach": "quiz", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Tier hat einen Hoecker?", "antworten": ["Pferd", "Kamel", "Schaf"], "richtig": 1},
+  {"id": "quiz_1_025", "fach": "quiz", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Monate hat ein Jahr?", "antworten": ["10", "12", "14"], "richtig": 1}
 ]

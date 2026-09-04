@@ -24,17 +24,20 @@ den Hinweis unten zum fehlenden Kompilier-/Hardware-Test.
 ## Vor dem ersten Flashen: zwei Dinge anpassen
 
 1. **Eigene Kinder eintragen:** [`include/KidProfiles.h`](include/KidProfiles.h)
-   öffnen und `kKidProfiles` mit den echten Namen und dem Alter der Kinder
-   befüllen (aktuell Platzhalter "Kind 1"/"Kind 2"). Der Tamagotchi-
-   Charakter trägt danach diesen Namen; die Klassenstufe (und damit die
-   Aufgaben-Schwierigkeit) wird automatisch aus dem Alter hergeleitet
-   (`klasseForAge()`, Schwelle in derselben Datei anpassbar).
+   öffnen und `kKidProfiles` mit den echten Namen, dem Alter **und dem
+   Geburtstag** (Monat/Tag, kein Jahr nötig) der Kinder befüllen (aktuell
+   Platzhalter "Kind 1"/"Kind 2" mit Platzhalter-Geburtstagen). Der
+   Tamagotchi-Charakter trägt danach diesen Namen; die Klassenstufe (und
+   damit die Aufgaben-Schwierigkeit) wird automatisch aus dem Alter
+   hergeleitet (`klasseForAge()`, Schwelle in derselben Datei anpassbar);
+   der Geburtstag speist den Countdown im Alltagsfunktionen-Menü (siehe
+   unten).
 2. **Aufgaben-Content auf die SD-Karte kopieren:** den Ordner
    [`sdcard/tasks/`](sdcard/tasks) auf die microSD-Karte kopieren (siehe
    "SD-Karte" unten). Ohne diese Dateien zeigt der Aufgaben-Modus "Keine
    Aufgaben gefunden" an. **Hinweis:** Der mitgelieferte Content ist
-   Platzhalter-Content (8–10 Fragen pro Fach/Klasse) zum Ausprobieren der
-   Engine, kein geprüfter Lehrplan-21/Passepartout-Stoff – siehe
+   selbst verfasster Übungscontent (25–30 Fragen pro Fach/Klasse) zum
+   Ausprobieren der Engine, kein geprüfter Lehrplan-21/Passepartout-Stoff – siehe
    Abschnitt 16 des Plans.
 
 ## Hardware
@@ -166,8 +169,8 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
     Spielzeitguthaben und kehren bei Null automatisch zu Home zurück.
     Highscores (wo sinnvoll) werden lokal in `/highscores.json`
     gespeichert.
-- **Alltagsfunktionen-Menü:** Icon-Grid (3×2, ein Feld bleibt leer) zu
-  Uhr/Wecker, Timer, Checkliste, Steckbrief und Aussehen.
+- **Alltagsfunktionen-Menü:** Icon-Grid (3×2, vollständig gefüllt) zu
+  Uhr/Wecker, Timer, Checkliste, Steckbrief, Aussehen und Geburtstag.
   - **Uhr/Wecker:** grosse Digitaluhr, eine einstellbare Alarmzeit (Glocke
     antippen = an/aus, +/- für Stunde/Minute). Der Wecker löst auch aus,
     wenn gerade ein anderer Screen aktiv ist (`AlarmService`).
@@ -181,6 +184,11 @@ lokal gecacht, der zweite Build ist entsprechend schnell.
     (Haut/Haare/Kleidung) mit </>-Pfeilen zum Durchblättern der
     Farbvoreinstellungen. Nicht Eltern-PIN-geschützt – das Kind kann
     seinen Charakter jederzeit selbst anpassen.
+  - **Geburtstag:** zeigt die Tage bis zum nächsten Geburtstag (aus
+    `include/KidProfiles.h`, dort wo auch der Name steht) mit einer kleinen
+    Torten-Grafik; am Geburtstag selbst erscheint statt der Tageszahl eine
+    Glückwunsch-Meldung. Ist am Profil kein Geburtstag hinterlegt, erscheint
+    stattdessen ein Hinweis.
 - **Nachtmodus:** dimmt den Bildschirm automatisch zwischen 20 und 7 Uhr
   (Default, RTC-basiert, `NightModeService`) – in den Einstellungen an/aus
   schaltbar.
@@ -250,6 +258,7 @@ src/screens/                 Konkrete Screens (je eine Klasse pro Screen)
   ChecklistScreen.*             Morgen-Routine-Checkliste
   SteckbriefScreen.*            Charakter-Uebersicht (nur lesend)
   CharacterCustomizeScreen.*     "Aussehen" - Haut/Haare/Kleidung waehlen (nicht PIN-geschuetzt)
+  BirthdayScreen.*               Geburtstags-Countdown (Monat/Tag aus KidProfiles.h)
   PinEntryScreen.*               Eltern-PIN-Eingabe (pruefen/neu setzen)
   SettingsScreen.*               Eltern-Einstellungen (PIN-geschuetzt)
   WebSyncScreen.*                 Zeigt SSID/Passwort/IP, startet/stoppt WebServerService

@@ -15,6 +15,11 @@ struct Profile {
     String geraetId;
     pincode::Digest guard; // Eltern-PIN, gehasht (siehe PinCode.h)
 
+    // Geburtstag (Abschnitt 11, BirthdayScreen) - aus include/KidProfiles.h
+    // beim Erststart uebernommen. 0/0 = kein Geburtstag hinterlegt.
+    uint8_t birthdayMonth = 0;
+    uint8_t birthdayDay = 0;
+
     // Wecker (Abschnitt 11) - eine einzelne Alarmzeit pro Geraet, in
     // profile.json statt progress.json (aendert sich selten, siehe
     // Abschnitt 6).

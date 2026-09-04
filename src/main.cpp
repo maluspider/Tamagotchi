@@ -9,6 +9,7 @@
 #include "core/StateMachine.h"
 #include "screens/AlltagMenuScreen.h"
 #include "screens/BasketballScreen.h"
+#include "screens/BirthdayScreen.h"
 #include "screens/BootScreen.h"
 #include "screens/CharacterCustomizeScreen.h"
 #include "screens/ChecklistScreen.h"
@@ -112,6 +113,9 @@ void setup() {
     });
     stateMachine.registerScreen(ScreenId::CharacterCustomize, [] {
         return std::make_unique<CharacterCustomizeScreen>(appContext, stateMachine);
+    });
+    stateMachine.registerScreen(ScreenId::Birthday, [] {
+        return std::make_unique<BirthdayScreen>(appContext, stateMachine);
     });
     stateMachine.registerScreen(ScreenId::PinEntry, [] {
         return std::make_unique<PinEntryScreen>(appContext, stateMachine);

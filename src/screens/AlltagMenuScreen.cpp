@@ -16,6 +16,7 @@ const AlltagMenuScreen::Entry AlltagMenuScreen::kEntries[AlltagMenuScreen::kEntr
     {ScreenId::Checklist, "Liste"},
     {ScreenId::Steckbrief, "Ich"},
     {ScreenId::CharacterCustomize, "Look"},
+    {ScreenId::Birthday, "Torte"},
 };
 
 AlltagMenuScreen::AlltagMenuScreen(AppContext& app, StateMachine& stateMachine)
@@ -70,6 +71,13 @@ void AlltagMenuScreen::drawEntry(int index, int cx, int cy, int cellSize) const 
             M5.Display.fillCircle(cx - r / 2, cy - r / 3, r / 4, theme::kAccentPink);
             M5.Display.fillCircle(cx, cy - r / 2, r / 4, theme::kAccentCyan);
             M5.Display.fillCircle(cx + r / 2, cy - r / 3, r / 4, theme::kAccentGold);
+            break;
+        case ScreenId::Birthday:
+            // Kleine Geburtstagstorte mit Kerze.
+            M5.Display.fillRoundRect(cx - r * 0.7, cy, r * 1.4, r * 0.6, 4, theme::kAccentPink);
+            M5.Display.fillRect(cx - r * 0.7, cy - 2, r * 1.4, 4, theme::kAccentGold);
+            M5.Display.fillRect(cx - 2, cy - r * 0.5, 4, r * 0.5 - 2, theme::kText);
+            M5.Display.fillCircle(cx, cy - r * 0.6, 4, theme::kAccentOrange);
             break;
         default:
             break;

@@ -6,5 +6,22 @@
   {"id": "quiz_3_005", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Minuten hat eine Stunde?", "antworten": ["50", "60", "70"], "richtig": 1},
   {"id": "quiz_3_006", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches ist die Hauptstadt der Schweiz?", "antworten": ["Zuerich", "Bern", "Basel"], "richtig": 1},
   {"id": "quiz_3_007", "fach": "quiz", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Wie viele Buchstaben hat das deutsche Alphabet (ohne Umlaute)?", "antworten": ["24", "26", "28"], "richtig": 1},
-  {"id": "quiz_3_008", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Organ pumpt das Blut durch den Koerper?", "antworten": ["Lunge", "Herz", "Magen"], "richtig": 1}
+  {"id": "quiz_3_008", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Organ pumpt das Blut durch den Koerper?", "antworten": ["Lunge", "Herz", "Magen"], "richtig": 1},
+  {"id": "quiz_3_009", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie viele Kontinente gibt es?", "antworten": ["5", "7", "9"], "richtig": 1},
+  {"id": "quiz_3_010", "fach": "quiz", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Welches ist der laengste Fluss vollstaendig in der Schweiz?", "antworten": ["Rhein", "Rhone", "Aare"], "richtig": 2},
+  {"id": "quiz_3_011", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie viele Planeten hat unser Sonnensystem?", "antworten": ["7", "8", "9"], "richtig": 1},
+  {"id": "quiz_3_012", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Gas atmen wir zum Leben ein?", "antworten": ["Kohlendioxid", "Sauerstoff", "Stickstoff"], "richtig": 1},
+  {"id": "quiz_3_013", "fach": "quiz", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Wie heisst der hoechste Berg der Schweiz?", "antworten": ["Matterhorn", "Dufourspitze", "Eiger"], "richtig": 1},
+  {"id": "quiz_3_014", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Organ hilft uns beim Atmen?", "antworten": ["Herz", "Lunge", "Leber"], "richtig": 1},
+  {"id": "quiz_3_015", "fach": "quiz", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Wie viele Zaehne hat ein Erwachsener normalerweise?", "antworten": ["28", "32", "36"], "richtig": 1},
+  {"id": "quiz_3_016", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "In welchem Land liegt die Stadt Rom?", "antworten": ["Spanien", "Italien", "Griechenland"], "richtig": 1},
+  {"id": "quiz_3_017", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was misst ein Thermometer?", "antworten": ["Zeit", "Temperatur", "Gewicht"], "richtig": 1},
+  {"id": "quiz_3_018", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Wochentage gibt es?", "antworten": ["5", "6", "7"], "richtig": 2},
+  {"id": "quiz_3_019", "fach": "quiz", "klasse": 3, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Tier ist das schnellste Landtier der Welt?", "antworten": ["Loewe", "Gepard", "Pferd"], "richtig": 1},
+  {"id": "quiz_3_020", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist die Hauptstadt von Frankreich?", "antworten": ["Lyon", "Marseille", "Paris"], "richtig": 2},
+  {"id": "quiz_3_021", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie viele Sekunden hat eine Minute?", "antworten": ["50", "60", "70"], "richtig": 1},
+  {"id": "quiz_3_022", "fach": "quiz", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Welcher Planet ist der Erde am naechsten?", "antworten": ["Mars", "Venus", "Jupiter"], "richtig": 1},
+  {"id": "quiz_3_023", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was produzieren Bienen?", "antworten": ["Milch", "Honig", "Wolle"], "richtig": 1},
+  {"id": "quiz_3_024", "fach": "quiz", "klasse": 3, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Wie nennt man Wasser, das gefroren ist?", "antworten": ["Dampf", "Eis", "Nebel"], "richtig": 1},
+  {"id": "quiz_3_025", "fach": "quiz", "klasse": 3, "schwierigkeit": 3, "typ": "multiple_choice", "frage": "Wie viele Kantone hat die Schweiz?", "antworten": ["24", "26", "28"], "richtig": 1}
 ]

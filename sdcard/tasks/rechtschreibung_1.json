@@ -6,5 +6,22 @@
   {"id": "rs_1_005", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Katze'?", "antworten": ["K", "R", "P"], "richtig": 0},
   {"id": "rs_1_006", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Shule", "Schule", "Schuhle"], "richtig": 1},
   {"id": "rs_1_007", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Mond'?", "antworten": ["N", "M", "L"], "richtig": 1},
-  {"id": "rs_1_008", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'B'?", "antworten": ["Apfel", "Blume", "Igel"], "richtig": 1}
+  {"id": "rs_1_008", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'B'?", "antworten": ["Apfel", "Blume", "Igel"], "richtig": 1},
+  {"id": "rs_1_009", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Vogel'?", "antworten": ["V", "F", "W"], "richtig": 0},
+  {"id": "rs_1_010", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Tisch'?", "antworten": ["D", "T", "P"], "richtig": 1},
+  {"id": "rs_1_011", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'G'?", "antworten": ["Giraffe", "Hase", "Igel"], "richtig": 0},
+  {"id": "rs_1_012", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'L'?", "antworten": ["Rose", "Lampe", "Nase"], "richtig": 1},
+  {"id": "rs_1_013", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Zug'?", "antworten": ["Z", "S", "C"], "richtig": 0},
+  {"id": "rs_1_014", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Vater", "Fater", "Fatta"], "richtig": 0},
+  {"id": "rs_1_015", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Apfel", "Abfel", "Apfell"], "richtig": 0},
+  {"id": "rs_1_016", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Regen'?", "antworten": ["R", "L", "W"], "richtig": 0},
+  {"id": "rs_1_017", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'D'?", "antworten": ["Drache", "Krokodil", "Ente"], "richtig": 0},
+  {"id": "rs_1_018", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Fenster", "Venster", "Fennster"], "richtig": 0},
+  {"id": "rs_1_019", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Nase'?", "antworten": ["M", "N", "B"], "richtig": 1},
+  {"id": "rs_1_020", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'W'?", "antworten": ["Wolke", "Sonne", "Mond"], "richtig": 0},
+  {"id": "rs_1_021", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Tuer", "Duer", "Thuer"], "richtig": 0},
+  {"id": "rs_1_022", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Was ist der Anlaut von 'Baum'?", "antworten": ["P", "D", "B"], "richtig": 2},
+  {"id": "rs_1_023", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 1, "typ": "multiple_choice", "frage": "Welches Wort beginnt mit 'K'?", "antworten": ["Katze", "Hund", "Fisch"], "richtig": 0},
+  {"id": "rs_1_024", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Welches Wort ist richtig geschrieben?", "antworten": ["Blume", "Plume", "Bluhme"], "richtig": 0},
+  {"id": "rs_1_025", "fach": "rechtschreibung", "klasse": 1, "schwierigkeit": 2, "typ": "multiple_choice", "frage": "Wie viele Buchstaben hat das Wort 'Hund'?", "antworten": ["3", "4", "5"], "richtig": 1}
 ]
