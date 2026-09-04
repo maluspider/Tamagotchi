@@ -1,0 +1,296 @@
+#include "SpaceInvadersScreen.h"
+
+#include <M5Unified.h>
+#include <esp_random.h>
+
+#include "../core/HighscoreStore.h"
+#include "../core/ScreenId.h"
+
+namespace {
+constexpr int kHomeIconSize = 28;
+constexpr const char* kHighscoreKey = "space_invaders";
+constexpr float kPlayerBulletSpeed = 0.18f; // px/ms
+constexpr float kAlienBulletSpeed = 0.09f;  // px/ms
+constexpr float kShipSpeed = 0.15f;         // px/ms
+constexpr float kAlienStepPx = 6.0f;
+} // namespace
+
+SpaceInvadersScreen::SpaceInvadersScreen(AppContext& app, StateMachine& stateMachine)
+    : app_(app), stateMachine_(stateMachine), canvas_(&M5.Display) {}
+
+void SpaceInvadersScreen::onEnter() {
+    canvas_.createSprite(M5.Display.width(), M5.Display.height());
+    resetGame();
+}
+
+void SpaceInvadersScreen::resetGame() {
+    lives_ = kStartLives;
+    wave_ = 0;
+    score_ = 0;
+    gameOver_ = false;
+    shipX_ = (M5.Display.width() - kShipW) / 2.0f;
+    startWave();
+}
+
+void SpaceInvadersScreen::startWave() {
+    ++wave_;
+
+    for (bool& alive : alienAlive_) {
+        alive = true;
+    }
+    aliensAliveCount_ = kAlienCount;
+    formationX_ = 0;
+    formationY_ = 0;
+    alienDirection_ = 1;
+    alienMoveAccumMs_ = 0;
+    alienFireAccumMs_ = 0;
+    playerBullet_.active = false;
+    for (Bullet& b : alienBullets_) {
+        b.active = false;
+    }
+
+    constexpr uint32_t kBaseIntervalMs = 500;
+    constexpr uint32_t kMinIntervalMs = 150;
+    const uint32_t reduction = static_cast<uint32_t>((wave_ - 1) * 60);
+    alienMoveIntervalMs_ = (kBaseIntervalMs > reduction + kMinIntervalMs) ? (kBaseIntervalMs - reduction) : kMinIntervalMs;
+}
+
+void SpaceInvadersScreen::endGame() {
+    gameOver_ = true;
+    highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
+}
+
+void SpaceInvadersScreen::updateAliens(uint32_t deltaMs) {
+    alienMoveAccumMs_ += deltaMs;
+    if (alienMoveAccumMs_ < alienMoveIntervalMs_) {
+        return;
+    }
+    alienMoveAccumMs_ -= alienMoveIntervalMs_;
+
+    formationX_ += static_cast<float>(alienDirection_) * kAlienStepPx;
+
+    const float leftEdge = kFormationBaseX + formationX_;
+    const float rightEdge = kFormationBaseX + (kAlienCols - 1) * kAlienSpacingX + kAlienW + formationX_;
+    if (leftEdge < 4 || rightEdge > M5.Display.width() - 4) {
+        formationX_ -= static_cast<float>(alienDirection_) * kAlienStepPx; // diesen Schritt rueckgaengig machen
+        alienDirection_ = -alienDirection_;
+        formationY_ += kAlienH;
+    }
+
+    if (kFormationBaseY + formationY_ + (kAlienRows - 1) * kAlienSpacingY + kAlienH >= kShipY) {
+        endGame(); // Aliens haben die Verteidigungslinie erreicht
+    }
+}
+
+void SpaceInvadersScreen::updateBullets(uint32_t deltaMs) {
+    if (playerBullet_.active) {
+        playerBullet_.y -= kPlayerBulletSpeed * static_cast<float>(deltaMs);
+        if (playerBullet_.y < kTopBarHeight) {
+            playerBullet_.active = false;
+        } else {
+            for (int i = 0; i < kAlienCount; ++i) {
+                if (!alienAlive_[i]) {
+                    continue;
+                }
+                const int col = i % kAlienCols;
+                const int row = i / kAlienCols;
+                const float ax = kFormationBaseX + col * kAlienSpacingX + formationX_;
+                const float ay = kFormationBaseY + row * kAlienSpacingY + formationY_;
+                if (playerBullet_.x >= ax && playerBullet_.x <= ax + kAlienW && playerBullet_.y >= ay &&
+                    playerBullet_.y <= ay + kAlienH) {
+                    alienAlive_[i] = false;
+                    --aliensAliveCount_;
+                    score_ += 10;
+                    playerBullet_.active = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (aliensAliveCount_ == 0) {
+        startWave();
+        return;
+    }
+
+    alienFireAccumMs_ += deltaMs;
+    if (alienFireAccumMs_ >= alienFireIntervalMs_) {
+        alienFireAccumMs_ = 0;
+
+        int freeSlot = -1;
+        for (int i = 0; i < kMaxAlienBullets; ++i) {
+            if (!alienBullets_[i].active) {
+                freeSlot = i;
+                break;
+            }
+        }
+        if (freeSlot >= 0) {
+            int shooter = -1;
+            for (int attempt = 0; attempt < kAlienCount; ++attempt) {
+                const int candidate = static_cast<int>(esp_random() % kAlienCount);
+                if (alienAlive_[candidate]) {
+                    shooter = candidate;
+                    break;
+                }
+            }
+            if (shooter >= 0) {
+                const int col = shooter % kAlienCols;
+                const int row = shooter / kAlienCols;
+                alienBullets_[freeSlot].x = kFormationBaseX + col * kAlienSpacingX + formationX_ + kAlienW / 2.0f;
+                alienBullets_[freeSlot].y = kFormationBaseY + row * kAlienSpacingY + formationY_ + kAlienH;
+                alienBullets_[freeSlot].active = true;
+            }
+        }
+    }
+
+    for (Bullet& b : alienBullets_) {
+        if (!b.active) {
+            continue;
+        }
+        b.y += kAlienBulletSpeed * static_cast<float>(deltaMs);
+        if (b.y > M5.Display.height()) {
+            b.active = false;
+            continue;
+        }
+        if (b.x >= shipX_ && b.x <= shipX_ + kShipW && b.y >= kShipY && b.y <= kShipY + kShipH) {
+            b.active = false;
+            --lives_;
+            if (lives_ <= 0) {
+                endGame();
+            }
+        }
+    }
+}
+
+void SpaceInvadersScreen::fireBullet() {
+    if (playerBullet_.active) {
+        return;
+    }
+    playerBullet_.x = shipX_ + kShipW / 2.0f;
+    playerBullet_.y = kShipY;
+    playerBullet_.active = true;
+}
+
+bool SpaceInvadersScreen::touchedHomeIcon(int x, int y) const {
+    return x >= M5.Display.width() - kHomeIconSize - 6 && y <= kHomeIconSize + 6;
+}
+
+void SpaceInvadersScreen::handleInput(uint32_t deltaMs) {
+    const auto touch = M5.Touch.getDetail();
+
+    if (touch.wasPressed() && touchedHomeIcon(touch.x, touch.y)) {
+        stateMachine_.requestSwitch(ScreenId::Home);
+        return;
+    }
+
+    if (gameOver_) {
+        if (touch.wasPressed()) {
+            resetGame();
+        }
+        return;
+    }
+
+    const int third = M5.Display.width() / 3;
+
+    if (touch.isPressed()) {
+        if (touch.x < third) {
+            shipX_ -= kShipSpeed * static_cast<float>(deltaMs);
+        } else if (touch.x >= 2 * third) {
+            shipX_ += kShipSpeed * static_cast<float>(deltaMs);
+        }
+        if (shipX_ < 4) {
+            shipX_ = 4;
+        }
+        if (shipX_ > M5.Display.width() - kShipW - 4) {
+            shipX_ = M5.Display.width() - kShipW - 4;
+        }
+    }
+
+    if (touch.wasPressed() && touch.x >= third && touch.x < 2 * third) {
+        fireBullet();
+    }
+}
+
+void SpaceInvadersScreen::update(uint32_t deltaMs) {
+    handleInput(deltaMs);
+
+    if (gameOver_) {
+        draw();
+        return;
+    }
+
+    if (playtimeTicker_.tick(app_, deltaMs)) {
+        stateMachine_.requestSwitch(ScreenId::Home);
+        return;
+    }
+
+    updateAliens(deltaMs);
+    if (!gameOver_) {
+        updateBullets(deltaMs);
+    }
+
+    draw();
+}
+
+void SpaceInvadersScreen::drawHomeIcon() {
+    const int x = canvas_.width() - kHomeIconSize - 6;
+    const int y = 6;
+    canvas_.drawRoundRect(x, y, kHomeIconSize, kHomeIconSize, 4, TFT_WHITE);
+    canvas_.fillTriangle(x + kHomeIconSize / 2, y + 4, x + 5, y + 14, x + kHomeIconSize - 5, y + 14, TFT_WHITE);
+    canvas_.fillRect(x + 8, y + 13, kHomeIconSize - 16, kHomeIconSize - 17, TFT_WHITE);
+}
+
+void SpaceInvadersScreen::draw() {
+    canvas_.fillScreen(TFT_BLACK);
+    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, TFT_NAVY);
+
+    canvas_.setTextColor(TFT_WHITE);
+    canvas_.setTextSize(1);
+    canvas_.setTextDatum(top_left);
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Punkte: %d  Welle: %d", score_, wave_);
+    canvas_.drawString(buf, 4, 4);
+
+    canvas_.setTextDatum(top_right);
+    snprintf(buf, sizeof(buf), "Leben: %d", lives_);
+    canvas_.drawString(buf, canvas_.width() - kHomeIconSize - 12, 4);
+
+    for (int i = 0; i < kAlienCount; ++i) {
+        if (!alienAlive_[i]) {
+            continue;
+        }
+        const int col = i % kAlienCols;
+        const int row = i / kAlienCols;
+        const int x = static_cast<int>(kFormationBaseX + col * kAlienSpacingX + formationX_);
+        const int y = static_cast<int>(kFormationBaseY + row * kAlienSpacingY + formationY_);
+        canvas_.fillRect(x, y, kAlienW, kAlienH, TFT_GREEN);
+    }
+
+    if (playerBullet_.active) {
+        canvas_.fillRect(static_cast<int>(playerBullet_.x) - 1, static_cast<int>(playerBullet_.y) - 4, 2, 8,
+                          TFT_WHITE);
+    }
+    for (const Bullet& b : alienBullets_) {
+        if (b.active) {
+            canvas_.fillRect(static_cast<int>(b.x) - 1, static_cast<int>(b.y) - 4, 2, 8, TFT_RED);
+        }
+    }
+
+    canvas_.fillRect(static_cast<int>(shipX_), kShipY, kShipW, kShipH, TFT_CYAN);
+
+    drawHomeIcon();
+
+    if (gameOver_) {
+        canvas_.setTextDatum(middle_center);
+        canvas_.setTextColor(TFT_WHITE);
+        canvas_.setTextSize(3);
+        canvas_.drawString("Game Over", canvas_.width() / 2, canvas_.height() / 2 - 25);
+        canvas_.setTextSize(2);
+        char hsBuf[24];
+        snprintf(hsBuf, sizeof(hsBuf), "Highscore: %u", static_cast<unsigned>(highscorestore::load(kHighscoreKey)));
+        canvas_.drawString(hsBuf, canvas_.width() / 2, canvas_.height() / 2 + 10);
+        canvas_.drawString("Tippen zum Neustart", canvas_.width() / 2, canvas_.height() / 2 + 35);
+    }
+
+    canvas_.pushSprite(0, 0);
+}

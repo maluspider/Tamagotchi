@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "../core/AppContext.h"
+#include "../core/PlaytimeTicker.h"
 #include "../core/Screen.h"
 #include "../core/StateMachine.h"
 
@@ -44,6 +45,7 @@ private:
     void step();
     void handleInput();
     void drawPlayfield();
+    void endGame();
 
     AppContext& app_;
     StateMachine& stateMachine_;
@@ -61,5 +63,5 @@ private:
     int score_ = 0;
 
     uint32_t stepAccumulatorMs_ = 0;
-    uint32_t minuteAccumulatorMs_ = 0;
+    PlaytimeTicker playtimeTicker_;
 };

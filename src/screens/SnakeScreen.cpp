@@ -3,7 +3,12 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
+
+namespace {
+constexpr const char* kHighscoreKey = "snake";
+} // namespace
 
 SnakeScreen::SnakeScreen(AppContext& app, StateMachine& stateMachine)
     : app_(app), stateMachine_(stateMachine), canvas_(&M5.Display) {}
@@ -27,7 +32,6 @@ void SnakeScreen::resetGame() {
     score_ = 0;
     gameOver_ = false;
     stepAccumulatorMs_ = 0;
-    minuteAccumulatorMs_ = 0;
 
     spawnFood();
 }
@@ -59,12 +63,12 @@ void SnakeScreen::step() {
     newHead.y = static_cast<int8_t>(newHead.y + direction_.y);
 
     if (newHead.x < 0 || newHead.x >= kCols || newHead.y < 0 || newHead.y >= kRows) {
-        gameOver_ = true;
+        endGame();
         return;
     }
     for (size_t i = 0; i < length_; ++i) {
         if (body_[i].x == newHead.x && body_[i].y == newHead.y) {
-            gameOver_ = true;
+            endGame();
             return;
         }
     }
@@ -85,6 +89,11 @@ void SnakeScreen::step() {
         ++score_;
         spawnFood();
     }
+}
+
+void SnakeScreen::endGame() {
+    gameOver_ = true;
+    highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
 }
 
 void SnakeScreen::handleInput() {
@@ -129,15 +138,9 @@ void SnakeScreen::update(uint32_t deltaMs) {
     // kostet eine Minute Guthaben; ist das Guthaben aufgebraucht, geht es
     // sofort zurueck zu Home ("Spiele-Menü nur mit vorhandenem
     // Zeitguthaben betretbar").
-    minuteAccumulatorMs_ += deltaMs;
-    if (minuteAccumulatorMs_ >= 60000) {
-        minuteAccumulatorMs_ -= 60000;
-        if (!app_.playtime.spend(1)) {
-            app_.persistProgress();
-            stateMachine_.requestSwitch(ScreenId::Home);
-            return;
-        }
-        app_.persistProgress();
+    if (playtimeTicker_.tick(app_, deltaMs)) {
+        stateMachine_.requestSwitch(ScreenId::Home);
+        return;
     }
 
     stepAccumulatorMs_ += deltaMs;
@@ -184,9 +187,12 @@ void SnakeScreen::draw() {
         canvas_.setTextDatum(middle_center);
         canvas_.setTextColor(TFT_WHITE);
         canvas_.setTextSize(3);
-        canvas_.drawString("Game Over", canvas_.width() / 2, canvas_.height() / 2 - 15);
+        canvas_.drawString("Game Over", canvas_.width() / 2, canvas_.height() / 2 - 25);
         canvas_.setTextSize(2);
-        canvas_.drawString("Tippen zum Neustart", canvas_.width() / 2, canvas_.height() / 2 + 20);
+        char hsBuf[24];
+        snprintf(hsBuf, sizeof(hsBuf), "Highscore: %u", static_cast<unsigned>(highscorestore::load(kHighscoreKey)));
+        canvas_.drawString(hsBuf, canvas_.width() / 2, canvas_.height() / 2 + 10);
+        canvas_.drawString("Tippen zum Neustart", canvas_.width() / 2, canvas_.height() / 2 + 35);
     }
 
     canvas_.pushSprite(0, 0);

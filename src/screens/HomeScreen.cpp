@@ -79,7 +79,7 @@ void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
         const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
         const bool hasTime = app_.playtime.availableMinutes() > 0;
         if (unlocked && hasTime) {
-            stateMachine_.requestSwitch(ScreenId::Snake);
+            stateMachine_.requestSwitch(ScreenId::GamesMenu);
         }
         return;
     }

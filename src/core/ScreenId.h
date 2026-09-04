@@ -1,8 +1,8 @@
 #pragma once
 
 // Siehe docs/projektplan.md Abschnitt 5 fuer die vollstaendige, geplante
-// Screen-Hierarchie. Restliche Alltagsfunktionen/Einstellungen sowie die
-// uebrigen Spiele kommen in Phase 3/4 dazu.
+// Screen-Hierarchie. Alltagsfunktionen-Menue/Einstellungen kommen in
+// Phase 4 dazu.
 enum class ScreenId {
     Boot,
     ProfileSetup,
@@ -10,6 +10,16 @@ enum class ScreenId {
     SubjectSelect,
     Task,
     Memory,
-    Snake,
     Clock,
+
+    GamesMenu,
+    Snake,
+    Tetris,
+    SpaceInvaders,
+    Pinball,
+    Basketball,
+    Fussball,
+    Puzzle,
+    MoorhuhnJagd,
+    KampfModus,
 };
