@@ -219,6 +219,15 @@ void PinballScreen::draw() {
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));
 
+    // Lichterkette + weicher Jackpot-Schein hinter den Bumpern statt einer
+    // leeren Tischflaeche (Nutzerwunsch: "hole das Maximum aus der
+    // Hardware...maximal hochwertig...mit Backgrounds").
+    canvas_.fillEllipse(canvas_.width() / 2, 80, 90, 42, gfxkit::lighten(theme::kPanel, 0.12f));
+    for (int i = 0; i < 8; ++i) {
+        const int lx = 20 + i * (canvas_.width() - 40) / 7;
+        gfxkit::shinyBall(&canvas_, lx, kTopBarHeight + 7, 3, (i % 2 == 0) ? theme::kAccentGold : theme::kAccentPink);
+    }
+
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
     canvas_.setTextDatum(top_left);

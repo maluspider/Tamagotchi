@@ -124,6 +124,18 @@ void BasketballScreen::draw() {
     constexpr uint16_t kFloor = theme::rgb565(0x8A, 0x55, 0x22);
     gfxkit::verticalGradient(&canvas_, 0, kTopBarHeight, canvas_.width(), canvas_.height() - kTopBarHeight,
                               gfxkit::darken(theme::kPanel, 0.5f), gfxkit::darken(kFloor, 0.35f));
+
+    // Hallenscheinwerfer (weiche, ueberlappende Lichtflecken) + Parkett-
+    // Maserung + Freiwurf-Zone statt einer reinen Verlaufsflaeche
+    // (Nutzerwunsch: "hole das Maximum aus der Hardware...maximal
+    // hochwertig...mit Backgrounds").
+    canvas_.fillEllipse(50, 90, 70, 40, gfxkit::lighten(theme::kPanel, 0.08f));
+    canvas_.fillEllipse(canvas_.width() - 50, 110, 70, 42, gfxkit::lighten(theme::kPanel, 0.06f));
+    for (int y = 120; y < canvas_.height(); y += 16) {
+        canvas_.drawLine(0, y, canvas_.width(), y, gfxkit::darken(kFloor, 0.5f));
+    }
+    canvas_.drawRect((canvas_.width() - 90) / 2, canvas_.height() - 70, 90, 70, gfxkit::lighten(kFloor, 0.25f));
+
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));
 

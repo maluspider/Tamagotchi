@@ -142,6 +142,23 @@ void PuzzleScreen::drawHomeIcon() {
 void PuzzleScreen::draw() {
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), gfxkit::darken(theme::kPanel, 0.55f),
                               theme::kBackground);
+
+    // Vignette (abgedunkelte Ecken) + goldener Galerie-Bilderrahmen um das
+    // Puzzle-Feld statt einer reinen Verlaufsflaeche (Nutzerwunsch: "hole
+    // das Maximum aus der Hardware...maximal hochwertig...mit
+    // Backgrounds").
+    const uint16_t vignette = gfxkit::darken(theme::kBackground, 0.5f);
+    canvas_.fillEllipse(0, 0, 90, 90, vignette);
+    canvas_.fillEllipse(canvas_.width(), 0, 90, 90, vignette);
+    canvas_.fillEllipse(0, canvas_.height(), 90, 90, vignette);
+    canvas_.fillEllipse(canvas_.width(), canvas_.height(), 90, 90, vignette);
+
+    const uint16_t frameGold = gfxkit::darken(theme::kAccentGold, 0.35f);
+    gfxkit::bevelPanel(&canvas_, kGridOffsetX - 12, kGridOffsetY - 12, kGridSize * kTileSize + 24,
+                        kGridSize * kTileSize + 24, 6, frameGold, true);
+    canvas_.fillRect(kGridOffsetX - 4, kGridOffsetY - 4, kGridSize * kTileSize + 8, kGridSize * kTileSize + 8,
+                      gfxkit::darken(theme::kOutline, 0.2f));
+
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));
 

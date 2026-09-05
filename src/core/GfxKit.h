@@ -36,12 +36,23 @@ void verticalGradient(LovyanGFX* target, int x, int y, int w, int h, uint16_t to
 // (eingedrueckt wirkendes Panel, z. B. fuer aktive/gedrueckte Zustaende).
 void bevelPanel(LovyanGFX* target, int x, int y, int w, int h, int r, uint16_t base, bool raised = true);
 
-// Deterministisches (nicht bei jedem Redraw "rauschendes") Sternenfeld aus
-// `count` kleinen Punkten im Bereich [0,width) x [0,maxY) - Positionen
-// ergeben sich aus einer festen Hash-Formel je Index statt aus rand(),
-// damit ein Screen, der jeden Frame neu zeichnet (z. B. HomeScreen),
-// ein stehendes Sternenfeld statt Flimmern zeigt.
-void starfield(LovyanGFX* target, int width, int maxY, int count, uint16_t color);
+// Deterministisches (nicht bei jedem Redraw "rauschendes") Punktefeld aus
+// `count` kleinen Punkten im Bereich [xOffset,xOffset+width) x
+// [yOffset,yOffset+maxY) - Positionen ergeben sich aus einer festen
+// Hash-Formel je Index statt aus rand(), damit ein Screen, der jeden Frame
+// neu zeichnet (z. B. HomeScreen), ein stehendes Sternenfeld statt
+// Flimmern zeigt. xOffset/yOffset erlauben die Platzierung in einem
+// begrenzten Bereich (z. B. innerhalb eines Tetris-Spielfelds oder als
+// Zuschauer-Tribuene ueber einem Spielfeld) statt nur ab (0,0); Aufrufe
+// ohne diese beiden Parameter verhalten sich wie zuvor.
+void starfield(LovyanGFX* target, int width, int maxY, int count, uint16_t color, int xOffset = 0, int yOffset = 0);
+
+// Deterministische Huegel-/Skyline-Silhouette aus `count` ueberlappenden
+// Dreiecken unterschiedlicher Hoehe (feste, nicht zufaellige Formel - siehe
+// starfield()) - fuer Landschafts-/Buehnenhintergruende (Moorhuhn-Jagd,
+// Kampf-Modus) ohne zusaetzliche Bild-Assets. baseY ist die Grundlinie
+// (Huegelfuss), peakHeight die maximale Hoehe der hoechsten Erhebung.
+void hillsSilhouette(LovyanGFX* target, int width, int baseY, int peakHeight, int count, uint16_t color);
 
 // Kugel mit Glanzlicht (kleiner heller Kreis oben-links) plus dunklerem
 // Rand statt einer reinen Flat-fillCircle - fuer Baelle/Muenzen/Punkte in

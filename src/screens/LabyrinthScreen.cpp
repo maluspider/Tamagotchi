@@ -176,6 +176,22 @@ void LabyrinthScreen::draw() {
     // Grafik maximal").
     gfxkit::verticalGradient(&canvas_, 0, kTopBarHeight, canvas_.width(), canvas_.height() - kTopBarHeight,
                               gfxkit::darken(theme::kPanel, 0.5f), theme::kBackground);
+
+    // Gemauerter Dungeon-Boden (versetzte Steinblock-Fugen) statt reinem
+    // Farbverlauf (Nutzerwunsch: "hole das Maximum aus der Hardware...
+    // maximal hochwertig...mit Backgrounds").
+    const uint16_t mortar = gfxkit::darken(theme::kPanel, 0.7f);
+    constexpr int kStoneH = 24;
+    constexpr int kStoneW = 40;
+    int stoneRow = 0;
+    for (int y = kTopBarHeight; y < canvas_.height(); y += kStoneH, ++stoneRow) {
+        canvas_.drawLine(0, y, canvas_.width(), y, mortar);
+        const int offset = (stoneRow % 2 == 0) ? 0 : kStoneW / 2;
+        for (int x = offset; x < canvas_.width(); x += kStoneW) {
+            canvas_.drawLine(x, y, x, y + kStoneH, mortar);
+        }
+    }
+
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));
 

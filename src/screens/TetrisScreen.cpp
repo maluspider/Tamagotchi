@@ -318,7 +318,30 @@ void TetrisScreen::drawHomeIcon() {
     canvas_.fillRect(x + 9, y + 13, kHomeIconSize - 18, kHomeIconSize - 18, theme::kOutline);
 }
 
+void TetrisScreen::drawSidePanel(int x, int w) {
+    // Arcade-Automaten-Seitenverkleidung: Ziegel-/Paneel-Textur in den
+    // Randbereichen links/rechts vom Spielfeld statt leerer Flaeche
+    // (Nutzerwunsch: "hole das Maximum aus der Hardware...maximal
+    // hochwertig...mit Backgrounds").
+    const uint16_t mortar = gfxkit::darken(theme::kPanelLight, 0.55f);
+    constexpr int kBrickH = 16;
+    int row = 0;
+    for (int y = kTopBarHeight; y < canvas_.height(); y += kBrickH, ++row) {
+        canvas_.drawLine(x, y, x + w, y, mortar);
+        const int offset = (row % 2 == 0) ? 0 : w / 2;
+        for (int bx = x + offset; bx < x + w; bx += w) {
+            canvas_.drawLine(bx, y, bx, y + kBrickH, mortar);
+        }
+    }
+}
+
 void TetrisScreen::drawBoard() {
+    // Sternenfeld-Weltraumhintergrund + Ziegel-Seitenpaneele statt leerer
+    // Randflaechen (Nutzerwunsch: "hole das Maximum aus der Hardware...
+    // maximal hochwertig...mit Backgrounds").
+    drawSidePanel(4, kBoardOffsetX - 8);
+    drawSidePanel(kBoardOffsetX + kBoardCols * kCellSize + 4, kBoardOffsetX - 8);
+
     // Gebeveltes Rahmen-Panel statt flachem Weiss-Rand, Spielfeld selbst
     // als dunkler Verlauf statt reinem Schwarz (Nutzerwunsch: "keine
     // rudimentaeren Darstellungen mehr, optimiere Grafik maximal").
@@ -326,6 +349,8 @@ void TetrisScreen::drawBoard() {
                         kBoardRows * kCellSize + 8, 4, theme::kPanelLight, true);
     gfxkit::verticalGradient(&canvas_, kBoardOffsetX, kBoardOffsetY, kBoardCols * kCellSize, kBoardRows * kCellSize,
                               theme::kOutline, TFT_BLACK);
+    gfxkit::starfield(&canvas_, kBoardCols * kCellSize, kBoardRows * kCellSize, 18, theme::kTextDim, kBoardOffsetX,
+                       kBoardOffsetY);
 
     for (int r = 0; r < kBoardRows; ++r) {
         for (int c = 0; c < kBoardCols; ++c) {
@@ -360,6 +385,7 @@ void TetrisScreen::drawBoard() {
 void TetrisScreen::draw() {
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), gfxkit::darken(theme::kPanel, 0.55f),
                               theme::kBackground);
+    gfxkit::starfield(&canvas_, canvas_.width(), canvas_.height(), 30, theme::kTextDim);
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));
 

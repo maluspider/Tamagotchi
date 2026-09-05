@@ -253,6 +253,24 @@ void SpaceInvadersScreen::draw() {
     // Grafik maximal") - passt thematisch besser zu Aliens als der
     // Synthwave-Look anderer Screens.
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), theme::kOutline, theme::kBackground);
+
+    // Nebel-Wolke (mehrere ueberlappende, unterschiedlich gedimmte Ellipsen
+    // simulieren "Weichzeichnung" ohne echte Transparenz) + Ringplanet in
+    // der ruhigen Zone zwischen Alien-Formation und Schiff (Nutzerwunsch:
+    // "hole das Maximum aus der Hardware...maximal hochwertig...mit
+    // Backgrounds").
+    const uint16_t nebulaBase = gfxkit::darken(theme::kAccentPink, 0.75f);
+    canvas_.fillEllipse(58, 138, 46, 22, nebulaBase);
+    canvas_.fillEllipse(80, 128, 34, 16, gfxkit::lighten(nebulaBase, 0.25f));
+    canvas_.fillEllipse(40, 150, 30, 14, gfxkit::darken(nebulaBase, 0.2f));
+
+    canvas_.fillCircle(252, 150, 26, gfxkit::darken(theme::kAccentOrange, 0.35f));
+    canvas_.fillCircle(252, 150, 20, theme::kAccentOrange);
+    canvas_.fillCircle(252, 143, 9, gfxkit::lighten(theme::kAccentOrange, 0.35f));
+    canvas_.fillEllipse(252, 150, 38, 7, gfxkit::lighten(theme::kMuted, 0.15f));
+    canvas_.fillCircle(252, 150, 20, theme::kAccentOrange);
+    canvas_.fillCircle(252, 143, 9, gfxkit::lighten(theme::kAccentOrange, 0.35f));
+
     gfxkit::starfield(&canvas_, canvas_.width(), canvas_.height(), 50, theme::kTextDim);
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));

@@ -240,12 +240,20 @@ void KampfModusScreen::drawHomeIcon() {
 }
 
 void KampfModusScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    // Arena-Hintergrund im SNES-/Strassenkaempfer-Look (Nutzerwunsch:
-    // "Backgrounds Super-Nintendo-Stil") statt der schlichten grauen
-    // Boden-Trennlinie - Horizont liegt exakt auf kGroundY, sodass die
-    // Kaempfer sichtbar auf der "Buehne" stehen.
-    retrobackdrop::drawSynthwaveGrid(&canvas_, canvas_.width(), canvas_.height(), kGroundY);
+    // Nacht-Buehnen-Hintergrund im SNES-/Strassenkaempfer-Look statt der
+    // urspruenglich schlichten grauen Boden-Trennlinie bzw. der spaeteren
+    // Synthwave-Sonne - Mond+Huegelkette+Zuschauer-Silhouette wirken fuer
+    // eine Kampf-Arena stimmiger als eine Sonne (Nutzerwunsch: "hole das
+    // Maximum aus der Hardware...maximal hochwertig...mit Backgrounds").
+    // Horizont liegt exakt auf kGroundY, sodass die Kaempfer sichtbar auf
+    // der "Buehne" stehen.
+    gfxkit::verticalGradient(&canvas_, 0, kTopBarHeight, canvas_.width(), kGroundY - kTopBarHeight,
+                              gfxkit::darken(theme::kPanel, 0.5f), theme::kOutline);
+    canvas_.fillCircle(canvas_.width() / 2, 66, 16, theme::kTextDim);
+    canvas_.fillCircle(canvas_.width() / 2 + 6, 61, 14, theme::kOutline);
+    gfxkit::hillsSilhouette(&canvas_, canvas_.width(), kGroundY, 34, 5, gfxkit::darken(theme::kPanelLight, 0.45f));
+    gfxkit::starfield(&canvas_, canvas_.width(), 10, 36, theme::kMuted, 0, kGroundY - 14);
+    retrobackdrop::drawSynthwaveGrid(&canvas_, canvas_.width(), canvas_.height(), kGroundY, false);
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));
     canvas_.setTextColor(TFT_WHITE);

@@ -180,6 +180,27 @@ void SnakeScreen::drawPlayfield() {
         }
     }
 
+    // Hecken-Beeteinfassung am Feldrand statt eines harten Feldschnitts -
+    // rein dekorativ, Schlange/Apfel duerfen weiterhin bis an den Rand
+    // (werden danach ueber der Heckenreihe gezeichnet), siehe Nutzerwunsch
+    // "hole das Maximum aus der Hardware...maximal hochwertig...mit
+    // Backgrounds".
+    const uint16_t hedge = gfxkit::darken(theme::kSuccess, 0.55f);
+    for (int gx = 0; gx < kCols; ++gx) {
+        canvas_.fillRect(gx * kCellSize, kTopBarHeight, kCellSize, kCellSize, hedge);
+        canvas_.fillRect(gx * kCellSize, kTopBarHeight + (kRows - 1) * kCellSize, kCellSize, kCellSize, hedge);
+    }
+    for (int gy = 0; gy < kRows; ++gy) {
+        canvas_.fillRect(0, kTopBarHeight + gy * kCellSize, kCellSize, kCellSize, hedge);
+        canvas_.fillRect((kCols - 1) * kCellSize, kTopBarHeight + gy * kCellSize, kCellSize, kCellSize, hedge);
+    }
+    for (int gx = 1; gx < kCols; gx += 2) {
+        canvas_.fillCircle(gx * kCellSize + kCellSize / 2, kTopBarHeight + kCellSize / 2, 2,
+                            gfxkit::lighten(hedge, 0.3f));
+        canvas_.fillCircle(gx * kCellSize + kCellSize / 2, kTopBarHeight + (kRows - 1) * kCellSize + kCellSize / 2, 2,
+                            gfxkit::lighten(hedge, 0.3f));
+    }
+
     for (size_t i = 0; i < length_; ++i) {
         const int x = body_[i].x * kCellSize;
         const int y = kTopBarHeight + body_[i].y * kCellSize;

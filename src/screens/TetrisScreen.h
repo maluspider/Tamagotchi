@@ -48,6 +48,7 @@ private:
     void handleInput();
 
     void drawBoard();
+    void drawSidePanel(int x, int w);
     void drawHomeIcon();
     bool touchedHomeIcon(int x, int y) const;
 

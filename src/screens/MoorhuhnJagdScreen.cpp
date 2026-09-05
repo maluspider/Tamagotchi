@@ -162,6 +162,15 @@ void MoorhuhnJagdScreen::draw() {
     canvas_.fillCircle(canvas_.width() - 40, kTopBarHeight + 26, 18, theme::kAccentGold);
     canvas_.fillEllipse(60, kTopBarHeight + 30, 22, 10, TFT_WHITE);
     canvas_.fillEllipse(80, kTopBarHeight + 24, 16, 9, TFT_WHITE);
+
+    // Ferne Huegelkette + Baumreihe zwischen Himmel und Wiese statt eines
+    // harten Schnitts - gibt der Szene Tiefe (Nutzerwunsch: "hole das
+    // Maximum aus der Hardware...maximal hochwertig...mit Backgrounds").
+    gfxkit::hillsSilhouette(&canvas_, canvas_.width(), groundY, 26, 4, gfxkit::darken(kGrass, 0.35f));
+    for (int tx = 10; tx < canvas_.width(); tx += 26) {
+        canvas_.fillTriangle(tx, groundY, tx + 16, groundY, tx + 8, groundY - 20, gfxkit::darken(kGrass, 0.5f));
+    }
+
     gfxkit::verticalGradient(&canvas_, 0, groundY, canvas_.width(), canvas_.height() - groundY,
                               gfxkit::lighten(kGrass, 0.15f), gfxkit::darken(kGrass, 0.25f));
     gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),

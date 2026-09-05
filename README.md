@@ -270,6 +270,23 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
       Buttons/Kacheln sind jetzt durchgängig gebevelte Panels statt flacher
       `fillRect`/`fillRoundRect`-Flächen, Kopfleisten haben einen Farbverlauf
       statt Flat-Fill.
+    - **Update (Nutzerwunsch "verbessere Spielegrafik...hole das Maximum
+      aus der Hardware...maximal hochwertig...mit Backgrounds"):** alle 10
+      Spiele bekamen zusätzlich eine eigene, mehrschichtige Szenerie statt
+      nur eines einfachen Verlaufs – Tetris (Sternenfeld im Brunnen +
+      Ziegel-Seitenpaneele), Space Invaders (Ringplanet + Nebelwolke),
+      Moorhuhn-Jagd (ferne Hügelkette + Baumreihe), Kampf-Modus
+      (Nacht-Bühne mit Mond, Bergsilhouette und Zuschauer-Andeutung statt
+      der Sonne), Basketball (Hallenscheinwerfer, Parkett-Maserung,
+      Freiwurf-Zone), Fussball (Stadion-Werbebanden neben dem Tor),
+      Ball-Labyrinth (gemauerter Dungeon-Boden), Puzzle (Vignette + goldener
+      Galerie-Bilderrahmen), Pinball (Lichterkette + Jackpot-Schein hinter
+      den Bumpern) und Snake (Hecken-Beeteinfassung am Feldrand). Neue
+      wiederverwendbare Bausteine dafür in
+      [`src/core/GfxKit.*`](src/core/GfxKit.h): `hillsSilhouette()` für
+      Landschafts-/Bühnensilhouetten sowie `xOffset`/`yOffset`-Parameter
+      für `starfield()`, damit sich Punktefelder gezielt in einem
+      Spielfeld-Ausschnitt statt nur ab (0,0) platzieren lassen.
 - **Fach-Auswahl:** Icon-Grid zu Mathe, Rechtschreibung, Französisch (nur
   ab Klasse 3), Quiz und Gedächtnistraining.
 - **Aufgaben-Modus:** Multiple-Choice-Frage antippen; richtige Antwort gibt

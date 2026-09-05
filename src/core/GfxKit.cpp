@@ -1,5 +1,7 @@
 #include "GfxKit.h"
 
+#include <cmath>
+
 namespace gfxkit {
 
 namespace {
@@ -77,7 +79,7 @@ void bevelPanel(LovyanGFX* target, int x, int y, int w, int h, int r, uint16_t b
     target->drawLine(x + w - 2, y + rr, x + w - 2, y + h - rr, lo);
 }
 
-void starfield(LovyanGFX* target, int width, int maxY, int count, uint16_t color) {
+void starfield(LovyanGFX* target, int width, int maxY, int count, uint16_t color, int xOffset, int yOffset) {
     if (width <= 0 || maxY <= 0 || count <= 0) {
         return;
     }
@@ -88,10 +90,29 @@ void starfield(LovyanGFX* target, int width, int maxY, int count, uint16_t color
         // statt "Rauschen" zeigen.
         const uint32_t h1 = static_cast<uint32_t>(i) * 2654435761u;
         const uint32_t h2 = static_cast<uint32_t>(i) * 40503u + 12345u;
-        const int sx = static_cast<int>(h1 % static_cast<uint32_t>(width));
-        const int sy = static_cast<int>(h2 % static_cast<uint32_t>(maxY));
+        const int sx = xOffset + static_cast<int>(h1 % static_cast<uint32_t>(width));
+        const int sy = yOffset + static_cast<int>(h2 % static_cast<uint32_t>(maxY));
         const int size = (i % 3 == 0) ? 2 : 1;
         target->fillRect(sx, sy, size, size, color);
+    }
+}
+
+void hillsSilhouette(LovyanGFX* target, int width, int baseY, int peakHeight, int count, uint16_t color) {
+    if (width <= 0 || count <= 0 || peakHeight <= 0) {
+        return;
+    }
+    const float step = static_cast<float>(width) / static_cast<float>(count);
+    for (int i = 0; i < count; ++i) {
+        const float cx = step * (static_cast<float>(i) + 0.5f);
+        // Feste, leicht unregelmaessige Hoehenformel je Huegel - kein
+        // echtes Rauschen noetig, liefert aber eine organisch wirkende
+        // Silhouette, die bei jedem Redraw identisch bleibt (siehe
+        // starfield() fuer dieselbe Ueberlegung).
+        const float h = static_cast<float>(peakHeight) * (0.55f + 0.45f * sinf(static_cast<float>(i) * 2.4f + 1.3f));
+        const int px = static_cast<int>(cx);
+        const int py = baseY - static_cast<int>(h);
+        const int halfBase = static_cast<int>(step * 0.7f) + 1;
+        target->fillTriangle(px - halfBase, baseY, px + halfBase, baseY, px, py, color);
     }
 }
 

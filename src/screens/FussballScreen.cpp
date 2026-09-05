@@ -168,6 +168,19 @@ void FussballScreen::draw() {
     const int goalX2i = static_cast<int>(kGoalX2);
     const int goalTopY = 20;
     const int goalBotY = static_cast<int>(kGoalLineY);
+
+    // Stadion-Werbebande links/rechts vom Tor statt reinem Rasen bis zum
+    // Bildrand - bunte kurze Blockstreifen wie LED-Banden hinter dem Tor
+    // (Nutzerwunsch: "hole das Maximum aus der Hardware...maximal
+    // hochwertig...mit Backgrounds").
+    static constexpr uint16_t kHoardingColors[3] = {TFT_WHITE, theme::kAccentCyan, theme::kAccentGold};
+    for (int hx = 0; hx < goalX1i; hx += 18) {
+        canvas_.fillRect(hx, goalTopY + 2, 14, 6, kHoardingColors[(hx / 18) % 3]);
+    }
+    for (int hx = goalX2i; hx < canvas_.width(); hx += 18) {
+        canvas_.fillRect(hx, goalTopY + 2, 14, 6, kHoardingColors[(hx / 18) % 3]);
+    }
+
     canvas_.drawRect(goalX1i, goalTopY, goalX2i - goalX1i, goalBotY - goalTopY, TFT_WHITE);
     for (int gx = goalX1i + 10; gx < goalX2i; gx += 10) {
         canvas_.drawLine(gx, goalTopY, gx, goalBotY, gfxkit::darken(TFT_WHITE, 0.5f));
