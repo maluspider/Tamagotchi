@@ -35,15 +35,41 @@ void CharacterRenderer::applyTraitColors(const Profile& profile) {
     // eventuellen Farbraum-Konvertierungen einer Lese-/Schreib-Hilfsfunktion.
     uint16_t* buf = static_cast<uint16_t*>(canvas_.getBuffer());
     const int total = kSourceSize * kSourceSize;
+    int skinHits = 0;
+    int hairHits = 0;
+    int clothHits = 0;
     for (int i = 0; i < total; ++i) {
         const uint16_t px = buf[i];
         if (px == traits::kSkinMarker) {
             buf[i] = skinColor;
+            ++skinHits;
         } else if (px == traits::kHairMarker) {
             buf[i] = hairColor;
+            ++hairHits;
         } else if (px == traits::kClothMarker) {
             buf[i] = clothColor;
+            ++clothHits;
         }
+    }
+
+    // Diagnose fuer Nutzer-Feedback "Kleidungsfarbe laesst sich nicht
+    // aendern": findet applyTraitColors() in einem ansonsten normal
+    // dekodierten Sprite (skin/hair-Marker vorhanden) keine einzige
+    // Kleidungs-Markerfarbe, kann die Farbe unmoeglich geaendert werden -
+    // die auf der SD-Karte liegende PNG-Datei enthaelt an diesen Pixeln
+    // dann vermutlich noch eine fest einprogrammierte Farbe aus der Zeit
+    // vor der Marker-Farben-Umstellung statt der Markerfarbe (siehe
+    // tools/generate_sprites.py) und muss neu auf die Karte kopiert werden.
+    // Einmalig geloggt (nicht pro Frame), um "pio device monitor" nicht zu
+    // fluten, aber trotzdem zuverlaessig sichtbar zu sein.
+    static bool warnedMissingClothMarker = false;
+    if (!warnedMissingClothMarker && clothHits == 0 && (skinHits > 0 || hairHits > 0)) {
+        warnedMissingClothMarker = true;
+        Serial.println(
+            "CharacterRenderer: Sprite enthaelt keine Kleidungs-Markerfarbe (Skin/Haar-Marker aber schon) - "
+            "Kleidungsfarbe kann sich dadurch nicht aendern. Vermutlich eine veraltete Sprite-Datei auf der "
+            "SD-Karte (vor der Marker-Farben-Umstellung erzeugt) - sdcard/sprites/character/ erneut auf die "
+            "Karte kopieren.");
     }
 }
 

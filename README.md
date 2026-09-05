@@ -216,6 +216,19 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
     statt fester Farben, die beim Zeichnen durch die gewählte Trait-Farbe
     ersetzt werden – deshalb reichen 18 Bilddateien statt hunderter
     Farbkombinationen.
+    **Bekanntes Problem "Kleidungsfarbe ändert sich nicht":** mehrfach
+    gemeldet, aber trotz zweier gründlicher Code-Reviews von
+    `CharacterRenderer`/`CharacterCustomizeScreen`/`generate_sprites.py`
+    kein Fehler in Firmware-Code oder den mitgelieferten PNGs gefunden
+    (letztere wurden erneut generiert und sind byte-identisch zu den im
+    Repo liegenden Dateien). `CharacterRenderer::applyTraitColors()`
+    protokolliert jetzt beim Palette-Swap einmalig über `Serial`, wenn ein
+    geladenes Sprite keine einzige Kleidungs-Markerfarbe enthält, obwohl
+    Haut-/Haar-Marker gefunden wurden – erscheint diese Meldung in
+    `pio device monitor`, liegt auf der SD-Karte eine veraltete
+    Sprite-Datei von vor der Marker-Farben-Umstellung; Abhilfe:
+    `sdcard/sprites/character/` erneut komplett auf die Karte kopieren
+    (alte Dateien überschreiben, nicht nur ergänzen).
   - **Farbschema:** die komplette Nicht-Spiel-UI (inkl. der Kopf-/
     Statusleisten aller 9 Spiele) nutzt ein durchgängiges, auf maximale
     Knalligkeit finalisiertes 80er-Jahre-/Arcade-Neon-Farbschema (fast
