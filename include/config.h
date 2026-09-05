@@ -14,6 +14,17 @@ constexpr int kSdChipSelectPin = 4; // Core2: TFCARD_CS_PIN
 // und die Begruendung der Aufteilung.
 constexpr const char* kProfilePath = "/profile.json";
 constexpr const char* kProgressPath = "/progress.json";
+constexpr const char* kRtcBackupPath = "/rtc_backup.json";
+
+// --- RTC-Plausibilitaet (Abschnitt 11/15) ---
+// Frisch ausgelieferte/noch nie gestellte RTCs starten haeufig bei einem
+// Chip-Default-Datum (z. B. Jahr 2000) - ein Jahr unterhalb dieser
+// Schwelle gilt als "RTC noch nicht plausibel gestellt". Genutzt von
+// NightModeService (Nachtmodus bleibt in dem Fall inaktiv) und
+// RtcBackupService (siehe dort - manche Core2-Boards verlieren die
+// RTC-Zeit beim echten Abschalten ueber M5.Power.powerOff() mangels
+// ausreichendem Backup-Akku).
+constexpr int kRtcPlausibleMinYear = 2024;
 
 // --- Sprite-Grafiken (Abschnitt 4) ---
 // Verzeichnis mit den Charakter-Sprites (<stage>_idle1.png/idle2.png/sad.png,

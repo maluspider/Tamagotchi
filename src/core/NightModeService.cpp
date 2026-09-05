@@ -2,25 +2,28 @@
 
 #include <M5Unified.h>
 
+#include "config.h"
+
 namespace nightmodeservice {
 
 namespace {
 constexpr uint8_t kNormalBrightness = 200;
 constexpr uint8_t kNightBrightness = 20;
-// Frisch ausgelieferte/noch nie gestellte RTCs starten haeufig bei einem
-// Default-Datum (je nach Chip z. B. Jahr 2000 oder 1970) mit Stunde 0 -
-// das faellt in jedes plausible Nachtmodus-Fenster und wuerde den
-// Bildschirm sofort dimmen, noch bevor das Kind/die Eltern die Uhrzeit je
-// gestellt haben (siehe DateTimeSetScreen). Ein Jahr unterhalb dieser
-// Schwelle gilt daher als "RTC noch nicht gestellt" - Nachtmodus bleibt in
-// dem Fall inaktiv, unabhaengig von der Uhrzeit.
-constexpr int kPlausibleMinYear = 2024;
 } // namespace
 
 bool isNight(const Profile& profile) {
     m5::rtc_date_t date;
     M5.Rtc.getDate(&date);
-    if (date.year < kPlausibleMinYear) {
+    // Frisch ausgelieferte/noch nie gestellte RTCs starten haeufig bei
+    // einem Default-Datum (je nach Chip z. B. Jahr 2000 oder 1970) mit
+    // Stunde 0 - das faellt in jedes plausible Nachtmodus-Fenster und
+    // wuerde den Bildschirm sofort dimmen, noch bevor das Kind/die Eltern
+    // die Uhrzeit je gestellt haben (siehe DateTimeSetScreen). Ein Jahr
+    // unterhalb von config::kRtcPlausibleMinYear gilt daher als "RTC noch
+    // nicht gestellt" - Nachtmodus bleibt in dem Fall inaktiv, unabhaengig
+    // von der Uhrzeit. Dieselbe Schwelle nutzt RtcBackupService, um eine
+    // beim Abschalten verlorene RTC-Zeit zu erkennen und wiederherzustellen.
+    if (date.year < config::kRtcPlausibleMinYear) {
         return false;
     }
 

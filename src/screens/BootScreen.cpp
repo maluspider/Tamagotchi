@@ -5,6 +5,7 @@
 
 #include "../core/GfxKit.h"
 #include "../core/RetroBackdrop.h"
+#include "../core/RtcBackupService.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
@@ -149,6 +150,14 @@ void BootScreen::update(uint32_t deltaMs) {
         // benoetigt (Abschnitt 6/8.3) - das SD-Filesystem legt Verzeichnisse
         // nicht implizit beim Schreiben an.
         SD.mkdir("/progress");
+    }
+
+    // Nutzer-Feedback: "Uhrzeit geht verloren, wenn man das Geraet
+    // ausschaltet" - siehe RtcBackupService.h. Muss laufen, bevor
+    // irgendetwas unten das RTC-Datum liest (rtcclock::todayIso() fuer
+    // Spielzeitkonto/Spaced-Repetition/Geburtstag).
+    if (rtcbackupservice::restoreIfImplausible()) {
+        Serial.println("BootScreen: RTC-Zeit aus Sicherung wiederhergestellt.");
     }
 
     app_.profile = profilestore::load();

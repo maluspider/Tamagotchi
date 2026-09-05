@@ -6,6 +6,7 @@
 #include "core/AppContext.h"
 #include "core/Haptics.h"
 #include "core/NightModeService.h"
+#include "core/RtcBackupService.h"
 #include "core/ScreenId.h"
 #include "core/StateMachine.h"
 #include "screens/AlltagMenuScreen.h"
@@ -71,6 +72,14 @@ uint32_t bootMs = 0;
 // damit ausversehentliche Tipps auf dem dunklen Screen nichts veraendern
 // und keine Spielzeit verbraucht wird, waehrend das Geraet "aus" ist.
 bool displayManuallyOff = false;
+
+// Siehe RtcBackupService.h: periodisches Sichern der RTC-Zeit als Schutz
+// gegen unerwarteten Stromverlust (leerer Akku) zusaetzlich zur Sicherung
+// unmittelbar vor M5.Power.powerOff() unten - 5 Minuten sind haeufig genug,
+// um im Alltag kaum Zeit zu "verlieren", aber selten genug, um die SD-Karte
+// nicht unnoetig oft zu beschreiben.
+constexpr uint32_t kRtcBackupIntervalMs = 5 * 60 * 1000;
+uint32_t rtcBackupElapsedMs = 0;
 
 } // namespace
 
@@ -195,6 +204,10 @@ void loop() {
     // bewusst KEINEN Reset/Fortschritt-loeschen-Mechanismus in der Firmware.
     if (pastBootGrace && M5.BtnPWR.pressedFor(kPowerButtonOffHoldMs)) {
         appContext.persistProgress();
+        // Siehe RtcBackupService.h - der wichtigste Sicherungszeitpunkt,
+        // da genau jetzt die Stromversorgung (und damit moeglicherweise die
+        // RTC-Pufferspannung) gekappt wird.
+        rtcbackupservice::save();
         M5.Power.powerOff();
     }
 
@@ -221,6 +234,15 @@ void loop() {
     // Vibration auch dann zuverlaessig wieder abschaltet, wenn zwischendurch
     // der Screen wechselt (siehe Haptics.h).
     haptics::update(deltaMs);
+
+    // Screen-unabhaengig und auch bei manuell abgeschaltetem Display aktiv
+    // (siehe RtcBackupService.h) - schuetzt gegen unerwarteten
+    // Stromverlust, nicht nur gegen den regulaeren Abschalt-Weg oben.
+    rtcBackupElapsedMs += deltaMs;
+    if (rtcBackupElapsedMs >= kRtcBackupIntervalMs) {
+        rtcBackupElapsedMs = 0;
+        rtcbackupservice::save();
+    }
 
     if (displayManuallyOff) {
         // Siehe Kommentar bei displayManuallyOff oben: Nachtmodus-Check und

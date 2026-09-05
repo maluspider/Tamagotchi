@@ -549,6 +549,23 @@ Fehler:
   Behoben durch Sub-Stepping: die Bewegung wird bei hoher Geschwindigkeit in
   mehrere kleine Schritte von max. 4px aufgeteilt (max. 8 Sub-Schritte je
   Frame), sodass jede Wand mindestens einmal "gesehen" wird.
+- **Uhrzeit ging beim Ausschalten verloren, dadurch verschwand auch die
+  verdiente Spielzeit:** manche Core2-Boards haben keinen ausreichenden
+  Backup-Akku für die RTC – seit dem Wechsel von `ESP.restart()` auf
+  echtes `M5.Power.powerOff()` (siehe "Power-Taste" oben) verliert die RTC
+  dabei nach einiger Zeit ihre Pufferspannung und fällt beim nächsten
+  Einschalten auf ihr Chip-Default-Datum (z. B. Jahr 2000) zurück. Das
+  ließ nicht nur die Uhrzeit falsch aussehen, sondern erkannte
+  `PlaytimeAccount::rolloverIfNewDay()` dadurch jeden Neustart als neuen
+  Tag – verdiente Spielzeit verschwand sofort wieder (das gemeldete
+  "Spielzeit-Timer funktioniert nicht"). Neues
+  [`src/core/RtcBackupService.*`](src/core/RtcBackupService.h) sichert die
+  RTC-Zeit periodisch (alle 5 Minuten) sowie unmittelbar vor dem
+  Abschalten atomar auf die SD-Karte und stellt sie beim nächsten Boot
+  wieder her, falls die RTC eine unplausible Zeit zeigt – keine perfekte
+  Lösung (die tatsächlich vergangene Abschaltzeit bleibt unbekannt), aber
+  behandelt den Alltagsfall "kurz aus, wieder an" korrekt statt das
+  Spielzeitguthaben jedes Mal zu verlieren.
 
 Die Spiele-Physik (Pinball/Basketball/Fussball/Moorhuhn-Jagd)-Konstanten
 sind weiterhin Startwerte, die bei Bedarf nach mehr Spielzeit noch
