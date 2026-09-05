@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
@@ -184,8 +185,16 @@ void PinballScreen::drawHomeIcon() {
 }
 
 void PinballScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    // Dunkler Tisch-Verlauf statt Flat-Hintergrund plus gebevelte
+    // Seitenbanden (Nutzerwunsch: "keine rudimentaeren Darstellungen mehr,
+    // optimiere Grafik maximal").
+    gfxkit::verticalGradient(&canvas_, 0, kTopBarHeight, canvas_.width(), canvas_.height() - kTopBarHeight,
+                              gfxkit::darken(theme::kPanel, 0.35f), theme::kOutline);
+    gfxkit::bevelPanel(&canvas_, 0, kTopBarHeight, 8, canvas_.height() - kTopBarHeight, 0, theme::kPanelLight, true);
+    gfxkit::bevelPanel(&canvas_, canvas_.width() - 8, kTopBarHeight, 8, canvas_.height() - kTopBarHeight, 0,
+                        theme::kPanelLight, true);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
@@ -195,16 +204,17 @@ void PinballScreen::draw() {
     canvas_.drawString(buf, 4, 4);
 
     for (const Bumper& bumper : kBumpers) {
-        canvas_.fillCircle(static_cast<int>(bumper.x), static_cast<int>(bumper.y), static_cast<int>(bumper.r),
-                            TFT_ORANGE);
+        gfxkit::shinyBall(&canvas_, static_cast<int>(bumper.x), static_cast<int>(bumper.y),
+                           static_cast<int>(bumper.r), theme::kAccentOrange);
     }
 
     const int leftLen = leftFlipperActive_ ? 110 : 90;
     const int rightLen = rightFlipperActive_ ? 110 : 90;
-    canvas_.fillRect(10, 210, leftLen, 8, TFT_CYAN);
-    canvas_.fillRect(canvas_.width() - 10 - rightLen, 210, rightLen, 8, TFT_CYAN);
+    gfxkit::bevelPanel(&canvas_, 10, 210, leftLen, 8, 3, theme::kAccentCyan, true);
+    gfxkit::bevelPanel(&canvas_, canvas_.width() - 10 - rightLen, 210, rightLen, 8, 3, theme::kAccentCyan, true);
 
-    canvas_.fillCircle(static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius), TFT_WHITE);
+    gfxkit::shinyBall(&canvas_, static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius),
+                       TFT_WHITE);
 
     drawHomeIcon();
 

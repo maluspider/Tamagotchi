@@ -17,7 +17,10 @@
 namespace retrobackdrop {
 
 // horizonY: Position der Horizontlinie (Sonne sitzt knapp darueber, das
-// Gitter faechert darunter zum unteren Bildschirmrand auf).
-void drawSynthwaveGrid(LovyanGFX* target, int width, int height, int horizonY);
+// Gitter faechert darunter zum unteren Bildschirmrand auf). showSun=false
+// laesst die Sonne weg (z. B. HomeScreen bei Nacht - dort uebernimmt ein
+// eigenes Sternenfeld/Mond die Szenerie, siehe HomeScreen::draw()), das
+// Bodengitter bleibt in jedem Fall erhalten.
+void drawSynthwaveGrid(LovyanGFX* target, int width, int height, int horizonY, bool showSun = true);
 
 } // namespace retrobackdrop

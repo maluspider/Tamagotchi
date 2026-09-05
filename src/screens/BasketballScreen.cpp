@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
@@ -117,8 +118,14 @@ void BasketballScreen::drawHomeIcon() {
 }
 
 void BasketballScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    // Hallenboden-Verlauf (Parkett-Ton) statt flacher Ein-Farb-Flaeche
+    // (Nutzerwunsch: "keine rudimentaeren Darstellungen mehr, optimiere
+    // Grafik maximal").
+    constexpr uint16_t kFloor = theme::rgb565(0x8A, 0x55, 0x22);
+    gfxkit::verticalGradient(&canvas_, 0, kTopBarHeight, canvas_.width(), canvas_.height() - kTopBarHeight,
+                              gfxkit::darken(theme::kPanel, 0.5f), gfxkit::darken(kFloor, 0.35f));
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
@@ -127,16 +134,18 @@ void BasketballScreen::draw() {
     snprintf(buf, sizeof(buf), "Punkte: %d", score_);
     canvas_.drawString(buf, 4, 4);
 
-    // Brett + Ring.
-    canvas_.fillRect(kRimX1 - 10, 30, (kRimX2 - kRimX1) + 20, 6, TFT_WHITE);
-    canvas_.drawLine(kRimX1, kRimY, kRimX2, kRimY, TFT_ORANGE);
-    canvas_.drawLine(kRimX1, kRimY, kRimX1, kRimY + 12, TFT_ORANGE);
-    canvas_.drawLine(kRimX2, kRimY, kRimX2, kRimY + 12, TFT_ORANGE);
+    // Brett (gebevelt) + Ring.
+    gfxkit::bevelPanel(&canvas_, kRimX1 - 10, 30, (kRimX2 - kRimX1) + 20, 6, 2, TFT_WHITE, true);
+    canvas_.drawLine(kRimX1, kRimY, kRimX2, kRimY, theme::kAccentOrange);
+    canvas_.drawLine(kRimX1, kRimY, kRimX1, kRimY + 12, theme::kAccentOrange);
+    canvas_.drawLine(kRimX2, kRimY, kRimX2, kRimY + 12, theme::kAccentOrange);
 
-    canvas_.fillCircle(static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius),
-                        TFT_ORANGE);
+    gfxkit::shinyBall(&canvas_, static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius),
+                       theme::kAccentOrange);
     canvas_.drawLine(static_cast<int>(ballX_) - static_cast<int>(kBallRadius), static_cast<int>(ballY_),
                       static_cast<int>(ballX_) + static_cast<int>(kBallRadius), static_cast<int>(ballY_), TFT_BLACK);
+    canvas_.drawLine(static_cast<int>(ballX_), static_cast<int>(ballY_) - static_cast<int>(kBallRadius),
+                      static_cast<int>(ballX_), static_cast<int>(ballY_) + static_cast<int>(kBallRadius), TFT_BLACK);
 
     if (state_ == BallState::Idle) {
         canvas_.setTextDatum(bottom_center);

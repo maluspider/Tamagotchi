@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
@@ -318,9 +319,13 @@ void TetrisScreen::drawHomeIcon() {
 }
 
 void TetrisScreen::drawBoard() {
-    canvas_.fillRect(kBoardOffsetX - 2, kBoardOffsetY - 2, kBoardCols * kCellSize + 4, kBoardRows * kCellSize + 4,
-                      TFT_WHITE);
-    canvas_.fillRect(kBoardOffsetX, kBoardOffsetY, kBoardCols * kCellSize, kBoardRows * kCellSize, TFT_BLACK);
+    // Gebeveltes Rahmen-Panel statt flachem Weiss-Rand, Spielfeld selbst
+    // als dunkler Verlauf statt reinem Schwarz (Nutzerwunsch: "keine
+    // rudimentaeren Darstellungen mehr, optimiere Grafik maximal").
+    gfxkit::bevelPanel(&canvas_, kBoardOffsetX - 4, kBoardOffsetY - 4, kBoardCols * kCellSize + 8,
+                        kBoardRows * kCellSize + 8, 4, theme::kPanelLight, true);
+    gfxkit::verticalGradient(&canvas_, kBoardOffsetX, kBoardOffsetY, kBoardCols * kCellSize, kBoardRows * kCellSize,
+                              theme::kOutline, TFT_BLACK);
 
     for (int r = 0; r < kBoardRows; ++r) {
         for (int c = 0; c < kBoardCols; ++c) {
@@ -329,7 +334,7 @@ void TetrisScreen::drawBoard() {
             }
             const int x = kBoardOffsetX + c * kCellSize;
             const int y = kBoardOffsetY + r * kCellSize;
-            canvas_.fillRect(x, y, kCellSize - 1, kCellSize - 1, boardColor_[r][c]);
+            gfxkit::bevelPanel(&canvas_, x, y, kCellSize - 1, kCellSize - 1, 2, boardColor_[r][c], true);
         }
     }
 
@@ -346,15 +351,17 @@ void TetrisScreen::drawBoard() {
                 }
                 const int x = kBoardOffsetX + boardC * kCellSize;
                 const int y = kBoardOffsetY + boardR * kCellSize;
-                canvas_.fillRect(x, y, kCellSize - 1, kCellSize - 1, currentColor_);
+                gfxkit::bevelPanel(&canvas_, x, y, kCellSize - 1, kCellSize - 1, 2, currentColor_, true);
             }
         }
     }
 }
 
 void TetrisScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), gfxkit::darken(theme::kPanel, 0.55f),
+                              theme::kBackground);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     char buf[24];
     canvas_.setTextColor(TFT_WHITE);

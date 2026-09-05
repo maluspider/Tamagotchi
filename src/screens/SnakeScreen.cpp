@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
@@ -166,17 +167,39 @@ void SnakeScreen::update(uint32_t deltaMs) {
 }
 
 void SnakeScreen::drawPlayfield() {
-    canvas_.fillRect(0, kTopBarHeight, canvas_.width(), canvas_.height() - kTopBarHeight, TFT_BLACK);
+    // Zweifarbiges Wiesen-Schachbrett statt einer flachen Schwarzflaeche
+    // (Nutzerwunsch: "keine rudimentaeren Darstellungen mehr, optimiere
+    // Grafik maximal") - klassischer Retro-Rasenboden-Look.
+    const uint16_t grassA = gfxkit::darken(theme::kSuccess, 0.82f);
+    const uint16_t grassB = gfxkit::darken(theme::kSuccess, 0.88f);
+    for (int gy = 0; gy < kRows; ++gy) {
+        for (int gx = 0; gx < kCols; ++gx) {
+            const int x = gx * kCellSize;
+            const int y = kTopBarHeight + gy * kCellSize;
+            canvas_.fillRect(x, y, kCellSize, kCellSize, ((gx + gy) % 2 == 0) ? grassA : grassB);
+        }
+    }
 
     for (size_t i = 0; i < length_; ++i) {
         const int x = body_[i].x * kCellSize;
         const int y = kTopBarHeight + body_[i].y * kCellSize;
-        canvas_.fillRect(x, y, kCellSize - 1, kCellSize - 1, i == 0 ? TFT_YELLOW : TFT_GREEN);
+        const uint16_t base = (i == 0) ? theme::kAccentGold : theme::kSuccess;
+        // Leicht abgerundete, gebevelte Segmente statt flacher Quadrate.
+        gfxkit::bevelPanel(&canvas_, x, y, kCellSize - 1, kCellSize - 1, 3, base, true);
+        if (i == 0) {
+            // Augen auf dem Kopf-Segment, in Blickrichtung versetzt.
+            const int ex = x + (kCellSize - 1) / 2 + direction_.x * 2;
+            const int ey = y + (kCellSize - 1) / 2 + direction_.y * 2;
+            canvas_.fillCircle(ex, ey, 1, theme::kOutline);
+        }
     }
 
-    const int fx = food_.x * kCellSize;
-    const int fy = kTopBarHeight + food_.y * kCellSize;
-    canvas_.fillRect(fx, fy, kCellSize - 1, kCellSize - 1, TFT_RED);
+    const int fx = food_.x * kCellSize + kCellSize / 2;
+    const int fy = kTopBarHeight + food_.y * kCellSize + kCellSize / 2;
+    // Apfel statt flachem Quadrat: Glanzlicht-Kugel plus kleines Blatt.
+    gfxkit::shinyBall(&canvas_, fx, fy, (kCellSize - 2) / 2, theme::kDanger);
+    canvas_.fillTriangle(fx, fy - (kCellSize - 2) / 2, fx + 3, fy - (kCellSize - 2) / 2 - 4, fx + 1,
+                          fy - (kCellSize - 2) / 2, theme::kSuccess);
 }
 
 void SnakeScreen::drawHomeIcon() {
@@ -189,7 +212,8 @@ void SnakeScreen::drawHomeIcon() {
 }
 
 void SnakeScreen::draw() {
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     char buf[24];
     canvas_.setTextColor(TFT_WHITE);

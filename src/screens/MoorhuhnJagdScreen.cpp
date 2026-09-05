@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
@@ -148,8 +149,21 @@ void MoorhuhnJagdScreen::drawHomeIcon() {
 }
 
 void MoorhuhnJagdScreen::draw() {
-    canvas_.fillScreen(TFT_GREENYELLOW);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    // Himmel-Verlauf + Sonne + Wolken + Wiesenboden statt einer flachen
+    // Gelbgruen-Flaeche (Nutzerwunsch: "keine rudimentaeren Darstellungen
+    // mehr, optimiere Grafik maximal").
+    constexpr uint16_t kSky = theme::rgb565(0x4A, 0xC9, 0xE8);
+    constexpr uint16_t kGrass = theme::rgb565(0x6A, 0xC9, 0x3A);
+    const int groundY = canvas_.height() - 34;
+    gfxkit::verticalGradient(&canvas_, 0, kTopBarHeight, canvas_.width(), groundY - kTopBarHeight, kSky,
+                              gfxkit::lighten(kSky, 0.3f));
+    canvas_.fillCircle(canvas_.width() - 40, kTopBarHeight + 26, 18, theme::kAccentGold);
+    canvas_.fillEllipse(60, kTopBarHeight + 30, 22, 10, TFT_WHITE);
+    canvas_.fillEllipse(80, kTopBarHeight + 24, 16, 9, TFT_WHITE);
+    gfxkit::verticalGradient(&canvas_, 0, groundY, canvas_.width(), canvas_.height() - groundY,
+                              gfxkit::lighten(kGrass, 0.15f), gfxkit::darken(kGrass, 0.25f));
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);

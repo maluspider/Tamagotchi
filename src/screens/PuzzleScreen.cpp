@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -120,8 +121,9 @@ void PuzzleScreen::update(uint32_t deltaMs) {
 }
 
 void PuzzleScreen::drawTile(int colorId, int x, int y, int size) {
-    canvas_.fillRoundRect(x + 2, y + 2, size - 4, size - 4, 6, kTileColors[colorId]);
-    canvas_.drawRoundRect(x + 2, y + 2, size - 4, size - 4, 6, TFT_BLACK);
+    // Gebeveltes "Puzzleteil" statt flacher Farbflaeche (Nutzerwunsch:
+    // "keine rudimentaeren Darstellungen mehr, optimiere Grafik maximal").
+    gfxkit::bevelPanel(&canvas_, x + 2, y + 2, size - 4, size - 4, 6, kTileColors[colorId], true);
     canvas_.setTextColor(TFT_BLACK);
     canvas_.setTextDatum(middle_center);
     canvas_.setTextSize(3);
@@ -138,8 +140,10 @@ void PuzzleScreen::drawHomeIcon() {
 }
 
 void PuzzleScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), gfxkit::darken(theme::kPanel, 0.55f),
+                              theme::kBackground);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);

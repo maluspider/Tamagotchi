@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
@@ -144,8 +145,16 @@ void FussballScreen::drawHomeIcon() {
 }
 
 void FussballScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    // Rasen-Streifen-Muster statt Flat-Hintergrund (Nutzerwunsch: "keine
+    // rudimentaeren Darstellungen mehr, optimiere Grafik maximal").
+    constexpr uint16_t kGrassA = theme::rgb565(0x2E, 0x8B, 0x2A);
+    constexpr uint16_t kGrassB = theme::rgb565(0x27, 0x7A, 0x24);
+    constexpr int kStripeH = 20;
+    for (int y = kTopBarHeight; y < canvas_.height(); y += kStripeH) {
+        canvas_.fillRect(0, y, canvas_.width(), kStripeH, ((y / kStripeH) % 2 == 0) ? kGrassA : kGrassB);
+    }
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
@@ -154,14 +163,27 @@ void FussballScreen::draw() {
     snprintf(buf, sizeof(buf), "Tore: %d  Paraden: %d", goals_, saves_);
     canvas_.drawString(buf, 4, 4);
 
-    // Tor.
-    canvas_.drawRect(static_cast<int>(kGoalX1), 20, static_cast<int>(kGoalX2 - kGoalX1),
-                      static_cast<int>(kGoalLineY) - 20, TFT_WHITE);
-    // Torwart.
-    canvas_.fillRect(static_cast<int>(keeperX_ - kKeeperHalfWidth), static_cast<int>(kGoalLineY) - 6,
-                      static_cast<int>(kKeeperHalfWidth * 2), 10, TFT_RED);
+    // Tor mit Netzraster statt leerem Rahmen.
+    const int goalX1i = static_cast<int>(kGoalX1);
+    const int goalX2i = static_cast<int>(kGoalX2);
+    const int goalTopY = 20;
+    const int goalBotY = static_cast<int>(kGoalLineY);
+    canvas_.drawRect(goalX1i, goalTopY, goalX2i - goalX1i, goalBotY - goalTopY, TFT_WHITE);
+    for (int gx = goalX1i + 10; gx < goalX2i; gx += 10) {
+        canvas_.drawLine(gx, goalTopY, gx, goalBotY, gfxkit::darken(TFT_WHITE, 0.5f));
+    }
+    for (int gy = goalTopY + 8; gy < goalBotY; gy += 8) {
+        canvas_.drawLine(goalX1i, gy, goalX2i, gy, gfxkit::darken(TFT_WHITE, 0.5f));
+    }
 
-    canvas_.fillCircle(static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius), TFT_WHITE);
+    // Torwart als gebeveltes Trikot-Panel statt Flat-Rechteck.
+    gfxkit::bevelPanel(&canvas_, static_cast<int>(keeperX_ - kKeeperHalfWidth), static_cast<int>(kGoalLineY) - 6,
+                        static_cast<int>(kKeeperHalfWidth * 2), 10, 2, theme::kDanger, true);
+
+    // Ball mit klassischem Fuenfeck-Pattern-Andeutung (Kreis + Innenkreis +
+    // kleine Punkte) statt reiner Zwei-Farb-Kugel.
+    gfxkit::shinyBall(&canvas_, static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius),
+                       TFT_WHITE);
     canvas_.fillCircle(static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius) / 3,
                         TFT_BLACK);
 

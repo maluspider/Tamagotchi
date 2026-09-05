@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/ScreenId.h"
@@ -184,8 +185,13 @@ void KampfModusScreen::drawFighter(float x, bool facingRight, uint16_t color, bo
     const int cx = static_cast<int>(x);
     const int headCy = kGroundY - 34;
     const uint16_t bodyColor = flashing ? TFT_WHITE : color;
-    canvas_.fillRect(cx - 8, kGroundY - 28, 16, 28, bodyColor);
+    // Weicher Bodenschatten statt frei schwebendem Kaempfer, gebeveltes
+    // Rumpf-Panel statt Flat-Rechteck (Nutzerwunsch: "keine rudimentaeren
+    // Darstellungen mehr, optimiere Grafik maximal").
+    canvas_.fillEllipse(cx, kGroundY + 2, 12, 4, gfxkit::darken(theme::kBackground, 0.5f));
+    gfxkit::bevelPanel(&canvas_, cx - 8, kGroundY - 28, 16, 28, 3, bodyColor, true);
     canvas_.fillCircle(cx, headCy, 10, bodyColor);
+    canvas_.drawCircle(cx, headCy, 10, gfxkit::darken(bodyColor, 0.35f));
     const int eyeDx = facingRight ? 3 : -3;
     canvas_.fillCircle(cx + eyeDx, headCy - 2, 2, TFT_BLACK);
 }
@@ -195,25 +201,32 @@ void KampfModusScreen::drawHealthBars() {
     canvas_.setTextSize(1);
     canvas_.setTextDatum(top_left);
     canvas_.drawString("Du", 4, 24);
-    canvas_.drawRect(4, 36, 120, 12, TFT_WHITE);
-    canvas_.fillRect(5, 37, (118 * playerHp_) / 100, 10, TFT_GREEN);
+    gfxkit::bevelPanel(&canvas_, 4, 36, 120, 12, 3, theme::kOutline, false);
+    const int playerFillW = (116 * playerHp_) / 100;
+    if (playerFillW > 0) {
+        gfxkit::verticalGradient(&canvas_, 6, 38, playerFillW, 8, gfxkit::lighten(theme::kSuccess, 0.3f),
+                                  gfxkit::darken(theme::kSuccess, 0.3f));
+    }
 
     canvas_.setTextDatum(top_right);
     canvas_.drawString("Gegner", canvas_.width() - 4, 24);
-    canvas_.drawRect(canvas_.width() - 124, 36, 120, 12, TFT_WHITE);
-    canvas_.fillRect(canvas_.width() - 123, 37, (118 * aiHp_) / 100, 10, TFT_RED);
+    gfxkit::bevelPanel(&canvas_, canvas_.width() - 124, 36, 120, 12, 3, theme::kOutline, false);
+    const int aiFillW = (116 * aiHp_) / 100;
+    if (aiFillW > 0) {
+        gfxkit::verticalGradient(&canvas_, canvas_.width() - 122, 38, aiFillW, 8, gfxkit::lighten(theme::kDanger, 0.3f),
+                                  gfxkit::darken(theme::kDanger, 0.3f));
+    }
 }
 
 void KampfModusScreen::drawButtons() {
-    canvas_.fillCircle(kPunchBtnX, kPunchBtnY, kPunchBtnR, TFT_ORANGE);
-    canvas_.drawCircle(kPunchBtnX, kPunchBtnY, kPunchBtnR, TFT_WHITE);
+    // Gebevelte runde Tasten (Glanzlicht oben-links) statt flacher Kreise.
+    gfxkit::shinyBall(&canvas_, kPunchBtnX, kPunchBtnY, kPunchBtnR, theme::kAccentOrange);
     canvas_.setTextColor(TFT_BLACK);
     canvas_.setTextDatum(middle_center);
     canvas_.setTextSize(2);
     canvas_.drawString("S", kPunchBtnX, kPunchBtnY);
 
-    canvas_.fillCircle(kKickBtnX, kKickBtnY, kKickBtnR, TFT_CYAN);
-    canvas_.drawCircle(kKickBtnX, kKickBtnY, kKickBtnR, TFT_WHITE);
+    gfxkit::shinyBall(&canvas_, kKickBtnX, kKickBtnY, kKickBtnR, theme::kAccentCyan);
     canvas_.drawString("T", kKickBtnX, kKickBtnY);
 }
 
@@ -233,7 +246,8 @@ void KampfModusScreen::draw() {
     // Boden-Trennlinie - Horizont liegt exakt auf kGroundY, sodass die
     // Kaempfer sichtbar auf der "Buehne" stehen.
     retrobackdrop::drawSynthwaveGrid(&canvas_, canvas_.width(), canvas_.height(), kGroundY);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
     canvas_.setTextDatum(top_left);

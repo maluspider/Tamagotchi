@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/HighscoreStore.h"
 #include "../core/ScreenId.h"
@@ -247,8 +248,14 @@ void SpaceInvadersScreen::drawHomeIcon() {
 }
 
 void SpaceInvadersScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    // Sternenfeld-Weltraum-Hintergrund statt flacher Ein-Farb-Flaeche
+    // (Nutzerwunsch: "keine rudimentaeren Darstellungen mehr, optimiere
+    // Grafik maximal") - passt thematisch besser zu Aliens als der
+    // Synthwave-Look anderer Screens.
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), theme::kOutline, theme::kBackground);
+    gfxkit::starfield(&canvas_, canvas_.width(), canvas_.height(), 50, theme::kTextDim);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
@@ -269,12 +276,18 @@ void SpaceInvadersScreen::draw() {
         const int row = i / kAlienCols;
         const int x = static_cast<int>(kFormationBaseX + col * kAlienSpacingX + formationX_);
         const int y = static_cast<int>(kFormationBaseY + row * kAlienSpacingY + formationY_);
-        canvas_.fillRect(x, y, kAlienW, kAlienH, TFT_GREEN);
+        // Kleine Alien-Silhouette (Kopf+"Beine") statt flachem Rechteck.
+        canvas_.fillRect(x + 3, y, kAlienW - 6, kAlienH - 4, TFT_GREEN);
+        canvas_.fillRect(x, y + kAlienH - 6, kAlienW, 4, TFT_GREEN);
+        canvas_.fillRect(x + 1, y + kAlienH - 2, 3, 2, TFT_GREEN);
+        canvas_.fillRect(x + kAlienW - 4, y + kAlienH - 2, 3, 2, TFT_GREEN);
+        canvas_.fillRect(x + 5, y + 3, 2, 2, theme::kOutline);
+        canvas_.fillRect(x + kAlienW - 7, y + 3, 2, 2, theme::kOutline);
     }
 
     if (playerBullet_.active) {
         canvas_.fillRect(static_cast<int>(playerBullet_.x) - 1, static_cast<int>(playerBullet_.y) - 4, 2, 8,
-                          TFT_WHITE);
+                          theme::kAccentGold);
     }
     for (const Bullet& b : alienBullets_) {
         if (b.active) {
@@ -282,7 +295,15 @@ void SpaceInvadersScreen::draw() {
         }
     }
 
-    canvas_.fillRect(static_cast<int>(shipX_), kShipY, kShipW, kShipH, TFT_CYAN);
+    // Raumschiff: Rumpf + Cockpit-Glanzlicht + Duesen statt Flat-Rechteck.
+    {
+        const int sx = static_cast<int>(shipX_);
+        gfxkit::bevelPanel(&canvas_, sx, kShipY, kShipW, kShipH, 3, TFT_CYAN, true);
+        canvas_.fillTriangle(sx + kShipW / 2, kShipY - 5, sx + kShipW / 2 - 5, kShipY + 2, sx + kShipW / 2 + 5,
+                              kShipY + 2, TFT_CYAN);
+        canvas_.fillRect(sx + 4, kShipY + kShipH, 3, 3, theme::kAccentOrange);
+        canvas_.fillRect(sx + kShipW - 7, kShipY + kShipH, 3, 3, theme::kAccentOrange);
+    }
 
     drawHomeIcon();
 

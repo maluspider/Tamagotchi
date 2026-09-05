@@ -4,6 +4,7 @@
 
 #include <cmath>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -146,8 +147,13 @@ void LabyrinthScreen::drawHomeIcon() {
 }
 
 void LabyrinthScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    // Verlaufs-Spielfeldboden + gebevelte Waende statt Flat-Flaechen
+    // (Nutzerwunsch: "keine rudimentaeren Darstellungen mehr, optimiere
+    // Grafik maximal").
+    gfxkit::verticalGradient(&canvas_, 0, kTopBarHeight, canvas_.width(), canvas_.height() - kTopBarHeight,
+                              gfxkit::darken(theme::kPanel, 0.5f), theme::kBackground);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
 
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
@@ -157,20 +163,20 @@ void LabyrinthScreen::draw() {
     canvas_.drawString(buf, 4, 4);
 
     for (const Wall& wall : kWalls) {
-        canvas_.fillRect(static_cast<int>(wall.x), static_cast<int>(wall.y), static_cast<int>(wall.w),
-                          static_cast<int>(wall.h), theme::kPanelLight);
-        canvas_.drawRect(static_cast<int>(wall.x), static_cast<int>(wall.y), static_cast<int>(wall.w),
-                          static_cast<int>(wall.h), theme::kOutline);
+        gfxkit::bevelPanel(&canvas_, static_cast<int>(wall.x), static_cast<int>(wall.y), static_cast<int>(wall.w),
+                            static_cast<int>(wall.h), 3, theme::kPanelLight, true);
     }
 
+    // Ziel als Glanzring statt flacher Kreis.
     canvas_.fillCircle(static_cast<int>(kGoalX), static_cast<int>(kGoalY), static_cast<int>(kGoalRadius),
+                        gfxkit::darken(theme::kSuccess, 0.3f));
+    canvas_.fillCircle(static_cast<int>(kGoalX), static_cast<int>(kGoalY), static_cast<int>(kGoalRadius) - 5,
                         theme::kSuccess);
-    canvas_.drawCircle(static_cast<int>(kGoalX), static_cast<int>(kGoalY), static_cast<int>(kGoalRadius),
-                        theme::kOutline);
+    canvas_.fillCircle(static_cast<int>(kGoalX), static_cast<int>(kGoalY), static_cast<int>(kGoalRadius) - 9,
+                        gfxkit::lighten(theme::kSuccess, 0.35f));
 
-    canvas_.fillCircle(static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius), TFT_WHITE);
-    canvas_.drawCircle(static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius),
-                        theme::kOutline);
+    gfxkit::shinyBall(&canvas_, static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius),
+                       TFT_WHITE);
 
     drawHomeIcon();
 

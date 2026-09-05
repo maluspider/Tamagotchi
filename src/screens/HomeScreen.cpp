@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "../core/CharacterEngine.h"
+#include "../core/GfxKit.h"
 #include "../core/NightModeService.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/RtcClock.h"
@@ -167,6 +168,8 @@ bool HomeScreen::drawSpriteCharacter() {
     const float scale = spriteScaleForStage(stage);
     const int cx = M5.Display.width() / 2 + static_cast<int>(characterOffsetX_);
     const int cy = M5.Display.height() / 2 + static_cast<int>(characterOffsetY_);
+    const int halfHeightForShadow = static_cast<int>(config::kSpriteSourceSizePx * scale / 2.0f);
+    drawGroundShadow(cx, cy + halfHeightForShadow - 4, static_cast<int>(18 * scale / 3.0f));
     if (!characterRenderer_.draw(stage, mood, app_.profile, cx, cy, scale, &canvas_)) {
         // Kein Sprite auf der SD-Karte (oder Karte fehlt) - Aufrufer
         // zeichnet stattdessen die Platzhalter-Grafik.
@@ -190,6 +193,7 @@ void HomeScreen::drawPlaceholderCharacter() {
     const int r = radiusForStage(stage);
     const uint16_t color = colorForStage(stage);
 
+    drawGroundShadow(cx, cy + r - 4, r);
     canvas_.fillCircle(cx, cy, r, color);
     canvas_.drawCircle(cx, cy, r, theme::kOutline);
 
@@ -215,8 +219,21 @@ void HomeScreen::drawPlaceholderCharacter() {
     }
 }
 
+void HomeScreen::drawGroundShadow(int cx, int cy, int rx) {
+    // Flache Ellipse in gedaempftem Schwarz-Lila unter der Figur - allein
+    // dieser eine "weiche" Schatten laesst die Figur auf dem Boden statt
+    // frei schwebend wirken (Nutzerwunsch: "keine rudimentaeren
+    // Darstellungen mehr, optimiere Grafik maximal").
+    if (rx < 6) {
+        rx = 6;
+    }
+    canvas_.fillEllipse(cx, cy, rx, rx / 3, gfxkit::darken(theme::kBackground, 0.5f));
+}
+
 void HomeScreen::drawStatusBar() {
-    canvas_.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
+    gfxkit::verticalGradient(&canvas_, 0, 0, M5.Display.width(), 30, gfxkit::lighten(theme::kPanel, 0.12f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
+    canvas_.drawLine(0, 30, M5.Display.width(), 30, gfxkit::darken(theme::kPanel, 0.5f));
 
     m5::rtc_time_t time_;
     M5.Rtc.getTime(&time_);
@@ -283,11 +300,33 @@ void HomeScreen::drawBatteryIndicator(int x, int y) {
     canvas_.drawString(pctBuf, x + kBodyW + 8, y + 3);
 }
 
+void HomeScreen::drawBottomBarTile(int zoneIndex, bool enabled) {
+    const int y = M5.Display.height() - kBottomBarHeight;
+    const int zoneW = M5.Display.width() / 4;
+    const int x = zoneIndex * zoneW;
+    // Jede Zone bekommt eine eigene erhabene "Konsolen-Taste" statt einer
+    // durchgehenden Flat-Leiste (Nutzerwunsch: "keine rudimentaeren
+    // Darstellungen mehr, optimiere Grafik maximal") - gesperrte Zonen
+    // (Spiele bei Nacht/ohne Zeitguthaben) wirken bewusst "eingedrueckt"
+    // statt erhaben, als zusaetzlicher visueller Sperr-Hinweis.
+    gfxkit::bevelPanel(&canvas_, x + 2, y + 2, zoneW - 4, kBottomBarHeight - 4, 6, theme::kPanel, enabled);
+}
+
 void HomeScreen::drawBottomBar() {
     const int y = M5.Display.height() - kBottomBarHeight;
-    canvas_.fillRect(0, y, M5.Display.width(), kBottomBarHeight, theme::kPanel);
+    canvas_.drawLine(0, y, M5.Display.width(), y, gfxkit::lighten(theme::kPanel, 0.4f));
 
     const int zoneW = M5.Display.width() / 4;
+
+    const bool gamesUnlocked = app_.character.stage() >= CharacterStage::Baby;
+    const bool hasTime = app_.playtime.availableMinutes() > 0;
+    const bool isNight = nightmodeservice::isNight(app_.profile);
+    const bool gamesEnabled = gamesUnlocked && hasTime && !isNight;
+
+    drawBottomBarTile(0, true);
+    drawBottomBarTile(1, gamesEnabled);
+    drawBottomBarTile(2, true);
+    drawBottomBarTile(3, true);
 
     // Aufgaben: Stift-Symbol (immer verfuegbar, Abschnitt 5).
     {
@@ -304,17 +343,18 @@ void HomeScreen::drawBottomBar() {
     // werden").
     {
         const int cx = zoneW + zoneW / 2;
-        const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
-        const bool hasTime = app_.playtime.availableMinutes() > 0;
-        const bool isNight = nightmodeservice::isNight(app_.profile);
-        const uint16_t color = (unlocked && hasTime && !isNight) ? theme::kAccentCyan : theme::kMuted;
+        const uint16_t color = gamesEnabled ? theme::kAccentCyan : theme::kMuted;
         canvas_.fillTriangle(cx - 6, y + 8, cx - 6, y + 24, cx + 8, y + 16, color);
+        if (gamesEnabled) {
+            canvas_.drawTriangle(cx - 6, y + 8, cx - 6, y + 24, cx + 8, y + 16, gfxkit::lighten(color, 0.5f));
+        }
     }
 
     // Alltag: Kreis mit Zeigern (Uhr stellvertretend fuers Alltags-Menue).
     {
         const int cx = 2 * zoneW + zoneW / 2;
         const int cy = y + 16;
+        canvas_.fillCircle(cx, cy, 10, theme::kPanelLight);
         canvas_.drawCircle(cx, cy, 10, theme::kText);
         canvas_.drawLine(cx, cy, cx, cy - 6, theme::kText);
         canvas_.drawLine(cx, cy, cx + 5, cy, theme::kText);
@@ -336,19 +376,34 @@ void HomeScreen::drawBottomBar() {
 }
 
 void HomeScreen::draw() {
-    canvas_.fillScreen(theme::kBackground);
+    const bool isNight = nightmodeservice::isNight(app_.profile);
+    const int horizonY = M5.Display.height() - kBottomBarHeight - 24;
+
+    // Himmel-Farbverlauf statt einer flachen Ein-Farb-Flaeche (Nutzerwunsch:
+    // "vollstaendiges Grafikdesign wie bei Super Nintendo...keine
+    // rudimentaeren Darstellungen mehr, optimiere Grafik maximal") - bei
+    // Nacht dunkler/kuehler mit Sternenfeld statt Sonne, tagsueber waermer
+    // Richtung Horizont (passt zum Sonnenuntergang aus RetroBackdrop).
+    if (isNight) {
+        gfxkit::verticalGradient(&canvas_, 0, 0, M5.Display.width(), horizonY, theme::kOutline, theme::kBackground);
+        gfxkit::starfield(&canvas_, M5.Display.width(), horizonY - 10, 40, theme::kTextDim);
+    } else {
+        gfxkit::verticalGradient(&canvas_, 0, 0, M5.Display.width(), horizonY,
+                                  gfxkit::darken(theme::kPanel, 0.5f), theme::kBackground);
+    }
+    canvas_.fillRect(0, horizonY, M5.Display.width(), M5.Display.height() - horizonY, theme::kBackground);
+
     // 80er-/SNES-Arcade-Optik (Nutzerwunsch: "Backgrounds Super-Nintendo-
-    // Stil, Strassenkaempfer") - Sonne+Bodengitter hinter dem Charakter,
-    // Horizont knapp oberhalb der unteren Icon-Leiste.
-    retrobackdrop::drawSynthwaveGrid(&canvas_, M5.Display.width(), M5.Display.height(),
-                                      M5.Display.height() - kBottomBarHeight - 24);
+    // Stil, Strassenkaempfer") - Sonne (nur tagsueber)+Bodengitter hinter
+    // dem Charakter, Horizont knapp oberhalb der unteren Icon-Leiste.
+    retrobackdrop::drawSynthwaveGrid(&canvas_, M5.Display.width(), M5.Display.height(), horizonY, !isNight);
     if (!drawSpriteCharacter()) {
         drawPlaceholderCharacter();
     }
     // Nutzerwunsch: "Figur schlaeft zwischen 20:00 und 07:00, in dieser
     // Zeit kann nichts gespielt werden" - Mond+"Zzz" als sichtbarer Hinweis,
     // warum die Spiele-Zone gerade ausgegraut ist (siehe drawBottomBar()).
-    if (nightmodeservice::isNight(app_.profile)) {
+    if (isNight) {
         drawSleepingIndicator();
     }
     drawStatusBar();

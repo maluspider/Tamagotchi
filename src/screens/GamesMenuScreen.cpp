@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/NightModeService.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/Theme.h"
@@ -52,7 +53,12 @@ void GamesMenuScreen::drawHomeIcon() const {
 }
 
 void GamesMenuScreen::drawIcon(int index, int cx, int cy, int r, bool unlocked) const {
-    M5.Display.fillRoundRect(cx - r, cy - r, r * 2, r * 2, 8, unlocked ? theme::kPanel : theme::kMuted);
+    // SNES-Cartridge-Kachel statt flacher Ein-Farb-Flaeche (Nutzerwunsch:
+    // "keine rudimentaeren Darstellungen mehr, optimiere Grafik maximal") -
+    // erhabener Bevel bei freigeschalteten, eingedrueckter Look bei
+    // gesperrten Spielen (zusaetzlich zum Schloss-Symbol).
+    gfxkit::bevelPanel(&M5.Display, cx - r, cy - r, r * 2, r * 2, 8, unlocked ? theme::kPanel : theme::kMuted,
+                        unlocked);
 
     if (!unlocked) {
         // Schloss-Symbol (Buegel + Koerper) statt Spiel-Icon.
@@ -123,8 +129,12 @@ void GamesMenuScreen::drawIcon(int index, int cx, int cy, int r, bool unlocked) 
 }
 
 void GamesMenuScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), M5.Display.height() - 70);
+    const int horizonY = M5.Display.height() - 70;
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), horizonY, gfxkit::darken(theme::kPanel, 0.5f),
+                              theme::kBackground);
+    M5.Display.fillRect(0, horizonY, M5.Display.width(), M5.Display.height() - horizonY, theme::kBackground);
+    gfxkit::starfield(&M5.Display, M5.Display.width(), horizonY - 30, 24, theme::kTextDim);
+    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), horizonY);
 
     const int cellW = M5.Display.width() / kCols;
     const int cellH = (M5.Display.height() - 10) / kRows;

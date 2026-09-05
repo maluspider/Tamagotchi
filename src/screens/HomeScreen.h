@@ -6,6 +6,7 @@
 
 #include "../core/AppContext.h"
 #include "../core/CharacterRenderer.h"
+#include "../core/GfxKit.h"
 #include "../core/Screen.h"
 #include "../core/StateMachine.h"
 
@@ -37,9 +38,11 @@ public:
 private:
     bool drawSpriteCharacter();
     void drawPlaceholderCharacter();
+    void drawGroundShadow(int cx, int cy, int rx);
     void drawStatusBar();
     void drawBatteryIndicator(int x, int y);
     void drawBottomBar();
+    void drawBottomBarTile(int zoneIndex, bool enabled);
     void drawSleepingIndicator();
     void handleBottomBarTouch(int x, int y);
     void updateCharacterDrift(uint32_t deltaMs);

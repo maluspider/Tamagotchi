@@ -53,6 +53,17 @@ uint32_t lastFrameMs = 0;
 // Entfernen der Fortschrittsdateien von der SD-Karte.
 constexpr uint32_t kPowerButtonOffHoldMs = 2000;
 
+// Der physische Tastendruck, mit dem das Geraet ueberhaupt erst eingeschaltet
+// wird, setzt im AXP-Power-Chip ein "Taste gedrueckt"-IRQ-Bit, das beim
+// allerersten M5.update()-Aufruf in loop() noch nicht abgeklungen ist - ohne
+// diese Wartezeit erkennt M5.BtnPWR.wasClicked() genau diesen Einschalt-Druck
+// faelschlich als eigenstaendigen Klick und schaltet den Bildschirm sofort
+// wieder ab (beobachtetes Symptom: "Startbildschirm kurz an, dann wieder
+// schwarz"). kBootMs wird beim Start einmalig gemerkt; Power-Tasten-Logik
+// greift erst danach.
+constexpr uint32_t kPowerButtonBootGraceMs = 2500;
+uint32_t bootMs = 0;
+
 // Wird true, solange das Display manuell abgeschaltet ist. Waehrenddessen
 // wird sowohl der NightModeService (der sonst jede Schleife die Helligkeit
 // neu setzen und den manuellen Toggle sofort ueberschreiben wuerde) als
@@ -162,10 +173,15 @@ void setup() {
 
     stateMachine.switchTo(ScreenId::Boot);
     lastFrameMs = millis();
+    bootMs = lastFrameMs;
 }
 
 void loop() {
     M5.update();
+
+    // Siehe Kommentar bei kPowerButtonBootGraceMs oben: der Einschalt-Druck
+    // selbst darf nicht als Nutzer-Klick/-Halten gewertet werden.
+    const bool pastBootGrace = millis() - bootMs >= kPowerButtonBootGraceMs;
 
     // Langer Druck (>= 2s) auf die Power-Taste: Geraet komplett ausschalten
     // (ueber den AXP-Power-Chip, nicht nur das Display) statt neu zu
@@ -177,13 +193,13 @@ void loop() {
     // Hardware-/AXP-Verhalten, keine eigene Firmware-Logik noetig) und laedt
     // den gesamten Fortschritt wie gewohnt von der SD-Karte - es gibt
     // bewusst KEINEN Reset/Fortschritt-loeschen-Mechanismus in der Firmware.
-    if (M5.BtnPWR.pressedFor(kPowerButtonOffHoldMs)) {
+    if (pastBootGrace && M5.BtnPWR.pressedFor(kPowerButtonOffHoldMs)) {
         appContext.persistProgress();
         M5.Power.powerOff();
     }
 
     // Kurzer Klick: Display an-/abschalten, um Akku zu sparen.
-    if (M5.BtnPWR.wasClicked()) {
+    if (pastBootGrace && M5.BtnPWR.wasClicked()) {
         displayManuallyOff = !displayManuallyOff;
         if (displayManuallyOff) {
             M5.Display.sleep();

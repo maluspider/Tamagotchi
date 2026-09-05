@@ -234,6 +234,31 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
     Vektorgrafik aus Theme-Farben, keine zusätzlichen Bild-Dateien nötig.
     Liegt bewusst hinter Icons/Charakter/Panels, damit die Lesbarkeit für
     die junge Zielgruppe erhalten bleibt.
+  - **Grafik-Überarbeitung "SNES-Niveau" (Nutzerwunsch nach erstem
+    Hardware-Test: "keine rudimentären Darstellungen mehr, optimiere
+    Grafik maximal"):** ein neues, wiederverwendbares Zeichen-Toolkit
+    ([`src/core/GfxKit.*`](src/core/GfxKit.h) – Farbverläufe, gebevelte
+    "erhabene/eingedrückte" Panels im SNES-Button-Look, deterministisches
+    Sternenfeld, Glanzlicht-Kugeln) ersetzt praktisch alle bisherigen
+    Ein-Farb-Flächen im Home-Screen und in allen 10 Spielen, ganz ohne
+    zusätzliche Bild-Assets:
+    - **Home-Screen:** echter Tag/Nacht-Szenenwechsel – Himmel-Farbverlauf,
+      bei Nacht Sternenfeld statt Sonne (siehe Nachtruhe-Feature unten),
+      weicher Bodenschatten unter der Figur, jede der vier unteren
+      Icon-Leisten-Zonen ist eine eigene gebevelte "Konsolen-Taste" (gesperrte
+      Spiele-Zone wirkt sichtbar eingedrückt statt nur ausgegraut), Status-
+      leiste mit Farbverlauf.
+    - **Spiele-Menü:** Farbverlaufs-Himmel + Sternenfeld hinter dem
+      Synthwave-Gitter, jede Spiel-Kachel ist eine gebevelte "Cartridge".
+    - **Alle 10 Spiele** haben jetzt ein thematisch passendes,
+      mehrschichtiges Hintergrundbild statt einer flachen Farbfläche (u. a.
+      Wiesen-Schachbrett bei Snake, dunkler Verlaufs-"Brunnen" bei Tetris,
+      Weltraum-Sternenfeld bei Space Invaders, Himmel+Sonne+Wolken+Wiese bei
+      Moorhuhn-Jagd, Holztisch-Verlauf bei Pinball, Parkett-Verlauf bei
+      Basketball, Rasenstreifen bei Fussball) sowie gebevelte/glänzende
+      statt flacher Spielobjekte (Bälle mit Glanzlicht, Snake-Segmente,
+      Tetris-Blöcke, Puzzle-Teile, Flipper/Bumper, Kampf-Modus-Buttons und
+      -Energiebalken).
 - **Fach-Auswahl:** Icon-Grid zu Mathe, Rechtschreibung, Französisch (nur
   ab Klasse 3), Quiz und Gedächtnistraining.
 - **Aufgaben-Modus:** Multiple-Choice-Frage antippen; richtige Antwort gibt
@@ -348,6 +373,15 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
   Es gibt bewusst **keine** Reset-/"Fortschritt löschen"-Funktion in der
   Firmware – der einzige Weg dafür ist, die Fortschrittsdateien manuell von
   der SD-Karte zu entfernen (siehe "SD-Karte" oben für die Dateinamen).
+  **Bekannter Hardware-Fund:** der physische Tastendruck, mit dem das
+  Gerät überhaupt erst eingeschaltet wird, setzt im AXP-Power-Chip ein
+  "Taste gedrückt"-IRQ-Bit, das beim allerersten `M5.update()`-Aufruf noch
+  nicht abgeklungen war – ohne Gegenmaßnahme erkannte die Firmware genau
+  diesen Einschalt-Druck fälschlich als eigenständigen Kurz-Klick und
+  schaltete den Bildschirm sofort wieder ab (Symptom: Startlogo kurz an,
+  dann sofort wieder schwarz). Behoben durch eine ca. 2,5 Sekunden lange
+  "Boot-Schonfrist" nach dem Einschalten, während der die Power-Taste in
+  `main.cpp` ignoriert wird (`kPowerButtonBootGraceMs`).
 - **Web-Sync** (Abschnitt 12): startet einen geräteeigenen WLAN-
   Access-Point (SSID/Passwort/IP werden auf dem Gerät angezeigt) mit
   einem kleinen Web-Interface unter `http://192.168.4.1` – Fortschritt
@@ -375,6 +409,7 @@ src/core/                    Screen-unabhängige Module
   CharacterTraits.h          Trait-Farbvoreinstellungen + Markerfarben
   Theme.h                    Zentrales 80er-/Arcade-Neon-Farbschema (Abschnitt 4)
   RetroBackdrop.*            Prozeduraler Synthwave-Hintergrund (Sonne+Gitter, SNES-Look)
+  GfxKit.*                    Farbverlauf/Bevel-Panel/Sternenfeld/Glanzlicht-Toolkit (Home+alle Spiele)
   PlaytimeAccount.*         Spielzeitkonto (Abschnitt 7)
   PlaytimeTicker.*            Gemeinsame Spielzeit-Verbrauchslogik fuer alle Spiele
   HighscoreStore.*             Lokale Highscores je Spiel (/highscores.json)
@@ -450,6 +485,15 @@ Fehler:
   "Power-Taste" oben. Langer Druck schaltet das Gerät **aus** (nicht neu
   starten) – wieder einschalten per erneutem Tastendruck, kein
   Fortschrittsverlust, keine Reset-Funktion in der Firmware.
+- **Display ging nach dem Einschalten sofort wieder aus:** der
+  Einschalt-Tastendruck selbst wurde von der Firmware als Kurz-Klick auf
+  die Power-Taste fehlinterpretiert und schaltete das Display direkt
+  wieder ab. Behoben über eine Boot-Schonfrist, siehe "Power-Taste" oben.
+- **Home-Screen und alle 10 Spiele wirkten grafisch zu einfach:** komplett
+  überarbeitete Grafik ("SNES-Niveau") mit Farbverläufen, gebevelten
+  Panels/Buttons, Sternenfeldern und Glanzlicht-Objekten statt flacher
+  Ein-Farb-Flächen – siehe "Retro-Hintergründe"/"Grafik-Überarbeitung"
+  oben und [`src/core/GfxKit.*`](src/core/GfxKit.h).
 
 Die Spiele-Physik (Pinball/Basketball/Fussball/Moorhuhn-Jagd)-Konstanten
 sind weiterhin Startwerte, die bei Bedarf nach mehr Spielzeit noch
