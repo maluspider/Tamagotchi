@@ -17,32 +17,30 @@ constexpr uint8_t kNightBrightness = 20;
 constexpr int kPlausibleMinYear = 2024;
 } // namespace
 
-void check(const Profile& profile) {
-    if (!profile.nightModeEnabled) {
-        M5.Display.setBrightness(kNormalBrightness);
-        return;
-    }
-
+bool isNight(const Profile& profile) {
     m5::rtc_date_t date;
     M5.Rtc.getDate(&date);
     if (date.year < kPlausibleMinYear) {
-        M5.Display.setBrightness(kNormalBrightness);
-        return;
+        return false;
     }
 
     m5::rtc_time_t time_;
     M5.Rtc.getTime(&time_);
     const int hour = time_.hours;
 
-    bool isNight;
     if (profile.nightStartHour <= profile.nightEndHour) {
-        isNight = hour >= profile.nightStartHour && hour < profile.nightEndHour;
-    } else {
-        // Zeitraum ueberspannt Mitternacht (z. B. 20 Uhr bis 7 Uhr).
-        isNight = hour >= profile.nightStartHour || hour < profile.nightEndHour;
+        return hour >= profile.nightStartHour && hour < profile.nightEndHour;
     }
+    // Zeitraum ueberspannt Mitternacht (z. B. 20 Uhr bis 7 Uhr).
+    return hour >= profile.nightStartHour || hour < profile.nightEndHour;
+}
 
-    M5.Display.setBrightness(isNight ? kNightBrightness : kNormalBrightness);
+void check(const Profile& profile) {
+    if (!profile.nightModeEnabled) {
+        M5.Display.setBrightness(kNormalBrightness);
+        return;
+    }
+    M5.Display.setBrightness(isNight(profile) ? kNightBrightness : kNormalBrightness);
 }
 
 } // namespace nightmodeservice

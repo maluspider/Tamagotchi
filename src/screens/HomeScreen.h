@@ -40,6 +40,7 @@ private:
     void drawStatusBar();
     void drawBatteryIndicator(int x, int y);
     void drawBottomBar();
+    void drawSleepingIndicator();
     void handleBottomBarTouch(int x, int y);
     void updateCharacterDrift(uint32_t deltaMs);
 

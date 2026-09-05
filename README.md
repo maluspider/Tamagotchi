@@ -322,6 +322,14 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
   jetzt AUS** (Default vor dem Hardware-Test war fälschlich AN, siehe
   "Bekannte Laufzeit-Probleme" unten), in den Einstellungen an/aus
   schaltbar.
+- **Nachtruhe fürs Spielen:** unabhängig vom Dimmen-Schalter oben gilt
+  dasselbe Zeitfenster (20–7 Uhr) auch als Spielsperre – der Charakter
+  zeigt auf dem Home-Screen einen Mond+"Zzz"-Hinweis, die Spiele-Zone in
+  der Icon-Leiste ist ausgegraut, das Spiele-Menü lässt sich nicht öffnen,
+  und eine bereits laufende Spielsitzung wird automatisch beendet, sobald
+  die Nachtstunden beginnen. Aufgaben-Modus und Alltagsfunktionen bleiben
+  während der Nachtstunden bewusst nutzbar (nur "Spielen" im engeren Sinn
+  ist gesperrt).
 - **Einstellungen (Eltern-PIN-geschützt):** Zahnrad-Icon auf dem
   Home-Screen antippen, PIN eingeben (Standard `0000`, siehe
   `config::kDefaultParentalCode` – vor "produktivem" Einsatz über "PIN

@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "../core/CharacterEngine.h"
+#include "../core/NightModeService.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
@@ -131,7 +132,13 @@ void HomeScreen::handleBottomBarTouch(int x, int /*y*/) {
     if (zone == 1) {
         const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
         const bool hasTime = app_.playtime.availableMinutes() > 0;
-        if (unlocked && hasTime) {
+        // Nutzerwunsch: "Figur schlaeft zwischen 20:00 und 07:00, in
+        // dieser Zeit kann nichts gespielt werden" - siehe auch
+        // PlaytimeTicker (deckt eine bereits laufende Sitzung ab) und
+        // GamesMenuScreen (deckt den Fall ab, dass die Nachtstunden
+        // waehrend des Verweilens im Spiele-Menue beginnen).
+        const bool isNight = nightmodeservice::isNight(app_.profile);
+        if (unlocked && hasTime && !isNight) {
             stateMachine_.requestSwitch(ScreenId::GamesMenu);
         }
         return;
@@ -291,13 +298,16 @@ void HomeScreen::drawBottomBar() {
     }
 
     // Spiele: Play-Dreieck - ausgegraut, solange nicht freigeschaltet
-    // (Stufe < Baby) oder kein Spielzeitguthaben vorhanden ist (Abschnitt 7:
-    // "Spiele-Menü nur mit vorhandenem Zeitguthaben betretbar").
+    // (Stufe < Baby), kein Spielzeitguthaben vorhanden ist (Abschnitt 7:
+    // "Spiele-Menü nur mit vorhandenem Zeitguthaben betretbar") oder gerade
+    // Nachtstunden sind (Nutzerwunsch: "in dieser Zeit kann nichts gespielt
+    // werden").
     {
         const int cx = zoneW + zoneW / 2;
         const bool unlocked = app_.character.stage() >= CharacterStage::Baby;
         const bool hasTime = app_.playtime.availableMinutes() > 0;
-        const uint16_t color = (unlocked && hasTime) ? theme::kAccentCyan : theme::kMuted;
+        const bool isNight = nightmodeservice::isNight(app_.profile);
+        const uint16_t color = (unlocked && hasTime && !isNight) ? theme::kAccentCyan : theme::kMuted;
         canvas_.fillTriangle(cx - 6, y + 8, cx - 6, y + 24, cx + 8, y + 16, color);
     }
 
@@ -335,7 +345,28 @@ void HomeScreen::draw() {
     if (!drawSpriteCharacter()) {
         drawPlaceholderCharacter();
     }
+    // Nutzerwunsch: "Figur schlaeft zwischen 20:00 und 07:00, in dieser
+    // Zeit kann nichts gespielt werden" - Mond+"Zzz" als sichtbarer Hinweis,
+    // warum die Spiele-Zone gerade ausgegraut ist (siehe drawBottomBar()).
+    if (nightmodeservice::isNight(app_.profile)) {
+        drawSleepingIndicator();
+    }
     drawStatusBar();
     drawBottomBar();
     canvas_.pushSprite(0, 0);
+}
+
+void HomeScreen::drawSleepingIndicator() {
+    const int cx = M5.Display.width() / 2 + static_cast<int>(characterOffsetX_) + 50;
+    const int cy = 55;
+
+    // Mond: grosser Kreis minus versetzter kleinerer Kreis in
+    // Hintergrundfarbe ergibt eine Sichel, ganz ohne eigene Sprite-Datei.
+    canvas_.fillCircle(cx, cy, 14, theme::kAccentGold);
+    canvas_.fillCircle(cx + 7, cy - 4, 12, theme::kBackground);
+
+    canvas_.setTextColor(theme::kTextDim);
+    canvas_.setTextDatum(top_left);
+    canvas_.setTextSize(2);
+    canvas_.drawString("Zzz", cx - 10, cy + 16);
 }

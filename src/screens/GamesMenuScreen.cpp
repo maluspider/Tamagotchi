@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/NightModeService.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/Theme.h"
 
@@ -128,13 +129,18 @@ void GamesMenuScreen::draw() {
     const int cellW = M5.Display.width() / kCols;
     const int cellH = (M5.Display.height() - 10) / kRows;
 
+    // Nutzerwunsch: "Figur schlaeft zwischen 20:00 und 07:00, in dieser
+    // Zeit kann nichts gespielt werden" - waehrend der Nachtstunden gilt
+    // jedes Spiel als gesperrt, unabhaengig von der Charakterstufe.
+    const bool isNight = nightmodeservice::isNight(app_.profile);
+
     for (int i = 0; i < kGameCount; ++i) {
         const int col = i % kCols;
         const int row = i / kCols;
         const int cx = col * cellW + cellW / 2;
         const int cy = 10 + row * cellH + cellH / 2;
         const int r = (cellW < cellH ? cellW : cellH) / 2 - 8;
-        const bool unlocked = app_.character.stage() >= kGames[i].requiredStage;
+        const bool unlocked = app_.character.stage() >= kGames[i].requiredStage && !isNight;
         drawIcon(i, cx, cy, r, unlocked);
     }
 
@@ -142,6 +148,14 @@ void GamesMenuScreen::draw() {
 }
 
 void GamesMenuScreen::update(uint32_t) {
+    // Beginnt die Nachtstunde, waehrend das Kind schon im Spiele-Menue ist
+    // (noch kein Spiel gestartet, siehe PlaytimeTicker fuer den Fall
+    // "Spiel laeuft bereits") - sofort zurueck zu Home.
+    if (nightmodeservice::isNight(app_.profile)) {
+        stateMachine_.requestSwitch(ScreenId::Home);
+        return;
+    }
+
     const auto touch = M5.Touch.getDetail();
     if (!touch.wasPressed()) {
         return;
