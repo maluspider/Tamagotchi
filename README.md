@@ -328,7 +328,13 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
   - **Moorhuhn-Jagd** (ab Junior): Gerät neigen bewegt das Fadenkreuz,
     Antippen löst den Schuss aus.
   - **Pinball** (ab Experte): linke/rechte Bildschirmhälfte halten =
-    Flipper, Neigen gibt der Kugel einen kleinen seitlichen Schubs.
+    Flipper, Neigen gibt der Kugel einen kleinen seitlichen Schubs. Die
+    Flipper sind echte, um einen Drehpunkt schwenkende Kollisionsobjekte
+    (vorher nur eine reine Trefferzone, die den Ball bei inaktivem Flipper
+    ungebremst durchliess – Nutzer-Feedback "Ball geht durch die Balken
+    durch und prallt nicht ab", jetzt behoben), plus zwei Slingshot-Kicker
+    und ein hoch bepunktetes Bonus-Ziel zusätzlich zu den drei
+    Rundbumpern.
   - **Basketball** (ab Experte): Ball antippen, in Wurfrichtung ziehen und
     loslassen (Swipe = Richtung + Stärke).
   - **Fussball** (ab Meister): wie Basketball, aber nach oben aufs Tor

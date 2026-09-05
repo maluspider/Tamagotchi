@@ -16,9 +16,16 @@ constexpr const char* kHighscoreKey = "pinball";
 } // namespace
 
 const PinballScreen::Bumper PinballScreen::kBumpers[PinballScreen::kBumperCount] = {
-    {100.0f, 70.0f, 14.0f},
-    {220.0f, 70.0f, 14.0f},
-    {160.0f, 120.0f, 12.0f},
+    {100.0f, 70.0f, 14.0f, 10, theme::kAccentOrange},
+    {220.0f, 70.0f, 14.0f, 10, theme::kAccentOrange},
+    {160.0f, 120.0f, 12.0f, 10, theme::kAccentOrange},
+    // Slingshot-Kicker neben den Flippern - klein, aber immer in Reichweite
+    // eines abgleitenden Balls, geben dem Mittelfeld mehr zu tun.
+    {68.0f, 172.0f, 9.0f, 5, theme::kAccentPink},
+    {252.0f, 172.0f, 9.0f, 5, theme::kAccentPink},
+    // Bonus-Ziel oben mittig, hoeher bepunktet, sitzt sichtbar im
+    // Jackpot-Lichtschein (siehe draw()).
+    {160.0f, 40.0f, 10.0f, 25, theme::kAccentGold},
 };
 
 PinballScreen::PinballScreen(AppContext& app, StateMachine& stateMachine)
@@ -113,31 +120,90 @@ void PinballScreen::updatePhysics(uint32_t deltaMs) {
                 const float dot = ballVx_ * nx + ballVy_ * ny;
                 ballVx_ = (ballVx_ - 2.0f * dot * nx) * 1.15f;
                 ballVy_ = (ballVy_ - 2.0f * dot * ny) * 1.15f;
-                score_ += 10;
+                score_ += bumper.points;
                 haptics::pulse(30);
             }
         }
-    }
 
-    // Flipper: nur wenn gerade aktiv gehalten, die Kugel in Reichweite ist
-    // und dieser Flipper seit dem letzten Loslassen noch nicht ausgeloest
-    // hat (sonst wuerde er die Kugel jeden Frame erneut beschleunigen).
-    if (leftFlipperActive_ && !leftFlipperBoosted_ && ballY_ > 195 && ballY_ < 235 && ballX_ < 130) {
-        ballVy_ = kFlipperBoostVy;
-        ballVx_ = kFlipperBoostVx;
-        leftFlipperBoosted_ = true;
-        score_ += 5;
-    }
-    if (rightFlipperActive_ && !rightFlipperBoosted_ && ballY_ > 195 && ballY_ < 235 &&
-        ballX_ > canvas_.width() - 130) {
-        ballVy_ = kFlipperBoostVy;
-        ballVx_ = -kFlipperBoostVx;
-        rightFlipperBoosted_ = true;
-        score_ += 5;
+        // Nutzer-Feedback: "Ball geht durch die Balken durch und prallt
+        // nicht ab" - die Flipper waren bisher nur eine reine Trefferzone
+        // (siehe Klassenkommentar), die die Kugel bei inaktivem Flipper
+        // oder ausserhalb der willkuerlichen Zone komplett durchliess.
+        // Jetzt echte Kreis-vs-Liniensegment-Kollision, die in JEDEM
+        // Sub-Schritt greift, unabhaengig vom Flipper-Zustand.
+        float leftTipX, leftTipY;
+        leftFlipperTip(leftFlipperActive_, leftTipX, leftTipY);
+        resolveFlipperCollision(kFlipperPivotLeftX, kFlipperPivotY, leftTipX, leftTipY, leftFlipperActive_,
+                                 leftFlipperBoosted_);
+
+        float rightTipX, rightTipY;
+        rightFlipperTip(rightFlipperActive_, rightTipX, rightTipY);
+        resolveFlipperCollision(canvas_.width() - kFlipperPivotLeftX, kFlipperPivotY, rightTipX, rightTipY,
+                                 rightFlipperActive_, rightFlipperBoosted_);
     }
 
     if (ballY_ > canvas_.height() + kBallRadius) {
         loseBall();
+    }
+}
+
+void PinballScreen::leftFlipperTip(bool active, float& tipX, float& tipY) const {
+    tipX = kFlipperPivotLeftX + (active ? kFlipperActiveOffsetX : kFlipperRestOffsetX);
+    tipY = kFlipperPivotY + (active ? kFlipperActiveOffsetY : kFlipperRestOffsetY);
+}
+
+void PinballScreen::rightFlipperTip(bool active, float& tipX, float& tipY) const {
+    tipX = (canvas_.width() - kFlipperPivotLeftX) - (active ? kFlipperActiveOffsetX : kFlipperRestOffsetX);
+    tipY = kFlipperPivotY + (active ? kFlipperActiveOffsetY : kFlipperRestOffsetY);
+}
+
+void PinballScreen::resolveFlipperCollision(float pivotX, float pivotY, float tipX, float tipY, bool active,
+                                             bool& boostedFlag) {
+    // Naehester Punkt auf dem Liniensegment [pivot,tip] zur Kugelmitte -
+    // dieselbe Projektions-Formel wie bei LabyrinthScreen::
+    // resolveWallCollision(), nur fuer ein Segment statt ein Rechteck.
+    const float segX = tipX - pivotX;
+    const float segY = tipY - pivotY;
+    const float segLenSq = segX * segX + segY * segY;
+    float t = 0.0f;
+    if (segLenSq > 0.0001f) {
+        t = ((ballX_ - pivotX) * segX + (ballY_ - pivotY) * segY) / segLenSq;
+        if (t < 0.0f) {
+            t = 0.0f;
+        } else if (t > 1.0f) {
+            t = 1.0f;
+        }
+    }
+    const float closestX = pivotX + segX * t;
+    const float closestY = pivotY + segY * t;
+    const float dx = ballX_ - closestX;
+    const float dy = ballY_ - closestY;
+    const float dist = sqrtf(dx * dx + dy * dy);
+    const float minDist = kBallRadius + kFlipperHalfThickness;
+    if (dist < 0.001f || dist >= minDist) {
+        return;
+    }
+
+    const float nx = dx / dist;
+    const float ny = dy / dist;
+    ballX_ = closestX + nx * minDist;
+    ballY_ = closestY + ny * minDist;
+    const float dot = ballVx_ * nx + ballVy_ * ny;
+    if (dot < 0.0f) {
+        ballVx_ = (ballVx_ - 2.0f * dot * nx) * 0.85f;
+        ballVy_ = (ballVy_ - 2.0f * dot * ny) * 0.85f;
+    }
+
+    // Kraeftiger "Flick"-Schub nur beim ersten Kontakt seit dem Aktivieren
+    // (boostedFlag, in handleInput() beim Loslassen zurueckgesetzt) - sonst
+    // wuerde ein an einem gehaltenen Flipper anliegender Ball jeden
+    // Sub-Schritt erneut Punkte/Vibration ausloesen.
+    if (active && !boostedFlag) {
+        ballVy_ = kFlipperBoostVy;
+        ballVx_ += (pivotX < canvas_.width() / 2.0f) ? kFlipperBoostVx : -kFlipperBoostVx;
+        boostedFlag = true;
+        score_ += 5;
+        haptics::pulse(30);
     }
 }
 
@@ -179,6 +245,36 @@ void PinballScreen::handleInput(uint32_t deltaMs) {
     // Nutzer-Feedback: "Gyrobewegungen sind invertiert" - Vorzeichen gedreht
     // (siehe auch HomeScreen/MoorhuhnJagdScreen/LabyrinthScreen).
     ballVx_ += -imuData.accel.x * kTiltForce * static_cast<float>(deltaMs);
+}
+
+void PinballScreen::drawFlipper(float pivotX, float pivotY, float tipX, float tipY) {
+    const float segX = tipX - pivotX;
+    const float segY = tipY - pivotY;
+    const float segLen = sqrtf(segX * segX + segY * segY);
+    if (segLen < 0.001f) {
+        return;
+    }
+    // Senkrechter Versatz zur Balken-Achse fuer die beiden Laengskanten -
+    // zwei Dreiecke bilden daraus ein gefuelltes, um den Drehpunkt
+    // rotiertes Viereck (Nutzerwunsch: "pinball komplett ueberarbeiten" -
+    // echte Flipper-Grafik statt einer festen horizontalen Leiste).
+    const float nx = -segY / segLen * kFlipperHalfThickness;
+    const float ny = segX / segLen * kFlipperHalfThickness;
+
+    const int x1 = static_cast<int>(pivotX + nx), y1 = static_cast<int>(pivotY + ny);
+    const int x2 = static_cast<int>(tipX + nx), y2 = static_cast<int>(tipY + ny);
+    const int x3 = static_cast<int>(tipX - nx), y3 = static_cast<int>(tipY - ny);
+    const int x4 = static_cast<int>(pivotX - nx), y4 = static_cast<int>(pivotY - ny);
+
+    canvas_.fillTriangle(x1, y1, x2, y2, x3, y3, theme::kAccentCyan);
+    canvas_.fillTriangle(x1, y1, x3, y3, x4, y4, theme::kAccentCyan);
+    canvas_.drawLine(x1, y1, x2, y2, gfxkit::lighten(theme::kAccentCyan, 0.4f));
+    canvas_.drawLine(x4, y4, x3, y3, gfxkit::darken(theme::kAccentCyan, 0.4f));
+
+    canvas_.fillCircle(static_cast<int>(pivotX), static_cast<int>(pivotY),
+                        static_cast<int>(kFlipperHalfThickness) + 1, theme::kAccentCyan);
+    gfxkit::shinyBall(&canvas_, static_cast<int>(tipX), static_cast<int>(tipY),
+                       static_cast<int>(kFlipperHalfThickness), theme::kAccentCyan);
 }
 
 void PinballScreen::update(uint32_t deltaMs) {
@@ -237,13 +333,16 @@ void PinballScreen::draw() {
 
     for (const Bumper& bumper : kBumpers) {
         gfxkit::shinyBall(&canvas_, static_cast<int>(bumper.x), static_cast<int>(bumper.y),
-                           static_cast<int>(bumper.r), theme::kAccentOrange);
+                           static_cast<int>(bumper.r), bumper.color);
     }
 
-    const int leftLen = leftFlipperActive_ ? 110 : 90;
-    const int rightLen = rightFlipperActive_ ? 110 : 90;
-    gfxkit::bevelPanel(&canvas_, 10, 210, leftLen, 8, 3, theme::kAccentCyan, true);
-    gfxkit::bevelPanel(&canvas_, canvas_.width() - 10 - rightLen, 210, rightLen, 8, 3, theme::kAccentCyan, true);
+    float leftTipX, leftTipY;
+    leftFlipperTip(leftFlipperActive_, leftTipX, leftTipY);
+    drawFlipper(kFlipperPivotLeftX, kFlipperPivotY, leftTipX, leftTipY);
+
+    float rightTipX, rightTipY;
+    rightFlipperTip(rightFlipperActive_, rightTipX, rightTipY);
+    drawFlipper(canvas_.width() - kFlipperPivotLeftX, kFlipperPivotY, rightTipX, rightTipY);
 
     gfxkit::shinyBall(&canvas_, static_cast<int>(ballX_), static_cast<int>(ballY_), static_cast<int>(kBallRadius),
                        TFT_WHITE);
