@@ -326,7 +326,11 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
   - **Space Invaders** (ab Junior): linkes/rechtes Drittel halten = Schiff
     bewegen, mittleres Drittel antippen = Feuer-Button.
   - **Moorhuhn-Jagd** (ab Junior): Gerät neigen bewegt das Fadenkreuz,
-    Antippen löst den Schuss aus.
+    Antippen löst den Schuss aus. Jetzt eine feste 60-Sekunden-Runde
+    (Nutzerwunsch: "bei Moorhuhn 60 Sekunden Timer einbauen...wieviele
+    Abschüsse in dieser Zeit inkl. Highscore") – Restzeit oben rechts,
+    Abschüsse oben links, am Ende ein Ergebnis-Overlay mit Highscore
+    (`HighscoreStore`) und "Tippen für neue Runde".
   - **Pinball** (ab Experte): linke/rechte Bildschirmhälfte halten =
     Flipper, Neigen gibt der Kugel einen kleinen seitlichen Schubs. Die
     Flipper sind echte, um einen Drehpunkt schwenkende Kollisionsobjekte

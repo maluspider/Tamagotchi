@@ -25,6 +25,8 @@ void MoorhuhnJagdScreen::onEnter() {
 
 void MoorhuhnJagdScreen::resetGame() {
     score_ = 0;
+    roundElapsedMs_ = 0;
+    roundOver_ = false;
     crosshairX_ = M5.Display.width() / 2.0f;
     crosshairY_ = (kTopBarHeight + M5.Display.height()) / 2.0f;
     for (int i = 0; i < kTargetCount; ++i) {
@@ -43,6 +45,18 @@ void MoorhuhnJagdScreen::respawnTarget(Target& target) {
 }
 
 void MoorhuhnJagdScreen::finishSession() {
+    highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
+}
+
+void MoorhuhnJagdScreen::endRound() {
+    // Nutzerwunsch: "60 Sekunden Timer einbauen...wieviele Abschuesse in
+    // dieser Zeit inkl. Highscore" - anders als finishSession() (verlaesst
+    // den Screen sofort, z. B. beim Antippen des Home-Icons oder wenn das
+    // Spielzeitguthaben aufgebraucht ist) bleibt die Runde hier sichtbar
+    // "beendet" auf dem Screen stehen, bis erneut angetippt wird (siehe
+    // handleInput()).
+    roundOver_ = true;
+    haptics::pulse(200);
     highscorestore::saveIfHigher(kHighscoreKey, static_cast<uint32_t>(score_));
 }
 
@@ -104,6 +118,11 @@ void MoorhuhnJagdScreen::handleInput() {
         return;
     }
 
+    if (roundOver_) {
+        resetGame();
+        return;
+    }
+
     for (Target& t : targets_) {
         const float dx = t.x - crosshairX_;
         const float dy = t.y - crosshairY_;
@@ -119,9 +138,22 @@ void MoorhuhnJagdScreen::handleInput() {
 void MoorhuhnJagdScreen::update(uint32_t deltaMs) {
     handleInput();
 
+    if (roundOver_) {
+        draw();
+        return;
+    }
+
     if (playtimeTicker_.tick(app_, deltaMs)) {
         finishSession();
         stateMachine_.requestSwitch(ScreenId::Home);
+        return;
+    }
+
+    roundElapsedMs_ += deltaMs;
+    if (roundElapsedMs_ >= kRoundDurationMs) {
+        roundElapsedMs_ = kRoundDurationMs;
+        endRound();
+        draw();
         return;
     }
 
@@ -179,9 +211,19 @@ void MoorhuhnJagdScreen::draw() {
     canvas_.setTextColor(TFT_WHITE);
     canvas_.setTextSize(1);
     canvas_.setTextDatum(top_left);
-    char buf[24];
-    snprintf(buf, sizeof(buf), "Punkte: %d", score_);
+    char buf[32];
+    snprintf(buf, sizeof(buf), "Abschuesse: %d", score_);
     canvas_.drawString(buf, 4, 4);
+
+    // Nutzerwunsch: "60 Sekunden Timer einbauen" - Restzeit gut sichtbar
+    // oben rechts, gerundet aufgerundet (zeigt "60" statt sofort "59" beim
+    // Rundenstart).
+    const uint32_t remainingMs = (roundElapsedMs_ >= kRoundDurationMs) ? 0 : kRoundDurationMs - roundElapsedMs_;
+    const uint32_t remainingS = (remainingMs + 999) / 1000;
+    char timeBuf[16];
+    snprintf(timeBuf, sizeof(timeBuf), "Zeit: %us", static_cast<unsigned>(remainingS));
+    canvas_.setTextDatum(top_right);
+    canvas_.drawString(timeBuf, canvas_.width() - kHomeIconSize - 12, 4);
 
     for (const Target& t : targets_) {
         drawTarget(t);
@@ -195,5 +237,24 @@ void MoorhuhnJagdScreen::draw() {
     canvas_.drawLine(cx, cy - 20, cx, cy + 20, TFT_RED);
 
     drawHomeIcon();
+
+    if (roundOver_) {
+        gfxkit::bevelPanel(&canvas_, 8, canvas_.height() / 2 - 46, canvas_.width() - 16, 92, 10, theme::kPanel, true);
+        canvas_.setTextDatum(middle_center);
+        canvas_.setTextColor(theme::kAccentGold);
+        canvas_.setTextSize(2);
+        canvas_.drawString("Zeit abgelaufen!", canvas_.width() / 2, canvas_.height() / 2 - 28);
+        canvas_.setTextColor(TFT_WHITE);
+        canvas_.setTextSize(2);
+        char resultBuf[24];
+        snprintf(resultBuf, sizeof(resultBuf), "Abschuesse: %d", score_);
+        canvas_.drawString(resultBuf, canvas_.width() / 2, canvas_.height() / 2);
+        char hsBuf[24];
+        snprintf(hsBuf, sizeof(hsBuf), "Highscore: %u", static_cast<unsigned>(highscorestore::load(kHighscoreKey)));
+        canvas_.drawString(hsBuf, canvas_.width() / 2, canvas_.height() / 2 + 22);
+        canvas_.setTextSize(1);
+        canvas_.drawString("Tippen fuer neue Runde", canvas_.width() / 2, canvas_.height() / 2 + 42);
+    }
+
     canvas_.pushSprite(0, 0);
 }
