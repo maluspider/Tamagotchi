@@ -259,6 +259,17 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
       statt flacher Spielobjekte (Bälle mit Glanzlicht, Snake-Segmente,
       Tetris-Blöcke, Puzzle-Teile, Flipper/Bumper, Kampf-Modus-Buttons und
       -Energiebalken).
+    - **Update (Nutzerwunsch "designe das komplette UI so professionell
+      aussehend wie möglich...90er-Jahre-Videogames"):** derselbe
+      Farbverlauf-/Bevel-/Glanzlicht-Look wurde auf **alle übrigen Screens**
+      ausgeweitet, die vorher noch flache Ein-Farb-Flächen hatten – Uhr/
+      Wecker, Timer, Checkliste, Web-Sync, Geburtstag, Aussehen/Charakter-
+      Anpassung, Einstellungen, Uhrzeit einstellen, PIN-Eingabe, Startlogo/
+      SD-Fehleranzeige, Profil-Auswahl beim Erststart, Aufgaben-/Quiz-Modus,
+      Gedächtnistraining (Memory + Simon-Says) und der Steckbrief. Reihen/
+      Buttons/Kacheln sind jetzt durchgängig gebevelte Panels statt flacher
+      `fillRect`/`fillRoundRect`-Flächen, Kopfleisten haben einen Farbverlauf
+      statt Flat-Fill.
 - **Fach-Auswahl:** Icon-Grid zu Mathe, Rechtschreibung, Französisch (nur
   ab Klasse 3), Quiz und Gedächtnistraining.
 - **Aufgaben-Modus:** Multiple-Choice-Frage antippen; richtige Antwort gibt
@@ -493,7 +504,21 @@ Fehler:
   überarbeitete Grafik ("SNES-Niveau") mit Farbverläufen, gebevelten
   Panels/Buttons, Sternenfeldern und Glanzlicht-Objekten statt flacher
   Ein-Farb-Flächen – siehe "Retro-Hintergründe"/"Grafik-Überarbeitung"
-  oben und [`src/core/GfxKit.*`](src/core/GfxKit.h).
+  oben und [`src/core/GfxKit.*`](src/core/GfxKit.h). Update: derselbe Look
+  wurde inzwischen auf alle übrigen Screens der App ausgeweitet.
+- **Gyro-/Neigungssteuerung invertiert:** Home-Screen-Figur, Fadenkreuz bei
+  Moorhuhn-Jagd, Neigungs-Nudge bei Pinball und die Kugel im Ball-Labyrinth
+  reagierten alle in die dem Neigen entgegengesetzte Richtung. Behoben durch
+  Umkehren des Vorzeichens von `imuData.accel.x`/`.y` an allen vier Stellen.
+- **Schnelle Bälle gingen durch Wände/Bumper hindurch:** klassisches
+  Tunneling-Problem bei diskreter Physik – ein einzelner Bewegungsschritt
+  über ein ganzes `deltaMs` konnte eine schnelle Kugel (z. B. nach einem
+  Flipper-Boost) komplett über eine dünne Wand/einen Bumper hinweg springen
+  lassen, weil nur die Position **nach** dem Schritt auf Kollision geprüft
+  wurde. Betraf `LabyrinthScreen` (Wände) und `PinballScreen` (Bumper).
+  Behoben durch Sub-Stepping: die Bewegung wird bei hoher Geschwindigkeit in
+  mehrere kleine Schritte von max. 4px aufgeteilt (max. 8 Sub-Schritte je
+  Frame), sodass jede Wand mindestens einmal "gesehen" wird.
 
 Die Spiele-Physik (Pinball/Basketball/Fussball/Moorhuhn-Jagd)-Konstanten
 sind weiterhin Startwerte, die bei Bedarf nach mehr Spielzeit noch

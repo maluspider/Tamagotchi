@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 
@@ -94,7 +95,7 @@ void TimerScreen::drawPresetSelect() const {
     const int w = M5.Display.width() / 3;
     for (int i = 0; i < 3; ++i) {
         const int cx = i * w + w / 2;
-        M5.Display.fillRoundRect(i * w + 10, 60, w - 20, 140, 10, theme::kPanel);
+        gfxkit::bevelPanel(&M5.Display, i * w + 10, 60, w - 20, 140, 10, theme::kPanel, true);
         M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(middle_center);
         M5.Display.setTextSize(4);
@@ -118,9 +119,13 @@ void TimerScreen::drawRunning() const {
     const int barW = 280;
     const int barX = (M5.Display.width() - barW) / 2;
     const int barY = 160;
-    M5.Display.drawRect(barX, barY, barW, 20, theme::kPanelLight);
+    gfxkit::bevelPanel(&M5.Display, barX, barY, barW, 20, 4, theme::kOutline, false);
     const float ratio = totalMs_ > 0 ? static_cast<float>(remainingMs_) / static_cast<float>(totalMs_) : 0.0f;
-    M5.Display.fillRect(barX + 2, barY + 2, static_cast<int>(static_cast<float>(barW - 4) * ratio), 16, theme::kAccentCyan);
+    const int fillW = static_cast<int>(static_cast<float>(barW - 4) * ratio);
+    if (fillW > 0) {
+        gfxkit::verticalGradient(&M5.Display, barX + 2, barY + 2, fillW, 16, gfxkit::lighten(theme::kAccentCyan, 0.3f),
+                                  gfxkit::darken(theme::kAccentCyan, 0.3f));
+    }
 
     M5.Display.setTextSize(1);
     M5.Display.drawString("Antippen zum Abbrechen", M5.Display.width() / 2, 200);
@@ -136,8 +141,10 @@ void TimerScreen::drawFinished() const {
 }
 
 void TimerScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 30, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);

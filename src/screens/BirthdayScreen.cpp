@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -47,15 +48,15 @@ void BirthdayScreen::drawHomeIcon() const {
 void BirthdayScreen::drawCake(int cx, int cy) const {
     const int w = 70;
     const int h = 40;
-    // Unterer, breiterer Tortenboden.
-    M5.Display.fillRoundRect(cx - w / 2, cy, w, h / 2, 6, theme::kAccentPink);
-    // Oberer, schmalerer Tortenboden.
-    M5.Display.fillRoundRect(cx - w / 3, cy - h / 3, w * 2 / 3, h / 3, 6, theme::kAccentCyan);
+    // Gebevelte Tortenboeden statt Flat-Fill (Nutzerwunsch: "so
+    // professionell wie moeglich...90er-Jahre-Videogames").
+    gfxkit::bevelPanel(&M5.Display, cx - w / 2, cy, w, h / 2, 6, theme::kAccentPink, true);
+    gfxkit::bevelPanel(&M5.Display, cx - w / 3, cy - h / 3, w * 2 / 3, h / 3, 6, theme::kAccentCyan, true);
     // Zuckerguss-Streifen zwischen den Boeden.
     M5.Display.fillRect(cx - w / 2, cy - 2, w, 4, theme::kAccentGold);
-    // Kerze + Flamme.
+    // Kerze + Flamme mit Glanzlicht.
     M5.Display.fillRect(cx - 2, cy - h / 3 - 16, 4, 16, theme::kText);
-    M5.Display.fillCircle(cx, cy - h / 3 - 20, 5, theme::kAccentOrange);
+    gfxkit::shinyBall(&M5.Display, cx, cy - h / 3 - 20, 5, theme::kAccentOrange);
 }
 
 long BirthdayScreen::daysUntilBirthday() const {
@@ -79,8 +80,10 @@ long BirthdayScreen::daysUntilBirthday() const {
 }
 
 void BirthdayScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 26, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 26, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);

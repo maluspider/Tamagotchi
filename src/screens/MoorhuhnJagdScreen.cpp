@@ -66,8 +66,10 @@ void MoorhuhnJagdScreen::updateCrosshair(uint32_t deltaMs) {
     M5.Imu.update();
     const auto imuData = M5.Imu.getImuData();
 
-    const float targetCx = M5.Display.width() / 2.0f + imuData.accel.x * kTiltRangeX;
-    const float targetCy = (kTopBarHeight + M5.Display.height()) / 2.0f - imuData.accel.y * kTiltRangeY;
+    // Nutzer-Feedback: "Gyrobewegungen sind invertiert" - Vorzeichen beider
+    // Achsen gedreht (siehe auch HomeScreen/PinballScreen/LabyrinthScreen).
+    const float targetCx = M5.Display.width() / 2.0f - imuData.accel.x * kTiltRangeX;
+    const float targetCy = (kTopBarHeight + M5.Display.height()) / 2.0f + imuData.accel.y * kTiltRangeY;
 
     crosshairX_ += (targetCx - crosshairX_) * kSmoothing;
     crosshairY_ += (targetCy - crosshairY_) * kSmoothing;

@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <esp_random.h>
 
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
@@ -198,8 +199,10 @@ void GedaechtnisScreen::drawSymbol(int symbol, int cx, int cy, int r) {
 }
 
 void GedaechtnisScreen::drawMemoryGame() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), gfxkit::darken(theme::kPanel, 0.55f),
+                              theme::kBackground);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     canvas_.setTextColor(theme::kText);
     canvas_.setTextDatum(top_left);
     canvas_.setTextSize(1);
@@ -218,10 +221,10 @@ void GedaechtnisScreen::drawMemoryGame() {
         const int half = (cellW < cellH ? cellW : cellH) / 2 - 8;
 
         if (cardMatched_[i] || cardRevealed_[i]) {
-            canvas_.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 8, TFT_WHITE);
+            gfxkit::bevelPanel(&canvas_, cx - half, cy - half, half * 2, half * 2, 8, TFT_WHITE, true);
             drawSymbol(cardSymbol_[i], cx, cy, half - 6);
         } else {
-            canvas_.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 8, theme::kMuted);
+            gfxkit::bevelPanel(&canvas_, cx - half, cy - half, half * 2, half * 2, 8, theme::kMuted, true);
         }
     }
 
@@ -336,8 +339,10 @@ void GedaechtnisScreen::updateSequence(uint32_t deltaMs) {
 }
 
 void GedaechtnisScreen::drawSequenceGame() {
-    canvas_.fillScreen(theme::kBackground);
-    canvas_.fillRect(0, 0, canvas_.width(), kTopBarHeight, theme::kPanel);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), canvas_.height(), gfxkit::darken(theme::kPanel, 0.55f),
+                              theme::kBackground);
+    gfxkit::verticalGradient(&canvas_, 0, 0, canvas_.width(), kTopBarHeight, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     canvas_.setTextColor(theme::kText);
     canvas_.setTextDatum(top_left);
     canvas_.setTextSize(1);
@@ -354,8 +359,7 @@ void GedaechtnisScreen::drawSequenceGame() {
         const int row = zone / 2;
         const int x = col * zoneW;
         const int y = kTopBarHeight + row * zoneH;
-        canvas_.fillRect(x + 4, y + 4, zoneW - 8, zoneH - 8, kZoneColors[zone]);
-        canvas_.drawRect(x + 4, y + 4, zoneW - 8, zoneH - 8, TFT_WHITE);
+        gfxkit::bevelPanel(&canvas_, x + 4, y + 4, zoneW - 8, zoneH - 8, 6, kZoneColors[zone], true);
         // Nutzer-Feedback: ein weisses Aufblinken der ganzen Zone war
         // gegen die helleren Zonenfarben (Gelb/Cyan) schlecht sichtbar und
         // verdeckte zudem den Farb-Landmark der Zone. Ein grosser

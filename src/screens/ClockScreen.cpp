@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
@@ -87,7 +88,8 @@ void ClockScreen::drawHomeIcon() const {
 }
 
 void ClockScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
 
     m5::rtc_time_t time_;
     M5.Rtc.getTime(&time_);
@@ -101,25 +103,28 @@ void ClockScreen::draw() {
     M5.Display.setTextSize(7);
     M5.Display.drawString(buf, centerX, 70);
 
-    // Glocke: gefuellt = Wecker aktiv, nur Umriss = inaktiv.
+    // Glocke: gefuellt = Wecker aktiv, nur Umriss = inaktiv. Glanzlicht-
+    // Kugel statt Flat-Kreis (Nutzerwunsch: "so professionell wie moeglich
+    // ... 90er-Jahre-Videogames").
     const uint16_t bellColor = app_.profile.alarmEnabled ? theme::kAccentGold : theme::kMuted;
-    M5.Display.fillCircle(centerX, kBellCenterY, kBellRadius, bellColor);
-    M5.Display.drawCircle(centerX, kBellCenterY, kBellRadius, theme::kText);
+    gfxkit::shinyBall(&M5.Display, centerX, kBellCenterY, kBellRadius, bellColor);
 
+    M5.Display.setTextColor(theme::kText);
     M5.Display.setTextSize(3);
     char alarmBuf[6];
     snprintf(alarmBuf, sizeof(alarmBuf), "%02d:%02d", app_.profile.alarmHour, app_.profile.alarmMinute);
     M5.Display.drawString(alarmBuf, centerX, kAlarmLabelY);
 
     const int zoneW = M5.Display.width() / 4;
+    for (int i = 0; i < 4; ++i) {
+        gfxkit::bevelPanel(&M5.Display, i * zoneW + 4, kStepperTop, zoneW - 8, kStepperHeight, 4, theme::kPanel,
+                            true);
+    }
     M5.Display.setTextSize(3);
     M5.Display.drawString("-", zoneW * 0 + zoneW / 2, kStepperTop + kStepperHeight / 2);
     M5.Display.drawString("+", zoneW * 1 + zoneW / 2, kStepperTop + kStepperHeight / 2);
     M5.Display.drawString("-", zoneW * 2 + zoneW / 2, kStepperTop + kStepperHeight / 2);
     M5.Display.drawString("+", zoneW * 3 + zoneW / 2, kStepperTop + kStepperHeight / 2);
-    for (int i = 1; i < 4; ++i) {
-        M5.Display.drawLine(zoneW * i, kStepperTop, zoneW * i, kStepperTop + kStepperHeight, theme::kPanelLight);
-    }
 
     drawHomeIcon();
 }

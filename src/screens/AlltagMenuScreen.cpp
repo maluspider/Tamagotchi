@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/Theme.h"
 
@@ -41,7 +42,7 @@ void AlltagMenuScreen::drawHomeIcon() const {
 
 void AlltagMenuScreen::drawEntry(int index, int cx, int cy, int cellSize) const {
     const int half = cellSize / 2 - 10;
-    M5.Display.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 10, theme::kPanel);
+    gfxkit::bevelPanel(&M5.Display, cx - half, cy - half, half * 2, half * 2, 10, theme::kPanel, true);
 
     const int r = half - 16;
     switch (kEntries[index].screen) {
@@ -91,8 +92,12 @@ void AlltagMenuScreen::drawEntry(int index, int cx, int cy, int cellSize) const 
 }
 
 void AlltagMenuScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), M5.Display.height() - 70);
+    const int horizonY = M5.Display.height() - 70;
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), horizonY, gfxkit::darken(theme::kPanel, 0.5f),
+                              theme::kBackground);
+    M5.Display.fillRect(0, horizonY, M5.Display.width(), M5.Display.height() - horizonY, theme::kBackground);
+    gfxkit::starfield(&M5.Display, M5.Display.width(), horizonY - 30, 24, theme::kTextDim);
+    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), horizonY);
 
     const int cellW = M5.Display.width() / kCols;
     const int cellH = (M5.Display.height() - 10) / kRows;

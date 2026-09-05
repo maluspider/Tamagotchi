@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 
 #include "../core/CharacterEngine.h"
+#include "../core/GfxKit.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -75,12 +76,19 @@ void SteckbriefScreen::drawHomeIcon() const {
 }
 
 void SteckbriefScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 30, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
     M5.Display.drawString("Mein Steckbrief", 6, 4);
+
+    // Gebeveltes Karten-Panel hinter dem Stat-Block statt loser Textzeilen
+    // auf dem blossen Hintergrund (Nutzerwunsch: "so professionell wie
+    // moeglich...90er-Jahre-Videogames").
+    gfxkit::bevelPanel(&M5.Display, 6, 38, M5.Display.width() - 12, M5.Display.height() - 44, 8, theme::kPanel, true);
 
     int y = 44;
     const int lineHeight = 28;

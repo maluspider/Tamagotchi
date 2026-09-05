@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
@@ -42,7 +43,7 @@ void SubjectSelectScreen::drawHomeIcon() const {
 
 void SubjectSelectScreen::drawEntry(const Entry& entry, int cx, int cy, int cellSize) const {
     const int half = cellSize / 2 - 6;
-    M5.Display.fillRoundRect(cx - half, cy - half, half * 2, half * 2, 10, theme::kPanel);
+    gfxkit::bevelPanel(&M5.Display, cx - half, cy - half, half * 2, half * 2, 10, theme::kPanel, true);
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_center);
 
@@ -77,8 +78,12 @@ void SubjectSelectScreen::drawEntry(const Entry& entry, int cx, int cy, int cell
 }
 
 void SubjectSelectScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), M5.Display.height() - 70);
+    const int horizonY = M5.Display.height() - 70;
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), horizonY, gfxkit::darken(theme::kPanel, 0.5f),
+                              theme::kBackground);
+    M5.Display.fillRect(0, horizonY, M5.Display.width(), M5.Display.height() - horizonY, theme::kBackground);
+    gfxkit::starfield(&M5.Display, M5.Display.width(), horizonY - 30, 24, theme::kTextDim);
+    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), horizonY);
 
     Entry entries[kMaxEntries];
     const int count = buildEntries(entries, kMaxEntries);

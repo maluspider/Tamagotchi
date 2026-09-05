@@ -4,7 +4,9 @@
 #include <esp_random.h>
 
 #include "../core/DifficultyTracker.h"
+#include "../core/GfxKit.h"
 #include "../core/PinCode.h"
+#include "../core/RetroBackdrop.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Subject.h"
@@ -30,14 +32,14 @@ void ProfileSetupScreen::onEnter() {
 void ProfileSetupScreen::drawChoice(int x, int w, size_t profileIndex) const {
     const int h = M5.Display.height();
     const uint16_t color = kChoiceColors[profileIndex % kChoiceColorCount];
-    M5.Display.fillRoundRect(x + 10, 20, w - 20, h - 40, 12, color);
+    gfxkit::bevelPanel(&M5.Display, x + 10, 20, w - 20, h - 40, 12, color, true);
 
     // Kleiner Platzhalter-Kopf ueber dem Namen, damit die Auswahl auch ohne
     // Lesen als "das ist mein Tamagotchi" erkennbar bleibt (Review:
     // icon-first fuer die juengere Zielgruppe, Abschnitt 5).
     const int cx = x + w / 2;
     const int headCy = 20 + (h - 40) / 3;
-    M5.Display.fillCircle(cx, headCy, 22, theme::kText);
+    gfxkit::shinyBall(&M5.Display, cx, headCy, 22, theme::kText);
     M5.Display.drawCircle(cx, headCy, 22, theme::kOutline);
     M5.Display.fillCircle(cx - 8, headCy - 4, 3, theme::kOutline);
     M5.Display.fillCircle(cx + 8, headCy - 4, 3, theme::kOutline);
@@ -49,7 +51,10 @@ void ProfileSetupScreen::drawChoice(int x, int w, size_t profileIndex) const {
 }
 
 void ProfileSetupScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.5f), theme::kBackground);
+    retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(),
+                                      M5.Display.height() - 40);
     const int w = M5.Display.width() / static_cast<int>(kKidProfileCount);
     for (size_t i = 0; i < kKidProfileCount; ++i) {
         drawChoice(static_cast<int>(i) * w, w, i);

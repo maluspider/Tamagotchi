@@ -67,33 +67,57 @@ void LabyrinthScreen::updatePhysics(uint32_t deltaMs) {
     const auto imuData = M5.Imu.getImuData();
     const float dt = static_cast<float>(deltaMs);
 
-    ballVx_ += imuData.accel.x * kTiltAccel * dt;
-    ballVy_ += -imuData.accel.y * kTiltAccel * dt;
+    // Nutzer-Feedback: "Gyrobewegungen sind invertiert" - Vorzeichen beider
+    // Achsen gedreht (siehe auch HomeScreen/MoorhuhnJagdScreen/PinballScreen).
+    ballVx_ += -imuData.accel.x * kTiltAccel * dt;
+    ballVy_ += imuData.accel.y * kTiltAccel * dt;
     ballVx_ *= kFriction;
     ballVy_ *= kFriction;
 
-    ballX_ += ballVx_ * dt;
-    ballY_ += ballVy_ * dt;
+    // Nutzer-Feedback: "schnelle Baelle gehen einfach durch die Wand" - bei
+    // hoher Geschwindigkeit wuerde ein einzelner Bewegungsschritt ueber
+    // ein ganzes deltaMs die Kugel komplett ueber eine duenne Wand hinweg
+    // springen lassen, da nur die Position NACH dem Schritt auf Kollision
+    // geprueft wird (klassisches Tunneling-Problem bei diskreter Physik).
+    // Die Bewegung wird deshalb in mehrere kleine Sub-Schritte von maximal
+    // kMaxStepPx Pixeln aufgeteilt, sodass jede Wand mindestens einmal
+    // "gesehen" wird.
+    constexpr float kMaxStepPx = 4.0f;
+    constexpr int kMaxSubSteps = 8;
+    const float speed = sqrtf(ballVx_ * ballVx_ + ballVy_ * ballVy_);
+    int steps = 1;
+    if (speed * dt > kMaxStepPx) {
+        steps = static_cast<int>(ceilf(speed * dt / kMaxStepPx));
+        if (steps > kMaxSubSteps) {
+            steps = kMaxSubSteps;
+        }
+    }
+    const float stepDt = dt / static_cast<float>(steps);
 
-    if (ballX_ < kBallRadius) {
-        ballX_ = kBallRadius;
-        ballVx_ = 0.0f;
-    }
-    if (ballX_ > canvas_.width() - kBallRadius) {
-        ballX_ = canvas_.width() - kBallRadius;
-        ballVx_ = 0.0f;
-    }
-    if (ballY_ < kTopBarHeight + kBallRadius) {
-        ballY_ = kTopBarHeight + kBallRadius;
-        ballVy_ = 0.0f;
-    }
-    if (ballY_ > canvas_.height() - kBallRadius) {
-        ballY_ = canvas_.height() - kBallRadius;
-        ballVy_ = 0.0f;
-    }
+    for (int step = 0; step < steps; ++step) {
+        ballX_ += ballVx_ * stepDt;
+        ballY_ += ballVy_ * stepDt;
 
-    for (const Wall& wall : kWalls) {
-        resolveWallCollision(wall);
+        if (ballX_ < kBallRadius) {
+            ballX_ = kBallRadius;
+            ballVx_ = 0.0f;
+        }
+        if (ballX_ > canvas_.width() - kBallRadius) {
+            ballX_ = canvas_.width() - kBallRadius;
+            ballVx_ = 0.0f;
+        }
+        if (ballY_ < kTopBarHeight + kBallRadius) {
+            ballY_ = kTopBarHeight + kBallRadius;
+            ballVy_ = 0.0f;
+        }
+        if (ballY_ > canvas_.height() - kBallRadius) {
+            ballY_ = canvas_.height() - kBallRadius;
+            ballVy_ = 0.0f;
+        }
+
+        for (const Wall& wall : kWalls) {
+            resolveWallCollision(wall);
+        }
     }
 
     const float gdx = ballX_ - kGoalX;

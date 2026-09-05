@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 
 #include "../core/DifficultyTracker.h"
+#include "../core/GfxKit.h"
 #include "../core/Haptics.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
@@ -124,7 +125,8 @@ void TaskScreen::drawHomeIcon() const {
 }
 
 void TaskScreen::drawQuestion() const {
-    M5.Display.fillRect(0, 0, M5.Display.width(), kQuestionAreaHeight, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), kQuestionAreaHeight,
+                              gfxkit::lighten(theme::kPanel, 0.15f), gfxkit::darken(theme::kPanel, 0.25f));
     // Laengere Fragen/Antworten (z. B. Rechtschreibung/Quiz) liefen bei
     // fester textSize(3) auf echter Hardware rechts/links aus dem
     // Bildschirm und wurden dadurch unlesbar - textfit::drawFitted() bricht
@@ -136,7 +138,7 @@ void TaskScreen::drawQuestion() const {
     const int zoneHeight = areaHeight / current_.antwortenCount;
     for (uint8_t i = 0; i < current_.antwortenCount; ++i) {
         const int y = kQuestionAreaHeight + i * zoneHeight;
-        M5.Display.drawRect(4, y + 2, M5.Display.width() - 8, zoneHeight - 4, theme::kPanelLight);
+        gfxkit::bevelPanel(&M5.Display, 4, y + 2, M5.Display.width() - 8, zoneHeight - 4, 6, theme::kPanel, true);
         textfit::drawFitted(&M5.Display, current_.antworten[i], M5.Display.width() / 2, y + zoneHeight / 2,
                              M5.Display.width() - 24, zoneHeight - 10, 3, theme::kText);
     }
@@ -144,7 +146,9 @@ void TaskScreen::drawQuestion() const {
 
 void TaskScreen::drawFeedback() const {
     const uint16_t color = lastAnswerCorrect_ ? theme::kSuccess : theme::kDanger;
-    M5.Display.fillRect(0, kQuestionAreaHeight, M5.Display.width(), M5.Display.height() - kQuestionAreaHeight, color);
+    gfxkit::verticalGradient(&M5.Display, 0, kQuestionAreaHeight, M5.Display.width(),
+                              M5.Display.height() - kQuestionAreaHeight, gfxkit::lighten(color, 0.25f),
+                              gfxkit::darken(color, 0.25f));
     M5.Display.setTextColor(theme::kOutline);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(4);
@@ -153,7 +157,8 @@ void TaskScreen::drawFeedback() const {
 }
 
 void TaskScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
 
     if (phase_ == Phase::NoTasksAvailable) {
         M5.Display.setTextColor(theme::kText);

@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 #include <SD.h>
 
+#include "../core/GfxKit.h"
 #include "../core/RetroBackdrop.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
@@ -31,7 +32,9 @@ void BootScreen::onEnter() {
 }
 
 void BootScreen::drawLogo() {
-    M5.Display.fillScreen(theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.5f), theme::kBackground);
+    gfxkit::starfield(&M5.Display, M5.Display.width(), M5.Display.height() - 100, 30, theme::kTextDim);
     retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(),
                                       M5.Display.height() - 80);
 
@@ -67,8 +70,10 @@ void BootScreen::drawSdError() {
     // Unabhaengig vom Nachtmodus/dessen Timing immer garantiert lesbar - ein
     // SD-Fehler beim Start ist zu wichtig, um womoeglich dunkel zu bleiben.
     M5.Display.setBrightness(200);
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 34, theme::kDanger);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 34, gfxkit::lighten(theme::kDanger, 0.15f),
+                              gfxkit::darken(theme::kDanger, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(2);

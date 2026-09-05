@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/PinCode.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -123,8 +124,11 @@ void PinEntryScreen::drawHomeIcon() const {
 }
 
 void PinEntryScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), kTopBarHeight, showError_ ? theme::kDanger : theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    const uint16_t barColor = showError_ ? theme::kDanger : theme::kPanel;
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), kTopBarHeight, gfxkit::lighten(barColor, 0.15f),
+                              gfxkit::darken(barColor, 0.25f));
 
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_center);
@@ -136,7 +140,7 @@ void PinEntryScreen::draw() {
         const int cx = M5.Display.width() / 2 - 45 + i * 30;
         const int cy = 40;
         if (i < static_cast<int>(entered_.length())) {
-            M5.Display.fillCircle(cx, cy, 6, theme::kText);
+            gfxkit::shinyBall(&M5.Display, cx, cy, 6, theme::kAccentGold);
         } else {
             M5.Display.drawCircle(cx, cy, 6, theme::kText);
         }
@@ -152,8 +156,9 @@ void PinEntryScreen::draw() {
         const int row = index / kCols;
         const int cx = col * cellW + cellW / 2;
         const int cy = kTopBarHeight + row * cellH + cellH / 2;
-        const uint16_t color = (kKeyLabels[index][0] == 'C') ? theme::kAccentOrange : theme::kPanelLight;
-        M5.Display.fillRoundRect(cx - cellW / 2 + 6, cy - cellH / 2 + 6, cellW - 12, cellH - 12, 6, color);
+        const uint16_t color = (kKeyLabels[index][0] == 'C') ? theme::kAccentOrange : theme::kPanel;
+        gfxkit::bevelPanel(&M5.Display, cx - cellW / 2 + 6, cy - cellH / 2 + 6, cellW - 12, cellH - 12, 6, color,
+                            true);
         M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(middle_center);
         M5.Display.setTextSize(3);

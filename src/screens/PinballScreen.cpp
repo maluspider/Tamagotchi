@@ -64,37 +64,58 @@ void PinballScreen::updatePhysics(uint32_t deltaMs) {
     const float dt = static_cast<float>(deltaMs);
 
     ballVy_ += kGravity * dt;
-    ballX_ += ballVx_ * dt;
-    ballY_ += ballVy_ * dt;
 
-    if (ballX_ < kBallRadius + 2) {
-        ballX_ = kBallRadius + 2;
-        ballVx_ = -ballVx_ * 0.7f;
+    // Nutzer-Feedback: "schnelle Baelle gehen einfach durch die Wand" - ein
+    // einzelner Bewegungsschritt ueber das ganze deltaMs koennte die Kugel
+    // (insbesondere kurz nach einem Flipper-Boost mit stark erhoehter
+    // Geschwindigkeit) komplett ueber einen Bumper hinweg springen lassen,
+    // da nur die Position NACH dem Schritt auf Kollision geprueft wird.
+    // Sub-Stepping wie in LabyrinthScreen::updatePhysics() behebt das.
+    constexpr float kMaxStepPx = 4.0f;
+    constexpr int kMaxSubSteps = 8;
+    const float speed = sqrtf(ballVx_ * ballVx_ + ballVy_ * ballVy_);
+    int steps = 1;
+    if (speed * dt > kMaxStepPx) {
+        steps = static_cast<int>(ceilf(speed * dt / kMaxStepPx));
+        if (steps > kMaxSubSteps) {
+            steps = kMaxSubSteps;
+        }
     }
-    if (ballX_ > canvas_.width() - kBallRadius - 2) {
-        ballX_ = canvas_.width() - kBallRadius - 2;
-        ballVx_ = -ballVx_ * 0.7f;
-    }
-    if (ballY_ < kTopBarHeight + kBallRadius) {
-        ballY_ = kTopBarHeight + kBallRadius;
-        ballVy_ = -ballVy_ * 0.7f;
-    }
+    const float stepDt = dt / static_cast<float>(steps);
 
-    for (const Bumper& bumper : kBumpers) {
-        const float dx = ballX_ - bumper.x;
-        const float dy = ballY_ - bumper.y;
-        const float dist = sqrtf(dx * dx + dy * dy);
-        const float minDist = bumper.r + kBallRadius;
-        if (dist > 0.001f && dist < minDist) {
-            const float nx = dx / dist;
-            const float ny = dy / dist;
-            ballX_ = bumper.x + nx * minDist;
-            ballY_ = bumper.y + ny * minDist;
-            const float dot = ballVx_ * nx + ballVy_ * ny;
-            ballVx_ = (ballVx_ - 2.0f * dot * nx) * 1.15f;
-            ballVy_ = (ballVy_ - 2.0f * dot * ny) * 1.15f;
-            score_ += 10;
-            haptics::pulse(30);
+    for (int step = 0; step < steps; ++step) {
+        ballX_ += ballVx_ * stepDt;
+        ballY_ += ballVy_ * stepDt;
+
+        if (ballX_ < kBallRadius + 2) {
+            ballX_ = kBallRadius + 2;
+            ballVx_ = -ballVx_ * 0.7f;
+        }
+        if (ballX_ > canvas_.width() - kBallRadius - 2) {
+            ballX_ = canvas_.width() - kBallRadius - 2;
+            ballVx_ = -ballVx_ * 0.7f;
+        }
+        if (ballY_ < kTopBarHeight + kBallRadius) {
+            ballY_ = kTopBarHeight + kBallRadius;
+            ballVy_ = -ballVy_ * 0.7f;
+        }
+
+        for (const Bumper& bumper : kBumpers) {
+            const float dx = ballX_ - bumper.x;
+            const float dy = ballY_ - bumper.y;
+            const float dist = sqrtf(dx * dx + dy * dy);
+            const float minDist = bumper.r + kBallRadius;
+            if (dist > 0.001f && dist < minDist) {
+                const float nx = dx / dist;
+                const float ny = dy / dist;
+                ballX_ = bumper.x + nx * minDist;
+                ballY_ = bumper.y + ny * minDist;
+                const float dot = ballVx_ * nx + ballVy_ * ny;
+                ballVx_ = (ballVx_ - 2.0f * dot * nx) * 1.15f;
+                ballVy_ = (ballVy_ - 2.0f * dot * ny) * 1.15f;
+                score_ += 10;
+                haptics::pulse(30);
+            }
         }
     }
 
@@ -155,7 +176,9 @@ void PinballScreen::handleInput(uint32_t deltaMs) {
     // primaeres Steuerelement).
     M5.Imu.update();
     const auto imuData = M5.Imu.getImuData();
-    ballVx_ += imuData.accel.x * kTiltForce * static_cast<float>(deltaMs);
+    // Nutzer-Feedback: "Gyrobewegungen sind invertiert" - Vorzeichen gedreht
+    // (siehe auch HomeScreen/MoorhuhnJagdScreen/LabyrinthScreen).
+    ballVx_ += -imuData.accel.x * kTiltForce * static_cast<float>(deltaMs);
 }
 
 void PinballScreen::update(uint32_t deltaMs) {

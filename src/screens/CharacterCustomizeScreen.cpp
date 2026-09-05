@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
@@ -70,7 +71,7 @@ void CharacterCustomizeScreen::drawHomeIcon() const {
 }
 
 void CharacterCustomizeScreen::drawTraitRow(int y, const char* label, const traits::Preset& preset) const {
-    M5.Display.drawRoundRect(4, y, 312, kRowHeight - 4, 8, theme::kPanelLight);
+    gfxkit::bevelPanel(&M5.Display, 4, y, 312, kRowHeight - 4, 8, theme::kPanel, true);
 
     const int midY = y + (kRowHeight - 4) / 2;
 
@@ -82,8 +83,8 @@ void CharacterCustomizeScreen::drawTraitRow(int y, const char* label, const trai
     M5.Display.fillTriangle(kArrowLeftX2 - 4, midY, kArrowLeftX1 + 4, midY - 7, kArrowLeftX1 + 4, midY + 7, theme::kAccentCyan);
     M5.Display.fillTriangle(kArrowRightX1 + 4, midY, kArrowRightX2 - 4, midY - 7, kArrowRightX2 - 4, midY + 7, theme::kAccentCyan);
 
-    M5.Display.fillRoundRect(kSwatchX1, y + 5, kSwatchX2 - kSwatchX1, kRowHeight - 14, 4, preset.color565);
-    M5.Display.drawRoundRect(kSwatchX1, y + 5, kSwatchX2 - kSwatchX1, kRowHeight - 14, 4, theme::kOutline);
+    gfxkit::bevelPanel(&M5.Display, kSwatchX1, y + 5, kSwatchX2 - kSwatchX1, kRowHeight - 14, 4, preset.color565,
+                        true);
 
     M5.Display.setTextColor(theme::kTextDim);
     M5.Display.setTextDatum(middle_left);
@@ -92,8 +93,10 @@ void CharacterCustomizeScreen::drawTraitRow(int y, const char* label, const trai
 }
 
 void CharacterCustomizeScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 26, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 26, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);

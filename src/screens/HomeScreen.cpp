@@ -115,8 +115,11 @@ void HomeScreen::updateCharacterDrift(uint32_t deltaMs) {
     M5.Imu.update();
     const auto imuData = M5.Imu.getImuData();
 
-    const float targetX = imuData.accel.x * kCharacterTiltRangeX;
-    const float targetY = -imuData.accel.y * kCharacterTiltRangeY;
+    // Nutzer-Feedback: "Gyrobewegungen sind invertiert" - Vorzeichen beider
+    // Achsen gedreht, damit ein Neigen in eine Richtung die Figur auch
+    // sichtbar in diese Richtung zieht statt entgegengesetzt.
+    const float targetX = -imuData.accel.x * kCharacterTiltRangeX;
+    const float targetY = imuData.accel.y * kCharacterTiltRangeY;
 
     characterOffsetX_ += (targetX - characterOffsetX_) * kCharacterSmoothing;
     characterOffsetY_ += (targetY - characterOffsetY_) * kCharacterSmoothing;

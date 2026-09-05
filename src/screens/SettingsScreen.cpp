@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
@@ -101,7 +102,7 @@ void SettingsScreen::drawHomeIcon() const {
 }
 
 void SettingsScreen::drawRow(int y, const char* label) const {
-    M5.Display.drawRoundRect(4, y, 312, kRowHeight - 4, 8, theme::kPanelLight);
+    gfxkit::bevelPanel(&M5.Display, 4, y, 312, kRowHeight - 4, 8, theme::kPanel, true);
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_left);
     M5.Display.setTextSize(2);
@@ -109,8 +110,10 @@ void SettingsScreen::drawRow(int y, const char* label) const {
 }
 
 void SettingsScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 26, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 26, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
@@ -119,8 +122,10 @@ void SettingsScreen::draw() {
     // Zeile 0: Tageslimit -/+.
     drawRow(kRow0Y, "Limit");
     const int rowMidY0 = kRow0Y + (kRowHeight - 4) / 2;
-    M5.Display.fillRoundRect(kMinusX1, kRow0Y + 6, kMinusX2 - kMinusX1, kRowHeight - 16, 6, theme::kDanger);
-    M5.Display.fillRoundRect(kPlusX1, kRow0Y + 6, kPlusX2 - kPlusX1, kRowHeight - 16, 6, theme::kSuccess);
+    gfxkit::bevelPanel(&M5.Display, kMinusX1, kRow0Y + 6, kMinusX2 - kMinusX1, kRowHeight - 16, 6, theme::kDanger,
+                        true);
+    gfxkit::bevelPanel(&M5.Display, kPlusX1, kRow0Y + 6, kPlusX2 - kPlusX1, kRowHeight - 16, 6, theme::kSuccess,
+                        true);
     M5.Display.setTextColor(theme::kOutline);
     M5.Display.setTextDatum(middle_center);
     M5.Display.drawString("-", (kMinusX1 + kMinusX2) / 2, rowMidY0);

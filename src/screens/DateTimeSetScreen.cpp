@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 
@@ -177,15 +178,15 @@ void DateTimeSetScreen::drawHomeIcon() const {
 }
 
 void DateTimeSetScreen::drawRow(int y, const char* label, int value, bool fourDigits) const {
-    M5.Display.drawRoundRect(4, y, 312, kRowHeight - 4, 8, theme::kPanelLight);
+    gfxkit::bevelPanel(&M5.Display, 4, y, 312, kRowHeight - 4, 8, theme::kPanel, true);
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(middle_left);
     M5.Display.setTextSize(2);
     M5.Display.drawString(label, 14, y + (kRowHeight - 4) / 2);
 
     const int rowMidY = y + (kRowHeight - 4) / 2;
-    M5.Display.fillRoundRect(kMinusX1, y + 4, kMinusX2 - kMinusX1, kRowHeight - 12, 6, theme::kDanger);
-    M5.Display.fillRoundRect(kPlusX1, y + 4, kPlusX2 - kPlusX1, kRowHeight - 12, 6, theme::kSuccess);
+    gfxkit::bevelPanel(&M5.Display, kMinusX1, y + 4, kMinusX2 - kMinusX1, kRowHeight - 12, 6, theme::kDanger, true);
+    gfxkit::bevelPanel(&M5.Display, kPlusX1, y + 4, kPlusX2 - kPlusX1, kRowHeight - 12, 6, theme::kSuccess, true);
     M5.Display.setTextColor(theme::kOutline);
     M5.Display.setTextDatum(middle_center);
     M5.Display.drawString("-", (kMinusX1 + kMinusX2) / 2, rowMidY);
@@ -200,8 +201,10 @@ void DateTimeSetScreen::drawRow(int y, const char* label, int value, bool fourDi
 }
 
 void DateTimeSetScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 26, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 26, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
@@ -213,8 +216,7 @@ void DateTimeSetScreen::draw() {
     drawRow(kRow3Y, "Stunde", hour_, false);
     drawRow(kRow4Y, "Minute", minute_, false);
 
-    M5.Display.fillRoundRect(60, kSaveY, 200, kSaveHeight, 8, theme::kAccentGold);
-    M5.Display.drawRoundRect(60, kSaveY, 200, kSaveHeight, 8, theme::kOutline);
+    gfxkit::bevelPanel(&M5.Display, 60, kSaveY, 200, kSaveHeight, 8, theme::kAccentGold, true);
     M5.Display.setTextColor(theme::kOutline);
     M5.Display.setTextDatum(middle_center);
     M5.Display.setTextSize(2);

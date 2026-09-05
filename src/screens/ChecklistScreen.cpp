@@ -2,6 +2,7 @@
 
 #include <M5Unified.h>
 
+#include "../core/GfxKit.h"
 #include "../core/RtcClock.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
@@ -94,8 +95,10 @@ void ChecklistScreen::drawHomeIcon() const {
 }
 
 void ChecklistScreen::draw() {
-    M5.Display.fillScreen(theme::kBackground);
-    M5.Display.fillRect(0, 0, M5.Display.width(), 30, theme::kPanel);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 30, gfxkit::lighten(theme::kPanel, 0.15f),
+                              gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);
     M5.Display.setTextDatum(top_left);
     M5.Display.setTextSize(2);
@@ -103,11 +106,11 @@ void ChecklistScreen::draw() {
 
     for (int i = 0; i < AppContext::kChecklistItemCount; ++i) {
         const int y = kRowTop + i * kRowHeight;
-        M5.Display.drawRoundRect(10, y + 4, M5.Display.width() - 20, kRowHeight - 8, 8, theme::kPanelLight);
+        gfxkit::bevelPanel(&M5.Display, 10, y + 4, M5.Display.width() - 20, kRowHeight - 8, 8, theme::kPanel, true);
 
         const int boxX = 24;
         const int boxY = y + kRowHeight / 2 - 12;
-        M5.Display.drawRect(boxX, boxY, 24, 24, theme::kText);
+        gfxkit::bevelPanel(&M5.Display, boxX, boxY, 24, 24, 3, theme::kOutline, false);
         if (app_.checklistDone[i]) {
             M5.Display.fillRect(boxX + 3, boxY + 3, 18, 18, theme::kSuccess);
         }
