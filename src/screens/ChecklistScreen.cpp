@@ -97,6 +97,10 @@ void ChecklistScreen::drawHomeIcon() const {
 void ChecklistScreen::draw() {
     gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
                               gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    // Dezentes Sternenfeld unterhalb der Titelleiste fuer mehr Tiefe
+    // (Nutzerwunsch: "grafiken im tools menue ebenfalls maximal
+    // verbessern"), analog zu AlltagMenuScreen/HomeScreen.
+    gfxkit::starfield(&M5.Display, M5.Display.width(), M5.Display.height() - 30, 18, theme::kTextDim, 0, 30);
     gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), 30, gfxkit::lighten(theme::kPanel, 0.15f),
                               gfxkit::darken(theme::kPanel, 0.25f));
     M5.Display.setTextColor(theme::kText);

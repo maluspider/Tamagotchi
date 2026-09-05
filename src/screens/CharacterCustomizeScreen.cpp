@@ -102,6 +102,16 @@ void CharacterCustomizeScreen::draw() {
     M5.Display.setTextSize(2);
     M5.Display.drawString("Aussehen", 6, 3);
 
+    // Buehnenlicht-Effekt hinter der Vorschau (mehrere ineinanderliegende,
+    // zur Mitte hin hellere Kreise statt einer flachen Hintergrundflaeche) -
+    // Nutzerwunsch "grafiken im tools menue ebenfalls maximal verbessern".
+    // Radius/Position so gewaehlt, dass er genau in die Luecke zwischen
+    // Titelleiste und erster Trait-Zeile (kRow0Y) passt.
+    const int previewCx = M5.Display.width() / 2;
+    M5.Display.fillCircle(previewCx, kPreviewCy, 50, gfxkit::lighten(theme::kPanel, 0.05f));
+    M5.Display.fillCircle(previewCx, kPreviewCy, 38, gfxkit::lighten(theme::kPanel, 0.16f));
+    M5.Display.fillCircle(previewCx, kPreviewCy, 26, gfxkit::lighten(theme::kPanel, 0.3f));
+
     const CharacterStage stage = app_.character.stage();
     if (!renderer_.draw(stage, "idle1", app_.profile, M5.Display.width() / 2, kPreviewCy, kPreviewScale, &M5.Display)) {
         // Fallback, falls kein Sprite existiert (SD-Karte fehlt) - die

@@ -355,19 +355,27 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
     einer schwer erkennbaren reinen Weiss-Umriss-Optik – jetzt einheitlich
     als deutlich sichtbares goldenes Badge).
 - **Alltagsfunktionen-Menü:** Icon-Grid (3×2, vollständig gefüllt) zu
-  Uhr/Wecker, Timer, Checkliste, Steckbrief, Aussehen und Geburtstag.
+  Uhr/Wecker, Timer, Checkliste, Steckbrief, Aussehen und Geburtstag. Alle
+  sechs Screens sind jetzt grafisch auf demselben Niveau wie die Spiele
+  (Nutzerwunsch: "grafiken im tools menü ebenfalls maximal verbessern") –
+  Himmel-Verläufe/Sternenfelder/Skyline (GfxKit) statt flacher Ein-Farb-
+  Hintergründe; Details siehe die jeweiligen Unterpunkte unten.
   - **Uhr/Wecker:** grosse Digitaluhr, eine einstellbare Alarmzeit (Glocke
     antippen = an/aus, +/- für Stunde/Minute). Der Wecker löst auch aus,
     wenn gerade ein anderer Screen aktiv ist (`AlarmService`). Die
     Uhrzeit/das Datum selbst stellt man in den Einstellungen unter
-    "Uhrzeit einstellen" (siehe unten).
+    "Uhrzeit einstellen" (siehe unten). Der Hintergrund unterscheidet jetzt
+    wie das Home-Bild zwischen Tag (warmer Verlauf) und Nacht (dunkler
+    Verlauf + Sternenfeld) statt eines immer gleichen Hintergrunds.
   - **Timer:** drei Presets (2/5/10 Min) antippen zum Starten, piept +
     vibriert bei Ablauf.
   - **Checkliste:** drei feste Morgen-Routine-Punkte abhaken; sind alle
     abgehakt, gibt es einmal pro Tag eine kleine EP-Belohnung.
   - **Steckbrief:** Übersicht über Name, Stufe, EP, Klasse, freigeschaltete
     Spiele, die nächste Stufe (benötigte EP + zusätzlich freigeschaltete
-    Spiele) und Tage seit der letzten Pflege. **Behoben:** zeigte nach dem
+    Spiele) und Tage seit der letzten Pflege, jede Zeile jetzt mit einer
+    farbigen Glanzlicht-Kugel als Aufzählungspunkt statt reinem Fliesstext.
+    **Behoben:** zeigte nach dem
     Hinzufügen des 10. Spiels (Ball-Labyrinth) noch die alte "/9"-Zählung.
     Die vollständige Freischalt-Tabelle über alle Stufen (es gibt keine
     eigene Tabellen-Ansicht dafür, der Bildschirm ist dafür zu klein):
@@ -387,12 +395,14 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
   - **Aussehen:** live Vorschau des Charakters, darunter drei Zeilen
     (Haut/Haare/Kleidung) mit </>-Pfeilen zum Durchblättern der
     Farbvoreinstellungen. Nicht Eltern-PIN-geschützt – das Kind kann
-    seinen Charakter jederzeit selbst anpassen.
+    seinen Charakter jederzeit selbst anpassen. Die Vorschau hat jetzt einen
+    Bühnenlicht-Effekt (mehrere ineinanderliegende, zur Mitte hin hellere
+    Kreise) statt eines flachen Hintergrunds hinter sich.
   - **Geburtstag:** zeigt die Tage bis zum nächsten Geburtstag (aus
     `include/KidProfiles.h`, dort wo auch der Name steht) mit einer kleinen
-    Torten-Grafik; am Geburtstag selbst erscheint statt der Tageszahl eine
-    Glückwunsch-Meldung. Ist am Profil kein Geburtstag hinterlegt, erscheint
-    stattdessen ein Hinweis.
+    Torten-Grafik und Konfetti im Hintergrund; am Geburtstag selbst
+    erscheint statt der Tageszahl eine Glückwunsch-Meldung. Ist am Profil
+    kein Geburtstag hinterlegt, erscheint stattdessen ein Hinweis.
 - **Nachtmodus:** dimmt den Bildschirm automatisch zwischen 20 und 7 Uhr
   (Default-Zeitfenster, RTC-basiert, `NightModeService`) – **standardmässig
   jetzt AUS** (Default vor dem Hardware-Test war fälschlich AN, siehe

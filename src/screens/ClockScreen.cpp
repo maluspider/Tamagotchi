@@ -3,6 +3,7 @@
 #include <M5Unified.h>
 
 #include "../core/GfxKit.h"
+#include "../core/NightModeService.h"
 #include "../core/ScreenId.h"
 #include "../core/Theme.h"
 #include "../core/storage/ProfileStore.h"
@@ -88,8 +89,20 @@ void ClockScreen::drawHomeIcon() const {
 }
 
 void ClockScreen::draw() {
-    gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
-                              gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    // Himmel-Hintergrund analog zu HomeScreen statt einer flachen
+    // Ein-Farb-Flaeche (Nutzerwunsch: "grafiken im tools menue ebenfalls
+    // maximal verbessern") - Sternenfeld bei Nacht, warmer Verlauf tagsueber,
+    // beides passend zur tatsaechlichen Uhrzeit (nightmodeservice::isNight),
+    // damit die Uhr optisch zeigt, was sie anzeigt.
+    const bool isNight = nightmodeservice::isNight(app_.profile);
+    if (isNight) {
+        gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(), theme::kOutline,
+                                  theme::kBackground);
+        gfxkit::starfield(&M5.Display, M5.Display.width(), M5.Display.height() - 30, 36, theme::kTextDim);
+    } else {
+        gfxkit::verticalGradient(&M5.Display, 0, 0, M5.Display.width(), M5.Display.height(),
+                                  gfxkit::darken(theme::kPanel, 0.6f), theme::kBackground);
+    }
 
     m5::rtc_time_t time_;
     M5.Rtc.getTime(&time_);

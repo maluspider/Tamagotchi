@@ -14,6 +14,22 @@ constexpr const char* kMonthNames[12] = {
     "Januar", "Februar", "Maerz", "April", "Mai", "Juni",
     "Juli", "August", "September", "Oktober", "November", "Dezember",
 };
+
+// Feste (nicht zufaellige) Konfetti-Punkte hinter der Torte statt einer
+// leeren Flaeche - Nutzerwunsch "grafiken im tools menue ebenfalls maximal
+// verbessern". Relative Positionen (0..1 der Bildschirmbreite) statt
+// Pixelwerten, damit sie unabhaengig von der tatsaechlichen Displaybreite
+// bleiben; y in festen Pixeln im ruhigen Bereich zwischen Titelleiste und
+// Countdown-Text.
+struct ConfettiDot {
+    float relX;
+    int y;
+    int size;
+};
+constexpr ConfettiDot kConfetti[10] = {
+    {0.12f, 40, 3}, {0.24f, 95, 4}, {0.85f, 45, 3}, {0.90f, 100, 4}, {0.06f, 70, 3},
+    {0.94f, 72, 3}, {0.18f, 120, 4}, {0.80f, 122, 3}, {0.30f, 32, 3}, {0.72f, 34, 4},
+};
 } // namespace
 
 BirthdayScreen::BirthdayScreen(AppContext& app, StateMachine& stateMachine)
@@ -103,6 +119,17 @@ void BirthdayScreen::draw() {
         M5.Display.drawString("Siehe include/KidProfiles.h", cx, 130);
         drawHomeIcon();
         return;
+    }
+
+    // Konfetti hinter der Torte zeichnen (siehe kConfetti oben) - feste
+    // Akzentfarben im Wechsel statt einer einzigen Farbe, fuer den
+    // festlichen Effekt.
+    constexpr uint16_t kConfettiColors[4] = {theme::kAccentPink, theme::kAccentCyan, theme::kAccentGold,
+                                              theme::kAccentOrange};
+    for (int i = 0; i < 10; ++i) {
+        const auto& dot = kConfetti[i];
+        const int x = static_cast<int>(dot.relX * M5.Display.width());
+        M5.Display.fillRect(x, dot.y, dot.size, dot.size, kConfettiColors[i % 4]);
     }
 
     drawCake(cx, 70);

@@ -92,21 +92,27 @@ void SteckbriefScreen::draw() {
 
     int y = 44;
     const int lineHeight = 28;
-    auto drawLine = [&](const String& text) {
+    // Kleine farbige Glanzlicht-Kugel als Aufzaehlungspunkt statt reinem
+    // Fliesstext (Nutzerwunsch: "grafiken im tools menue ebenfalls maximal
+    // verbessern") - je Zeile eine andere Akzentfarbe, ohne die
+    // Zeilenhoehe/den vertikalen Platzbedarf zu veraendern.
+    auto drawLine = [&](const String& text, uint16_t bulletColor) {
+        gfxkit::shinyBall(&M5.Display, 20, y + 10, 6, bulletColor);
         M5.Display.setTextColor(theme::kText);
         M5.Display.setTextDatum(top_left);
         M5.Display.setTextSize(2);
-        M5.Display.drawString(text, 14, y);
+        M5.Display.drawString(text, 34, y);
         y += lineHeight;
     };
 
     const CharacterStage stage = app_.character.stage();
 
-    drawLine(String("Name: ") + (app_.profile.name.length() ? app_.profile.name : String("-")));
-    drawLine(String("Stufe: ") + CharacterEngine::stageName(stage));
-    drawLine(String("Erfahrungspunkte: ") + String(app_.character.xp()));
-    drawLine(String("Klasse: ") + String(app_.profile.klasse));
-    drawLine(String("Spiele frei: ") + String(unlockedGameCount(stage)) + " / " + String(kTotalGameCount));
+    drawLine(String("Name: ") + (app_.profile.name.length() ? app_.profile.name : String("-")), theme::kAccentCyan);
+    drawLine(String("Stufe: ") + CharacterEngine::stageName(stage), theme::kAccentGold);
+    drawLine(String("Erfahrungspunkte: ") + String(app_.character.xp()), theme::kAccentOrange);
+    drawLine(String("Klasse: ") + String(app_.profile.klasse), theme::kAccentPink);
+    drawLine(String("Spiele frei: ") + String(unlockedGameCount(stage)) + " / " + String(kTotalGameCount),
+             theme::kSuccess);
 
     // Nutzerwunsch: "Tabelle, wie viele Punkte fuer weitere Spiele noetig
     // sind?" - es gibt keine eigene Tabellen-Ansicht, aber diese Zeile
@@ -136,7 +142,7 @@ void SteckbriefScreen::draw() {
         const String today = rtcclock::todayIso();
         const long days =
             rtcclock::epochDayFromIso(today) - rtcclock::epochDayFromIso(app_.character.lastCareDateIso());
-        drawLine(String("Zuletzt gespielt: vor ") + String(days) + (days == 1 ? " Tag" : " Tagen"));
+        drawLine(String("Zuletzt gespielt: vor ") + String(days) + (days == 1 ? " Tag" : " Tagen"), theme::kMuted);
     }
 
     drawHomeIcon();

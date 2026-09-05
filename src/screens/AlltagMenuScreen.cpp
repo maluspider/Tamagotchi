@@ -97,6 +97,10 @@ void AlltagMenuScreen::draw() {
                               theme::kBackground);
     M5.Display.fillRect(0, horizonY, M5.Display.width(), M5.Display.height() - horizonY, theme::kBackground);
     gfxkit::starfield(&M5.Display, M5.Display.width(), horizonY - 30, 24, theme::kTextDim);
+    // Ferne Skyline zwischen Sternenfeld und Horizont fuer mehr Tiefe
+    // (Nutzerwunsch: "grafiken im tools menue ebenfalls maximal
+    // verbessern"), analog zu den Spiel-Hintergruenden.
+    gfxkit::hillsSilhouette(&M5.Display, M5.Display.width(), horizonY, 30, 6, gfxkit::darken(theme::kPanelLight, 0.4f));
     retrobackdrop::drawSynthwaveGrid(&M5.Display, M5.Display.width(), M5.Display.height(), horizonY);
 
     const int cellW = M5.Display.width() / kCols;
