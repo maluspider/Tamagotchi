@@ -62,11 +62,12 @@ dorthin (`/profile.json`, `/progress.json`, `/progress/aufgaben_<fach>.json`,
 `/highscores.json` – alle atomar via `JsonStore`, siehe Abschnitt 6 des
 Plans). Karte vor dem ersten Start mit FAT32 formatieren und den Inhalt
 von `sdcard/` (aus diesem Repo) ins Wurzelverzeichnis kopieren, sodass
-`/tasks/mathe_1.json` und `/sprites/character/ei_idle1.png` etc. existieren.
+`/tasks/mathe_1.json`, `/sprites/character/ei_idle1.png` und
+`/sprites/fighter/idle1.png` etc. existieren.
 Das Verzeichnis `/progress/` legt die Firmware beim ersten Start selbst an.
-**Ohne Sprite-Dateien** (Karte fehlt, `/sprites/` nicht kopiert) zeigt der
-Home-Screen automatisch die alte Kreis-Platzhalter-Grafik statt eines
-Sprites – kein Absturz, nur weniger hübsch.
+**Ohne Sprite-Dateien** (Karte fehlt, `/sprites/` nicht kopiert) zeigen
+Home-Screen und Kampf-Modus automatisch ihre jeweilige Platzhalter-Grafik
+statt eines Sprites – kein Absturz, nur weniger hübsch.
 
 ## Setup
 
@@ -343,8 +344,29 @@ Prozess von einem vorherigen, abgebrochenen Upload-Versuch. Beheben:
     loslassen (Swipe = Richtung + Stärke).
   - **Fussball** (ab Meister): wie Basketball, aber nach oben aufs Tor
     schiessen; ein Torwart hält, wenn er rechtzeitig davor steht.
-  - **Kampf-Modus** (ab Meister): linkes/rechtes Bildschirmdrittel unten =
-    bewegen, "S"/"T"-Buttons = Schlag/Tritt, Swipe = Spezialattacke.
+  - **Kampf-Modus** (ab Meister): **komplett überarbeitet** nach Nutzer-
+    Feedback ("der streetfighter game ist ein witz...way to basic...will
+    etwas was aussieht wie das gameboy streetfighter game...maximal
+    hochwertig mit echten Animationen und realistischen Grafiken...nicht mal
+    verstanden wie man es bedient"):
+    - Echte Sprite-Kämpfer (`FighterRenderer`, `sdcard/sprites/fighter/`,
+      erzeugt von `tools/generate_fighter_sprites.py`) mit Kopf, Rumpf und
+      je zwei Gliedmassen-Segmenten pro Arm/Bein statt des alten
+      Rumpf-Rechtecks+Kreis ohne Gliedmassen. 8 Posen (Idle-Atmen im
+      Wechsel, Gehen im Wechsel, Schlag, Tritt, Treffer-Reaktion,
+      K.o.-Liegepose) ergeben echte Animation statt eines statischen Blobs.
+      Der Spieler behält seine in "Aussehen" gewählten Haut-/Haarfarben
+      (persönlicher Charakter, jetzt auch im Kampf wiedererkennbar), dazu
+      ein fester cyanfarbener Gi gegen den festen roten Gi der KI.
+    - Steuerung neu als deutlich sichtbare Leiste unterhalb der
+      Kampf-Bühne: ◀/▶-Tasten zum Bewegen (halten), "S"/"T"-Tasten für
+      Schlag/Tritt (antippen), weiterhin eine Wisch-Geste überall für die
+      Spezialattacke. Beim Öffnen des Screens erklärt ein "Wie spielt
+      man?"-Overlay (einmal pro Aufruf, durch Antippen weg, hält die Runde
+      an) alle Eingaben – behebt das Feedback "nicht mal verstanden wie man
+      es bedient".
+    - Kleine "Hit-Spark"-Funken beim Treffer für mehr Wucht, wie in
+      klassischen 90er-Kampfspielen.
   - Kein Spiel generiert EP oder Spielzeit – sie verbrauchen nur
     Spielzeitguthaben und kehren bei Null automatisch zu Home zurück.
     Highscores (wo sinnvoll) werden lokal in `/highscores.json`
@@ -461,13 +483,16 @@ include/config.h            Zentrale Konfigurationswerte (Pfade, Limits, Pins)
 include/KidProfiles.h       Eigene Kinder eintragen (Name + Alter) - siehe oben
 sdcard/tasks/                Aufgaben-Content zum Kopieren auf die SD-Karte
 sdcard/sprites/character/    Charakter-Sprites zum Kopieren auf die SD-Karte
-tools/generate_sprites.py    Erzeugt die Sprite-PNGs (pip install pillow)
+sdcard/sprites/fighter/      Kampf-Modus-Sprites zum Kopieren auf die SD-Karte
+tools/generate_sprites.py    Erzeugt die Charakter-Sprite-PNGs (pip install pillow)
+tools/generate_fighter_sprites.py  Erzeugt die Kampf-Modus-Sprite-PNGs (pip install pillow)
 src/main.cpp                 Einstiegspunkt (setup()/loop())
 src/core/                    Screen-unabhängige Module
   Screen.h / ScreenId.h / StateMachine.*   Zustandsautomat (Abschnitt 5)
   CharacterEngine.*         Tamagotchi-Charaktersystem (Abschnitt 9)
   CharacterRenderer.*        Sprite-Rendering + Trait-Palette-Swap (Abschnitt 4)
   CharacterTraits.h          Trait-Farbvoreinstellungen + Markerfarben
+  FighterRenderer.*           Kampf-Modus-Sprite-Rendering + Posen (Idle/Walk/Punch/Kick/Hurt/Ko)
   Theme.h                    Zentrales 80er-/Arcade-Neon-Farbschema (Abschnitt 4)
   RetroBackdrop.*            Prozeduraler Synthwave-Hintergrund (Sonne+Gitter, SNES-Look)
   GfxKit.*                    Farbverlauf/Bevel-Panel/Sternenfeld/Glanzlicht-Toolkit (Home+alle Spiele)

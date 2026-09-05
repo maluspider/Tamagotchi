@@ -34,6 +34,14 @@ constexpr int kRtcPlausibleMinYear = 2024;
 constexpr const char* kSpriteCharacterDir = "/sprites/character/";
 constexpr int kSpriteSourceSizePx = 32;
 
+// Kampf-Modus-Sprites (<pose>.png, 56x64, siehe
+// tools/generate_fighter_sprites.py und FighterRenderer.*). Nutzerwunsch
+// "maximal hochwertig...echte Animationen und realistische Grafiken" statt
+// des alten Rumpf-Blobs (Rechteck+Kreis ohne Gliedmassen).
+constexpr const char* kSpriteFighterDir = "/sprites/fighter/";
+constexpr int kFighterSourceWidthPx = 56;
+constexpr int kFighterSourceHeightPx = 64;
+
 // --- Spielzeit-Oekonomie (Abschnitt 7) ---
 constexpr uint16_t kMinutesPerSolvedTask = 2;
 constexpr uint16_t kDailyPlaytimeLimitMinutes = 60;
